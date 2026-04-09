@@ -1,0 +1,197 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@400;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap");
+@import "tailwindcss";
+
+/*
+==========================================================================
+【디자인 시스템】
+- 주제: Korean Church Digital Sanctuary (한국 교회 디지털 성소)
+- 스타일: Neo-Korean Minimalism with Sacred Warmth
+- 브랜드 주색: 파란색 (Hue 230-240) - 신뢰, 평화, 영성
+- accent: 따뜻한 골드톤 (Hue 45) - 성스러움과 환대
+==========================================================================
+*/
+
+:root {
+  --font-sans: 'Noto Sans KR', 'IBM Plex Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  --radius: 0.75rem;
+
+  --background: oklch(0.99 0.002 240);
+  --foreground: oklch(0.15 0.01 240);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.01 240);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.01 240);
+  --primary: oklch(0.52 0.18 235);
+  --primary-foreground: oklch(0.98 0.005 235);
+  --secondary: oklch(0.94 0.01 240);
+  --secondary-foreground: oklch(0.25 0.015 240);
+  --muted: oklch(0.96 0.005 240);
+  --muted-foreground: oklch(0.48 0.015 240);
+  --accent: oklch(0.88 0.08 45);
+  --accent-foreground: oklch(0.25 0.02 45);
+  --destructive: oklch(0.55 0.22 15);
+  --destructive-foreground: oklch(0.98 0.005 15);
+  --border: oklch(0.90 0.005 240);
+  --input: oklch(0.90 0.005 240);
+  --ring: oklch(0.52 0.18 235);
+
+  --chart-1: oklch(0.58 0.15 145);
+  --chart-2: oklch(0.55 0.18 235);
+  --chart-3: oklch(0.65 0.18 50);
+  --chart-4: oklch(0.58 0.18 285);
+  --chart-5: oklch(0.60 0.15 190);
+}
+
+.dark {
+  --background: oklch(0.12 0.015 240);
+  --foreground: oklch(0.95 0.008 240);
+  --card: oklch(0.15 0.018 240);
+  --card-foreground: oklch(0.95 0.008 240);
+  --primary: oklch(0.62 0.20 235);
+  --primary-foreground: oklch(0.12 0.015 235);
+  --secondary: oklch(0.22 0.02 240);
+  --secondary-foreground: oklch(0.92 0.01 240);
+  --muted: oklch(0.20 0.018 240);
+  --muted-foreground: oklch(0.65 0.015 240);
+  --accent: oklch(0.75 0.12 45);
+  --accent-foreground: oklch(0.15 0.018 45);
+  --destructive: oklch(0.60 0.24 15);
+  --border: oklch(0.25 0.02 240);
+  --input: oklch(0.25 0.02 240);
+  --ring: oklch(0.62 0.20 235);
+
+  --chart-1: oklch(0.65 0.18 145);
+  --chart-2: oklch(0.62 0.20 235);
+  --chart-3: oklch(0.72 0.20 50);
+  --chart-4: oklch(0.65 0.20 285);
+  --chart-5: oklch(0.68 0.18 190);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply scroll-smooth antialiased;
+  }
+
+  body {
+    @apply bg-background text-foreground min-h-screen;
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  ::selection {
+    @apply bg-primary/20 text-primary;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+  }
+}
+
+/* Vue transition animations */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: opacity 0.2s ease, max-height 0.2s ease;
+  overflow: hidden;
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+
+.slide-down-enter-to,
+.slide-down-leave-from {
+  opacity: 1;
+  max-height: 500px;
+}
+
+/* Dropdown animation */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.96);
+}
+
+/* Fade-up animation for scroll reveal */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease forwards;
+}
