@@ -1,14 +1,10 @@
 import type { SermonItem, HistoryItem, StaffMember, WorshipSchedule, NewsItem, PhotoAlbum } from '@/lib/index'
 
+// HomePage 미리보기용 (최근 3개) — 추후 Supabase로 교체 예정
 export const sermons: SermonItem[] = [
   { id: 8, title: '하늘에서 듣고 땅을 고치시라', scripture: '역대하 7:14-16', preacher: '고형돈 목사', date: '2026-03-15' },
   { id: 7, title: '여호와께 바라는 한가지 일', scripture: '시편 27:4-6', preacher: '고형돈 목사', date: '2026-03-08' },
   { id: 6, title: '주안에 뿌리내리고', scripture: '요한복음 15:1-5', preacher: '고형돈 목사', date: '2026-03-01' },
-  { id: 5, title: '함께 자라나 열매 맺는', scripture: '갈라디아서 5:22-23', preacher: '고형돈 목사', date: '2026-02-22' },
-  { id: 4, title: '성령의 인도하심을 따라', scripture: '로마서 8:14-17', preacher: '강준원 목사', date: '2026-02-15' },
-  { id: 3, title: '믿음으로 승리하는 삶', scripture: '히브리서 11:1-6', preacher: '고형돈 목사', date: '2026-02-08' },
-  { id: 2, title: '기도의 능력', scripture: '빌립보서 4:6-7', preacher: '강준원 목사', date: '2026-02-01' },
-  { id: 1, title: '새해를 여는 믿음', scripture: '이사야 43:18-19', preacher: '고형돈 목사', date: '2026-01-04' },
 ]
 
 export const historyData: HistoryItem[] = [

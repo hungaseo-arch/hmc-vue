@@ -9,7 +9,9 @@ export const ROUTE_PATHS = {
   DIRECTIONS: '/introduction/directions',
   // 예배와기도
   SUNDAY_SERMON: '/worship/sunday-sermon',
+  SUNDAY_SERMON_DETAIL: '/worship/sunday-sermon/:id',
   PASTORAL_COLUMN: '/worship/pastoral-column',
+  PASTORAL_COLUMN_DETAIL: '/worship/pastoral-column/:id',
   CHOIR: '/worship/choir',
   // 교육과양육
   J_ANGELS: '/education/j-angels',
@@ -19,8 +21,11 @@ export const ROUTE_PATHS = {
   ADULT_EDU: '/education/adult',
   // 행정과관리
   CHURCH_NEWS: '/admin/news',
+  CHURCH_NEWS_DETAIL: '/admin/news/:id',
   PHOTO_ALBUM: '/admin/photos',
+  PHOTO_ALBUM_DETAIL: '/admin/photos/:id',
   BULLETIN: '/admin/bulletin',
+  BULLETIN_DETAIL: '/admin/bulletin/:id',
 } as const
 
 export interface NavSubItem {
@@ -79,6 +84,14 @@ export interface SermonItem {
   scripture: string
   preacher: string
   date: string
+  link?: string
+}
+
+export interface PastoralColumnItem {
+  id: number
+  title: string
+  content: string | null
+  created_at: string
 }
 
 export interface HistoryItem {
@@ -105,6 +118,13 @@ export interface NewsItem {
   date: string
   summary: string
   image: string
+}
+
+export interface WeeklyBulletinItem {
+  id: number
+  title: string
+  image_url: string
+  created_at: string
 }
 
 export interface PhotoAlbum {

@@ -8,11 +8,10 @@
             <BookOpen class="w-5 h-5 text-primary" />
             설교 목록
           </h2>
-          <!-- React: 두 개의 버튼 + onClick → Vue: @click + :class -->
           <div class="flex gap-2">
             <button
               v-for="opt in sortOptions"
-              :key="opt.value"
+              :key="opt.label"
               :class="[
                 'px-4 py-2 text-sm rounded-lg font-medium transition-colors',
                 sortDesc === opt.value
@@ -26,7 +25,9 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-border overflow-hidden">
+        <div v-if="loading" class="text-center py-12 text-muted-foreground">불러오는 중...</div>
+        <div v-else-if="error" class="text-center py-12 text-red-500">{{ error }}</div>
+        <div v-else class="bg-white rounded-2xl shadow-sm border border-border overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
@@ -39,14 +40,11 @@
                 </tr>
               </thead>
               <tbody>
-                <!--
-                  React: useState + .sort() 인라인
-                  Vue:   computed sortedSermons으로 분리 + v-for
-                -->
-                <tr
+                  <tr
                   v-for="sermon in sortedSermons"
                   :key="sermon.id"
                   class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                  @click="goToDetail(sermon.id)"
                 >
                   <td class="py-4 px-4 text-muted-foreground">{{ sermon.id }}</td>
                   <td class="py-4 px-4 font-medium">{{ sermon.title }}</td>
@@ -64,13 +62,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { BookOpen } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
-import { sermons } from '@/data/index'
+import { supabase } from '@/lib/supabase'
+import type { SermonItem } from '@/lib/index'
 
-// React: useState(true) → Vue: ref(true)
+const router = useRouter()
+
+function goToDetail(id: number) {
+  router.push(`/worship/sunday-sermon/${id}`)
+}
+
+const sermons = ref<SermonItem[]>([])
+const loading = ref(true)
+const error = ref<string | null>(null)
+
+onMounted(async () => {
+  const { data, error: err } = await supabase
+    .from('sermons')
+    .select('*')
+
+  if (err) {
+    error.value = err.message
+  } else {
+    sermons.value = data ?? []
+  }
+  loading.value = false
+})
+
 const sortDesc = ref(true)
 
 const sortOptions = [
@@ -78,8 +100,7 @@ const sortOptions = [
   { label: '오래된 순', value: false },
 ]
 
-// React: 렌더마다 sort 실행 → Vue: computed로 캐싱 (의존성 변경 시만 재계산)
 const sortedSermons = computed(() =>
-  [...sermons].sort((a, b) => sortDesc.value ? b.id - a.id : a.id - b.id)
+  [...sermons.value].sort((a, b) => sortDesc.value ? b.id - a.id : a.id - b.id)
 )
 </script>

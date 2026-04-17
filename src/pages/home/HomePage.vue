@@ -1,11 +1,7 @@
 <template>
   <TheLayout>
     <!-- ── Hero Carousel ───────────────────────────────────────── -->
-    <section class="relative h-[500px] md:h-[600px] overflow-hidden">
-      <!--
-        React: {heroSlides.map((slide, i) => <div className={`... ${i === current ? 'opacity-100' : 'opacity-0'}`}>
-        Vue:   v-for + :class 바인딩
-      -->
+    <section class="relative h-125 md:h-150 overflow-hidden">
       <div
         v-for="(slide, i) in heroSlides"
         :key="i"
@@ -15,7 +11,7 @@
         ]"
       >
         <img :src="slide.bg" :alt="slide.title" class="w-full h-full object-cover" />
-        <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/60" />
+        <div class="absolute inset-0 bg-linear-to-b from-black/50 via-black/40 to-black/60" />
         <div class="absolute inset-0 flex items-center justify-center">
           <div class="text-center text-white px-4">
             <p
@@ -48,7 +44,6 @@
       </div>
 
       <!-- Carousel controls -->
-      <!-- React: onClick={prev} → Vue: @click="prev()" -->
       <button
         class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors"
         @click="prev"
@@ -80,9 +75,8 @@
     <section class="bg-primary text-primary-foreground py-6">
       <div class="container mx-auto px-4">
         <div class="flex flex-wrap justify-center gap-6 md:gap-10">
-          <!-- React: {worshipSchedules.slice(0,4).map()} → Vue: v-for with sliced computed -->
           <div
-            v-for="(ws, i) in worshipSchedules.slice(0, 4)"
+            v-for="(ws, i) in mainSchedules"
             :key="i"
             class="flex items-center gap-2 text-sm"
           >
@@ -150,10 +144,6 @@
           <h2 class="text-3xl font-bold">한마음교회의 정체성</h2>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-          <!--
-            React: framer-motion whileInView → Vue: IntersectionObserver + CSS animation
-            v-for로 반복, :style로 지연 적용
-          -->
           <div
             v-for="(val, i) in communityValues"
             :key="i"
@@ -166,7 +156,7 @@
               <component :is="val.icon" class="w-6 h-6" />
             </div>
             <h3 class="font-semibold mb-2">{{ val.label }}</h3>
-            <p class="text-sm text-muted-foreground leading-relaxed">{{ val.desc }}</p>
+            <p class="text-sm text-muted-foreground leading-relaxed">{{ val.desc }}<br />공동체</p>
           </div>
         </div>
       </div>
@@ -188,9 +178,8 @@
           </RouterLink>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <!-- SermonCard: 재사용 컴포넌트로 분리 -->
           <SermonCard
-            v-for="(sermon, i) in sermons.slice(0, 3)"
+            v-for="(sermon, i) in recentSermons"
             :key="sermon.id"
             :sermon="sermon"
             :style="{ animationDelay: `${i * 0.08}s` }"
@@ -215,7 +204,7 @@
             v-for="(edu, i) in educationLinks"
             :key="i"
             :to="edu.path"
-            :class="`block bg-gradient-to-br ${edu.bg} rounded-2xl p-6 text-white text-center hover:shadow-lg transition-all hover:-translate-y-1`"
+            :class="`block bg-linear-to-br ${edu.bg} rounded-2xl p-6 text-white text-center hover:shadow-lg transition-all hover:-translate-y-1`"
           >
             <div class="text-3xl mb-3">{{ edu.emoji }}</div>
             <div class="font-bold text-lg">{{ edu.label }}</div>
@@ -241,7 +230,6 @@
           </RouterLink>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- NewsCard: 재사용 컴포넌트 -->
           <NewsCard
             v-for="item in newsItems"
             :key="item.id"
@@ -299,7 +287,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ChevronLeft, ChevronRight, Clock, MapPin, BookOpen, Users, Heart, Cross } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import SermonCard from '@/components/SermonCard.vue'
@@ -330,10 +318,10 @@ const heroSlides = [
 ]
 
 const communityValues = [
-  { icon: BookOpen, label: '말씀공동체', desc: '성경을 배우고 훈련하며 행하는 공동체', color: 'text-chart-2' },
-  { icon: Heart, label: '사랑공동체', desc: '함께 서로 사랑하는 공동체', color: 'text-destructive' },
-  { icon: Users, label: '예배공동체', desc: '삼위일체 하나님을 예배하는 공동체', color: 'text-chart-1' },
-  { icon: Cross, label: '선교공동체', desc: '전도와 선교를 쉬지 않는 공동체', color: 'text-chart-3' },
+  { icon: BookOpen, label: '말씀공동체', desc: '성경을 배우고 훈련하며 행하는', color: 'text-chart-2' },
+  { icon: Heart, label: '사랑공동체', desc: '함께 서로 사랑하는', color: 'text-destructive' },
+  { icon: Users, label: '예배공동체', desc: '삼위일체 하나님을 예배하는', color: 'text-chart-1' },
+  { icon: Cross, label: '선교공동체', desc: '전도와 선교를 쉬지 않는', color: 'text-chart-3' },
 ]
 
 const educationLinks = [
@@ -345,19 +333,17 @@ const educationLinks = [
 ]
 
 // ── 캐러셀 로직 ─────────────────────────────────────────────────
-// React: useState(0) → Vue: ref(0)
 const current = ref(0)
 let timer: ReturnType<typeof setInterval>
+let scrollObserver: IntersectionObserver | null = null
 
-// React: useEffect([]) → Vue: onMounted
 onMounted(() => {
   timer = setInterval(() => {
     current.value = (current.value + 1) % heroSlides.length
   }, 5000)
 
-  // IntersectionObserver로 스크롤 reveal 처리
   const cards = document.querySelectorAll('[data-index]')
-  const observer = new IntersectionObserver(
+  scrollObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -368,13 +354,16 @@ onMounted(() => {
     },
     { threshold: 0.1 }
   )
-  cards.forEach((card) => observer.observe(card))
+  cards.forEach((card) => scrollObserver!.observe(card))
 })
 
-// React: useEffect return cleanup → Vue: onUnmounted
 onUnmounted(() => {
   clearInterval(timer)
+  scrollObserver?.disconnect()
 })
+
+const recentSermons = computed(() => sermons.slice(0, 3))
+const mainSchedules = computed(() => worshipSchedules.slice(0, 4))
 
 function prev() {
   current.value = (current.value - 1 + heroSlides.length) % heroSlides.length

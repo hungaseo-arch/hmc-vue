@@ -8,14 +8,10 @@
             <!-- Horizontal timeline line -->
             <div class="absolute top-6 left-0 right-0 h-0.5 bg-border" />
 
-            <!--
-              React: [...historyData].reverse().map()
-              Vue:   computed로 정렬된 데이터를 v-for로 렌더링
-            -->
             <div
               v-for="(item, i) in reversedHistory"
               :key="item.year"
-              class="relative min-w-[220px] max-w-[240px] animate-fade-in-up"
+              class="relative min-w-55 max-w-60 animate-fade-in-up"
               :style="{ animationDelay: `${i * 0.04}s` }"
             >
               <!-- Timeline dot -->
@@ -23,7 +19,6 @@
               <div class="bg-white border border-border rounded-2xl p-5 mt-14 shadow-sm hover:shadow-md transition-shadow">
                 <div class="text-2xl font-bold text-primary mb-3">{{ item.year }}</div>
                 <ul class="space-y-1.5">
-                  <!-- React: item.events.map() → Vue: v-for -->
                   <li
                     v-for="(event, j) in item.events"
                     :key="j"
@@ -48,7 +43,5 @@ import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { historyData } from '@/data/index'
 
-// React: [...historyData].reverse() (렌더링 중 매번 실행)
-// Vue: computed로 캐싱 → 성능 최적화
 const reversedHistory = computed(() => [...historyData].reverse())
 </script>

@@ -1,21 +1,21 @@
 <template>
   <footer class="bg-foreground text-background mt-auto">
-    <div class="container mx-auto px-4 py-8 hidden md:block">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="container px-4 py-8 hidden md:block">
+      <div class="grid grid-cols-1 md:grid-cols-3 mx-auto">
         <!-- Church info -->
         <div class="md:col-span-2">
-          <div class="mb-5">
+          <!-- <div class="mb-5">
             <img
               src="/logo_hmc.png"
               alt="자카르타 한마음교회"
               class="h-14 w-auto object-contain brightness-0 invert"
             />
-          </div>
+          </div> -->
           <p class="text-background/70 text-sm leading-relaxed mb-4">
-            인도네시아 자카르타에서 삼위일체 하나님을 예배하고,<br />
-            기도하며, 말씀을 배우고 행하며, 전도와 선교를 쉬지 않는 공동체입니다.
+            인도네시아 자카르타에서 삼위일체 하나님을 예배하고 기도하며,
+            말씀을 배우고 행하며, 전도와 선교를 쉬지 않는 공동체입니다.
           </p>
-          <div class="space-y-2 text-sm text-background/70">
+          <div class="space-y-2 mx-2 text-sm text-background/70">
             <div class="flex items-start gap-2">
               <MapPin class="w-4 h-4 mt-0.5 text-primary shrink-0"/>
               <span>
@@ -31,10 +31,9 @@
         </div>
 
         <!-- Worship schedule -->
-        <div>
-          <h3 class="font-semibold text-background py-4 mb-4 text-sm uppercase tracking-wider">예배 안내</h3>
-          <ul class="space-y-2 text-sm text-background/70" >
-            <!-- React: 하드코딩 → Vue: v-for로 데이터 반복 -->
+        <div class="w-64 mx-auto">
+          <h3 class="font-semibold text-background mb-4 text-sm uppercase tracking-wider">예배 안내</h3>
+          <ul class="space-y-1 mx-2 text-sm text-background/70" >
             <li
               v-for="ws in footerSchedules"
               :key="ws.name"
@@ -49,7 +48,7 @@
     </div>
 
     <div class="border-t border-background/10">
-      <div class="container mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-background/50">
+      <div class="container mx-auto px-10 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-background/50">
         <span>© 2026 자카르타 한마음교회. All rights reserved.</span>
         <span>내가 이 반석 위에 교회를 세우리니 (마 16:18)</span>
       </div>

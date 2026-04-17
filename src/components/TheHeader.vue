@@ -38,7 +38,6 @@
         </RouterLink>
 
         <!-- Desktop nav -->
-        <!-- React: onMouseEnter/Leave → Vue: @mouseenter/@mouseleave -->
         <nav class="hidden lg:flex items-center gap-1">
           <div
             v-for="item in NAV_ITEMS"
@@ -56,7 +55,6 @@
               ]"
             >
               {{ item.label }}
-              <!-- React: className 조건 → Vue: :class 바인딩 -->
               <ChevronDown
                 :class="[
                   'w-3.5 h-3.5 transition-transform duration-200',
@@ -65,13 +63,11 @@
               />
             </button>
 
-            <!-- React: AnimatePresence + motion.div → Vue: <Transition> -->
             <Transition name="dropdown">
               <div
                 v-if="activeDropdown === item.label"
-                class="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-border/50 py-1.5 min-w-[160px] overflow-hidden"
+                class="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-border/50 py-1.5 min-w-40 overflow-hidden"
               >
-                <!-- React: NavLink isActive prop → Vue: RouterLink + useLink or active-class -->
                 <RouterLink
                   v-for="child in item.children"
                   :key="child.path"
@@ -87,7 +83,6 @@
         </nav>
 
         <!-- Mobile menu button -->
-        <!-- React: onClick={() => setState(!state)} → Vue: @click="toggle()" -->
         <button
           class="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors"
           aria-label="메뉴 열기"
@@ -100,7 +95,6 @@
     </div>
 
     <!-- Mobile menu -->
-    <!-- React: AnimatePresence height → Vue: <Transition name="slide-down"> -->
     <Transition name="slide-down">
       <div
         v-if="isMenuOpen"
@@ -151,19 +145,15 @@ import { Menu, X, ChevronDown, Phone, MapPin } from 'lucide-vue-next'
 import { NAV_ITEMS, ROUTE_PATHS } from '@/lib/index'
 import { useScrolled } from '@/composables/useScrolled'
 
-// React: useState(false) → Vue: ref(false)
 const isMenuOpen = ref(false)
 const activeDropdown = ref<string | null>(null)
 const mobileOpenMenu = ref<string | null>(null)
 const headerRef = ref<HTMLDivElement | null>(null)
 
-// composable로 분리된 스크롤 감지
-// React: useEffect + window.addEventListener → composable 내부에서 처리
 const { scrolled } = useScrolled(10)
 
 const route = useRoute()
 
-// React: useEffect([location]) → Vue: watch(route, ...)
 watch(route, () => {
   isMenuOpen.value = false
   activeDropdown.value = null
@@ -174,7 +164,6 @@ function toggleMobileMenu(label: string) {
   mobileOpenMenu.value = mobileOpenMenu.value === label ? null : label
 }
 
-// React: useEffect + document.addEventListener → Vue: onMounted/onUnmounted
 function handleClickOutside(e: MouseEvent) {
   if (headerRef.value && !headerRef.value.contains(e.target as Node)) {
     activeDropdown.value = null

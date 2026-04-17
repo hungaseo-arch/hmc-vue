@@ -15,7 +15,6 @@
             <div class="bg-white rounded-2xl border border-border p-6 shadow-sm">
               <h3 class="font-bold text-lg mb-4">안녕하세요? 한마음교회 {{ name }}입니다.</h3>
               <p class="text-muted-foreground leading-loose text-sm">{{ description }}</p>
-              <!-- React: {verse && <div>} → Vue: v-if -->
               <div v-if="verse" class="mt-5 p-4 rounded-xl bg-muted/50 border-l-4 border-primary">
                 <p class="text-sm font-medium leading-relaxed">{{ verse }}</p>
               </div>
@@ -24,9 +23,6 @@
 
           <!-- Right column -->
           <div class="space-y-4 animate-fade-in-up" style="animation-delay: 0.1s">
-            <!--
-              React: details?.map() → Vue: v-if + v-for
-            -->
             <template v-if="details">
               <div
                 v-for="(section, i) in details"
@@ -60,7 +56,6 @@
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 
-// React: PropTypes / interface → Vue: defineProps<T>() with TypeScript
 withDefaults(defineProps<{
   name: string
   subtitle: string

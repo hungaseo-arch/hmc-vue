@@ -15,7 +15,9 @@ const router = createRouter({
 
     // 예배와기도
     { path: ROUTE_PATHS.SUNDAY_SERMON, component: () => import('@/pages/worship/SundaySermonPage.vue') },
+    { path: ROUTE_PATHS.SUNDAY_SERMON_DETAIL, component: () => import('@/pages/detailPage/SundaySermonDetailPage.vue') },
     { path: ROUTE_PATHS.PASTORAL_COLUMN, component: () => import('@/pages/worship/PastoralColumnPage.vue') },
+    { path: ROUTE_PATHS.PASTORAL_COLUMN_DETAIL, component: () => import('@/pages/detailPage/PastoralColumnDetailPage.vue') },
     { path: ROUTE_PATHS.CHOIR, component: () => import('@/pages/worship/ChoirPage.vue') },
 
     // 교육과양육
@@ -27,8 +29,11 @@ const router = createRouter({
 
     // 행정과관리
     { path: ROUTE_PATHS.CHURCH_NEWS, component: () => import('@/pages/admin/ChurchNewsPage.vue') },
+    { path: ROUTE_PATHS.CHURCH_NEWS_DETAIL, component: () => import('@/pages/detailPage/ChurchNewsDetailPage.vue') },
     { path: ROUTE_PATHS.PHOTO_ALBUM, component: () => import('@/pages/admin/PhotoAlbumPage.vue') },
+    { path: ROUTE_PATHS.PHOTO_ALBUM_DETAIL, component: () => import('@/pages/detailPage/PhotoAlbumDetailPage.vue') },
     { path: ROUTE_PATHS.BULLETIN, component: () => import('@/pages/admin/BulletinPage.vue') },
+    { path: ROUTE_PATHS.BULLETIN_DETAIL, component: () => import('@/pages/detailPage/BulletinDetailPage.vue') },
 
     // 404
     { path: '/:pathMatch(.*)*', component: () => import('@/pages/NotFoundPage.vue') },

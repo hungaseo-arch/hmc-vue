@@ -25,10 +25,6 @@
                 </tr>
               </thead>
               <tbody>
-                <!--
-                  React: worshipSchedules.map((ws, i) => <tr className={i%2===0 ? ... : ...}>
-                  Vue:   v-for + :class 조건부 바인딩
-                -->
                 <tr
                   v-for="(ws, i) in worshipSchedules"
                   :key="i"
@@ -60,7 +56,6 @@ import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { worshipSchedules } from '@/data/index'
 
-// React: 템플릿 내 삼항연산자 중첩 → Vue: 함수로 분리 (가독성 향상)
 function locationBadgeClass(location: string): string {
   if (location === '온라인') return 'bg-chart-1/10 text-chart-1'
   if (location === '소예배당') return 'bg-chart-3/10 text-chart-3'

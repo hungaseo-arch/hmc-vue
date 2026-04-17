@@ -15,7 +15,6 @@
               세계에서 인구가 4번째로 많은 인도네시아, 무슬림들이 85%이상이 되는 이 땅,
               선교지임과 동시에 삶의 터전이기에 이곳에서 예수의 이름을 부르며 2002년도에 한마음 공동체가 세워졌습니다.
             </p>
-            <!-- React: 하드코딩 → Vue: v-for로 리스트 렌더링 -->
             <div class="border-l-4 border-primary pl-6 space-y-3">
               <p
                 v-for="value in communityIdentities"

@@ -11,7 +11,6 @@
             :style="{ animationDelay: `${i * 0.15}s` }"
           >
             <div class="w-48 h-60 rounded-2xl overflow-hidden bg-muted shadow-md mb-5 mx-auto flex items-center justify-center">
-              <!-- React: {staff.image ? <img> : <User icon>} → Vue: v-if / v-else -->
               <img
                 v-if="staff.image"
                 :src="staff.image"

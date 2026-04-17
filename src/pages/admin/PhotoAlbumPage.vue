@@ -9,6 +9,7 @@
             :key="album.id"
             class="bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md transition-all hover:-translate-y-1 cursor-pointer group animate-fade-in-up"
             :style="{ animationDelay: `${i * 0.08}s` }"
+            @click="goToDetail(album.id)"
           >
             <div class="relative overflow-hidden h-48">
               <img
@@ -16,7 +17,6 @@
                 :alt="album.title"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
-              <!-- React: className → Vue: class -->
               <div class="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                 <ImageIcon class="w-3 h-3" />
                 {{ album.count }}장
@@ -35,7 +35,13 @@
 
 <script setup lang="ts">
 import { Image as ImageIcon } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { photoAlbums } from '@/data/index'
+
+const router = useRouter()
+function goToDetail(id: number) {
+  router.push(`/admin/photos/${id}`)
+}
 </script>
