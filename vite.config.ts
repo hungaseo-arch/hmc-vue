@@ -7,6 +7,8 @@ export default defineConfig({
   plugins: [
     vue(),
     tailwindcss(),
+    base: '/hanmaum/',
+    
   ],
   resolve: {
     alias: {
