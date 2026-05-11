@@ -9,18 +9,32 @@
     <!-- Top info bar -->
     <div class="bg-primary text-primary-foreground py-1.5 hidden md:block">
       <div class="container mx-auto px-4 flex items-center justify-between text-xs">
-        <div class="flex items-center gap-4">
-          <span class="flex items-center gap-1">
-            <MapPin class="w-3 h-3" />
-            Darmawangsa Square, Jakarta 12160, Indonesia
-          </span>
-          <span class="flex items-center gap-1">
-            <Phone class="w-3 h-3" />
-            021-739-5035
-          </span>
-        </div>
         <div class="text-xs opacity-80">
           2026년 표어: 주안에 뿌리내리고 함께 자라나 열매 맺는 성도의 교회 (요 15:5)
+        </div>
+        <div class="flex items-center gap-3">
+          <RouterLink
+            v-if="isLoggedIn"
+            :to="ROUTE_PATHS.PROFILE"
+            class="flex items-center gap-1.5 text-xs opacity-80 hover:opacity-100 transition-opacity underline underline-offset-2"
+          >
+            <span v-if="isAdmin" class="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium no-underline" style="text-decoration: none;">관리자</span>
+            {{ displayName }}
+          </RouterLink>
+          <button
+            v-if="isLoggedIn"
+            class="text-xs opacity-80 hover:opacity-100 transition-opacity underline underline-offset-2 cursor-pointer"
+            @click="handleLogout"
+          >
+            로그아웃
+          </button>
+          <RouterLink
+            v-else
+            :to="ROUTE_PATHS.LOGIN"
+            class="text-xs opacity-80 hover:opacity-100 transition-opacity underline underline-offset-2 cursor-pointer"
+          >
+            로그인
+          </RouterLink>
         </div>
       </div>
     </div>
@@ -132,6 +146,21 @@
               </div>
             </Transition>
           </div>
+
+          <!-- 모바일 인증 버튼 -->
+          <div class="border-t border-border pt-3 mt-2">
+            <template v-if="isLoggedIn">
+              <RouterLink :to="ROUTE_PATHS.PROFILE" class="px-3 py-2 text-sm text-muted-foreground flex items-center gap-2 rounded-lg hover:bg-muted transition-colors">
+                <span v-if="isAdmin" class="bg-primary/10 text-primary text-xs px-1.5 py-0.5 rounded-full font-medium">관리자</span>
+                {{ displayName }}
+              </RouterLink>
+              <button class="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-muted transition-colors text-red-500" @click="handleLogout">로그아웃</button>
+            </template>
+            <template v-else>
+              <RouterLink :to="ROUTE_PATHS.LOGIN" class="block px-3 py-2.5 text-sm rounded-lg hover:bg-muted transition-colors">로그인</RouterLink>
+              <RouterLink :to="ROUTE_PATHS.SIGNUP" class="block px-3 py-2.5 text-sm rounded-lg hover:bg-muted transition-colors font-medium text-primary">회원가입</RouterLink>
+            </template>
+          </div>
         </div>
       </div>
     </Transition>
@@ -140,10 +169,11 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { Menu, X, ChevronDown, Phone, MapPin } from 'lucide-vue-next'
 import { NAV_ITEMS, ROUTE_PATHS } from '@/lib/index'
 import { useScrolled } from '@/composables/useScrolled'
+import { useAuth } from '@/composables/useAuth'
 
 const isMenuOpen = ref(false)
 const activeDropdown = ref<string | null>(null)
@@ -151,6 +181,16 @@ const mobileOpenMenu = ref<string | null>(null)
 const headerRef = ref<HTMLDivElement | null>(null)
 
 const { scrolled } = useScrolled(10)
+const { isLoggedIn, isAdmin, displayName, logout } = useAuth()
+const router = useRouter()
+
+async function handleLogout() {
+  try {
+    await logout()
+  } finally {
+    router.push(ROUTE_PATHS.HOME)
+  }
+}
 
 const route = useRoute()
 
@@ -165,6 +205,7 @@ function toggleMobileMenu(label: string) {
 }
 
 function handleClickOutside(e: MouseEvent) {
+  if (!activeDropdown.value) return
   if (headerRef.value && !headerRef.value.contains(e.target as Node)) {
     activeDropdown.value = null
   }

@@ -2,6 +2,7 @@
   <div
     class="bg-white border border-border rounded-2xl p-6 hover:shadow-md transition-all duration-200 hover:-translate-y-1 cursor-pointer"
     :class="{ 'animate-fade-in-up': visible }"
+    @click="router.push(`/worship/sunday-sermon/${sermon.id}`)"
   >
     <div class="flex items-center gap-2 mb-3">
       <span class="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
@@ -16,10 +17,13 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import type { SermonItem } from '@/lib/index'
 
 defineProps<{
   sermon: SermonItem
   visible?: boolean
 }>()
+
+const router = useRouter()
 </script>

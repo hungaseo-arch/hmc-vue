@@ -11,6 +11,7 @@
               :src="image"
               :alt="name"
               class="w-full h-56 object-cover rounded-2xl shadow-sm mb-6"
+              loading="lazy"
             />
             <div class="bg-white rounded-2xl border border-border p-6 shadow-sm">
               <h3 class="font-bold text-lg mb-4">안녕하세요? 한마음교회 {{ name }}입니다.</h3>
@@ -33,7 +34,7 @@
                   <span :class="['w-2 h-2 rounded-full', accentColor ?? 'bg-primary']" />
                   {{ section.label }}
                 </h3>
-                <ul class="space-y-2">
+                <ul class="space-y-2 px-2.5">
                   <li
                     v-for="(item, j) in section.items"
                     :key="j"

@@ -11,15 +11,15 @@
             <table class="w-full text-sm">
               <thead>
                 <tr class="bg-primary text-primary-foreground">
-                  <th class="py-4 px-6 text-left font-semibold">예배구분</th>
-                  <th class="py-4 px-6 text-center font-semibold">
-                    <span class="flex items-center justify-center gap-1">
-                      <Clock class="w-4 h-4" /> 예배시간
+                  <th class="py-4 px-4 text-left font-semibold whitespace-nowrap">예배구분</th>
+                  <th class="py-4 px-2 text-center font-semibold">
+                    <span class="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <Clock class="w-2 h-4" /> 예배시간
                     </span>
                   </th>
-                  <th class="py-4 px-6 text-center font-semibold">
-                    <span class="flex items-center justify-center gap-1">
-                      <MapPin class="w-4 h-4" /> 예배장소
+                  <th class="py-4 px-2 text-center font-semibold">
+                    <span class="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <MapPin class="w-2 h-4" /> 예배장소
                     </span>
                   </th>
                 </tr>
@@ -30,10 +30,10 @@
                   :key="i"
                   :class="['border-b border-border last:border-0', i % 2 === 0 ? 'bg-white' : 'bg-muted/40']"
                 >
-                  <td class="py-4 px-6 font-medium text-foreground">{{ ws.name }}</td>
-                  <td class="py-4 px-6 text-center text-muted-foreground">{{ ws.time }}</td>
-                  <td class="py-4 px-6 text-center">
-                    <span :class="['px-3 py-1 rounded-full text-xs font-medium', locationBadgeClass(ws.location)]">
+                  <td class="py-4 px-4 font-medium text-foreground">{{ ws.name }}</td>
+                  <td class="py-4 px-2 text-center text-muted-foreground">{{ ws.time }}</td>
+                  <td class="py-4 px-2 text-center">
+                    <span :class="['px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap', locationBadgeClass(ws.location)]">
                       {{ ws.location }}
                     </span>
                   </td>

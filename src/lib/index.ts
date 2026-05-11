@@ -26,6 +26,9 @@ export const ROUTE_PATHS = {
   PHOTO_ALBUM_DETAIL: '/admin/photos/:id',
   BULLETIN: '/admin/bulletin',
   BULLETIN_DETAIL: '/admin/bulletin/:id',
+  LOGIN: '/login',
+  SIGNUP: '/signup',
+  PROFILE: '/profile',
 } as const
 
 export interface NavSubItem {
@@ -118,6 +121,24 @@ export interface NewsItem {
   date: string
   summary: string
   image: string
+}
+
+export interface ChurchNewsItem {
+  id: string        // slug: '2024-09-01_999-prayer-campaign'
+  title: string
+  date: string
+  thumbnail: string
+  images: string[]  // all page URLs (multi-page support)
+  content?: string | null
+}
+
+export interface PhotoAlbumItem {
+  id: string        // '{date}_{numId}' e.g. '2025-11-16_617'
+  date: string      // 'YYYY-MM-DD'
+  title: string
+  thumbnail: string
+  images: string[]
+  count: number
 }
 
 export interface WeeklyBulletinItem {

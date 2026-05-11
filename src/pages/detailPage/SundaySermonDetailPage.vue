@@ -121,7 +121,7 @@ onMounted(async () => {
 
   const [sermonResult, bibleResult] = await Promise.all([
     supabase.from('sermons').select('*').eq('id', id).single(),
-    fetch('/bible.json').then(r => r.json()),
+    fetch(`${import.meta.env.BASE_URL}bible.json`).then(r => r.json()),
   ])
 
   if (sermonResult.error) {
@@ -206,15 +206,33 @@ const bibleVerses = computed(() => {
 
   if (!abbrev) return []
 
-  // 3) "장:시작절-끝절" 파싱
-  const m = rest.match(/^(\d+):(\d+)(?:-(\d+))?/)
-  if (!m) return []
+  const result: { key: string; text: string }[] = []
 
-  const [, chapter, startStr, endStr] = m
+  // 3) 두 장에 걸친 범위: "5:21-6:4"
+  const crossM = rest.match(/^(\d+):(\d+)-(\d+):(\d+)/)
+  if (crossM) {
+    const ch1 = Number(crossM[1]), v1 = Number(crossM[2])
+    const ch2 = Number(crossM[3]), v2 = Number(crossM[4])
+    for (let ch = ch1; ch <= ch2; ch++) {
+      const vStart = ch === ch1 ? v1 : 1
+      const vEnd = ch === ch2 ? v2 : 200
+      for (let v = vStart; v <= vEnd; v++) {
+        const key = `${abbrev}${ch}:${v}`
+        const text = bibleData.value[key]
+        if (!text) break
+        result.push({ key, text })
+      }
+    }
+    return result
+  }
+
+  // 4) 단일 장: "15:1-5" 또는 "15:1"
+  const singleM = rest.match(/^(\d+):(\d+)(?:-(\d+))?/)
+  if (!singleM) return []
+
+  const [, chapter, startStr, endStr] = singleM
   const start = Number(startStr)
   const end = endStr ? Number(endStr) : start
-
-  const result: { key: string; text: string }[] = []
   for (let v = start; v <= end; v++) {
     const key = `${abbrev}${chapter}:${v}`
     const text = bibleData.value[key]

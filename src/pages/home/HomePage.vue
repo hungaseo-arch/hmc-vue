@@ -172,7 +172,7 @@
           </div>
           <RouterLink
             :to="ROUTE_PATHS.SUNDAY_SERMON"
-            class="text-sm text-primary hover:underline font-medium hidden md:block"
+            class="py-2 text-sm text-primary hover:underline font-medium hidden md:block"
           >
             전체 보기 →
           </RouterLink>
@@ -265,7 +265,7 @@
             </div>
             <RouterLink
               :to="ROUTE_PATHS.DIRECTIONS"
-              class="mt-8 inline-flex items-center gap-2 bg-white text-primary font-semibold px-6 py-3 rounded-xl hover:bg-white/90 transition-colors text-sm"
+              class="mt-4 inline-flex items-center gap-2 bg-white text-primary font-semibold px-6 py-3 rounded-xl hover:bg-white/90 transition-colors text-sm"
             >
               지도로 보기 →
             </RouterLink>
@@ -293,7 +293,10 @@ import TheLayout from '@/components/TheLayout.vue'
 import SermonCard from '@/components/SermonCard.vue'
 import NewsCard from '@/components/NewsCard.vue'
 import { ROUTE_PATHS } from '@/lib/index'
-import { sermons, newsItems, worshipSchedules } from '@/data/index'
+import { worshipSchedules } from '@/data/index'
+import { supabase } from '@/lib/supabase'
+import type { SermonItem } from '@/lib/index'
+import { useChurchNews } from '@/composables/useChurchNews'
 
 // ── 데이터 ──────────────────────────────────────────────────────
 const heroSlides = [
@@ -337,10 +340,24 @@ const current = ref(0)
 let timer: ReturnType<typeof setInterval>
 let scrollObserver: IntersectionObserver | null = null
 
+const { items: newsAll, fetchNews } = useChurchNews()
+const newsItems = computed(() => newsAll.value.slice(0, 3))
+
 onMounted(() => {
+  fetchNews()
+
   timer = setInterval(() => {
     current.value = (current.value + 1) % heroSlides.length
   }, 5000)
+
+  supabase
+    .from('sermons')
+    .select('*')
+    .order('id', { ascending: false })
+    .limit(3)
+    .then(({ data }) => {
+      if (data) sermons.value = data
+    })
 
   const cards = document.querySelectorAll('[data-index]')
   scrollObserver = new IntersectionObserver(
@@ -362,7 +379,8 @@ onUnmounted(() => {
   scrollObserver?.disconnect()
 })
 
-const recentSermons = computed(() => sermons.slice(0, 3))
+const sermons = ref<SermonItem[]>([])
+const recentSermons = computed(() => sermons.value.slice(0, 3))
 const mainSchedules = computed(() => worshipSchedules.slice(0, 4))
 
 function prev() {

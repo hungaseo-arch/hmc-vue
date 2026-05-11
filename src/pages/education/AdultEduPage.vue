@@ -24,7 +24,7 @@
               </div>
               <h3 class="font-bold text-base">{{ course.title }}</h3>
             </div>
-            <ul class="space-y-2">
+            <ul class="space-y-2 px-10">
               <li
                 v-for="(item, j) in course.items"
                 :key="j"
