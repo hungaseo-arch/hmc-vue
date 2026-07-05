@@ -50,7 +50,7 @@
               </thead>
               <tbody>
                 <tr
-                  v-for="sermon in sortedSermons"
+                  v-for="sermon in pagedSermons"
                   :key="sermon.id"
                   class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
                   @click="goToDetail(sermon.id)"
@@ -69,6 +69,37 @@
               </tbody>
             </table>
           </div>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div v-if="!loading && !error && totalPages > 1" class="flex items-center justify-center gap-1 mt-6">
+          <button
+            class="p-2 rounded-lg text-muted-foreground hover:bg-muted transition disabled:opacity-40 disabled:cursor-not-allowed"
+            :disabled="currentPage === 1"
+            @click="goToPage(currentPage - 1)"
+          >
+            <ChevronLeft class="w-4 h-4" />
+          </button>
+          <button
+            v-for="page in pageNumbers"
+            :key="page"
+            :class="[
+              'w-9 h-9 rounded-lg text-sm font-medium transition-colors',
+              page === currentPage
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-muted'
+            ]"
+            @click="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button
+            class="p-2 rounded-lg text-muted-foreground hover:bg-muted transition disabled:opacity-40 disabled:cursor-not-allowed"
+            :disabled="currentPage === totalPages"
+            @click="goToPage(currentPage + 1)"
+          >
+            <ChevronRight class="w-4 h-4" />
+          </button>
         </div>
       </div>
     </section>
@@ -160,9 +191,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { BookOpen, Plus, Pencil } from 'lucide-vue-next'
+import { BookOpen, Plus, Pencil, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
@@ -180,12 +211,12 @@ const sermons = ref<SermonItem[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-onMounted(async () => {
+;(async () => {
   const { data, error: err } = await supabase.from('sermons').select('*')
   if (err) error.value = err.message
   else sermons.value = data ?? []
   loading.value = false
-})
+})()
 
 const sortDesc = ref(true)
 const sortOptions = [
@@ -195,6 +226,28 @@ const sortOptions = [
 const sortedSermons = computed(() =>
   [...sermons.value].sort((a, b) => sortDesc.value ? b.id - a.id : a.id - b.id)
 )
+
+// 페이지네이션
+const pageSize = 10
+const currentPage = ref(1)
+const totalPages = computed(() => Math.max(1, Math.ceil(sortedSermons.value.length / pageSize)))
+const pagedSermons = computed(() =>
+  sortedSermons.value.slice((currentPage.value - 1) * pageSize, currentPage.value * pageSize)
+)
+const pageNumbers = computed(() =>
+  Array.from({ length: totalPages.value }, (_, i) => i + 1)
+)
+
+// 정렬 변경 또는 목록 길이 변화 시 페이지 보정
+watch([sortDesc, totalPages], () => {
+  if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
+})
+watch(sortDesc, () => { currentPage.value = 1 })
+
+function goToPage(page: number) {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
 
 const showModal = ref(false)
 const saving = ref(false)

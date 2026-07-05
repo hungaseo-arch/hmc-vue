@@ -13,6 +13,7 @@ export const ROUTE_PATHS = {
   PASTORAL_COLUMN: '/worship/pastoral-column',
   PASTORAL_COLUMN_DETAIL: '/worship/pastoral-column/:id',
   CHOIR: '/worship/choir',
+  CHURCH_VIDEO: '/worship/church-video',
   // 교육과양육
   J_ANGELS: '/education/j-angels',
   J_KIDS: '/education/j-kids',
@@ -26,6 +27,7 @@ export const ROUTE_PATHS = {
   PHOTO_ALBUM_DETAIL: '/admin/photos/:id',
   BULLETIN: '/admin/bulletin',
   BULLETIN_DETAIL: '/admin/bulletin/:id',
+  MISSION_NEWS: '/admin/mission-news',
   LOGIN: '/login',
   SIGNUP: '/signup',
   PROFILE: '/profile',
@@ -58,6 +60,7 @@ export const NAV_ITEMS: NavItem[] = [
       { label: '주일설교', path: ROUTE_PATHS.SUNDAY_SERMON },
       { label: '목회칼럼', path: ROUTE_PATHS.PASTORAL_COLUMN },
       { label: '찬양대찬양', path: ROUTE_PATHS.CHOIR },
+      { label: '교회영상', path: ROUTE_PATHS.CHURCH_VIDEO },
     ],
   },
   {
@@ -74,6 +77,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: '행정과관리',
     children: [
       { label: '교회소식', path: ROUTE_PATHS.CHURCH_NEWS },
+      { label: '선교소식', path: ROUTE_PATHS.MISSION_NEWS },
       { label: '포토앨범', path: ROUTE_PATHS.PHOTO_ALBUM },
       { label: '주보보기', path: ROUTE_PATHS.BULLETIN },
     ],
@@ -112,6 +116,22 @@ export interface WorshipSchedule {
   name: string
   time: string
   location: string
+}
+
+export interface WorshipVideo {
+  label: string
+  description: string
+  url: string
+}
+
+export interface MissionNews {
+  id: number
+  region: string
+  title: string
+  missionary: string
+  date: string
+  body: string
+  prayers?: string[]
 }
 
 export interface NewsItem {

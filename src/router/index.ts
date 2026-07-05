@@ -23,6 +23,7 @@ const router = createRouter({
     { path: ROUTE_PATHS.PASTORAL_COLUMN, component: () => import('@/pages/worship/PastoralColumnPage.vue'), meta: { requiresAuth: true } },
     { path: ROUTE_PATHS.PASTORAL_COLUMN_DETAIL, component: () => import('@/pages/detailPage/PastoralColumnDetailPage.vue'), meta: { requiresAuth: true } },
     { path: ROUTE_PATHS.CHOIR, component: () => import('@/pages/worship/ChoirPage.vue') },
+    { path: ROUTE_PATHS.CHURCH_VIDEO, component: () => import('@/pages/worship/ChurchVideoPage.vue') },
 
     // 교육과양육
     { path: ROUTE_PATHS.J_ANGELS, component: () => import('@/pages/education/JAngelsPage.vue') },
@@ -38,6 +39,7 @@ const router = createRouter({
     { path: ROUTE_PATHS.PHOTO_ALBUM_DETAIL, component: () => import('@/pages/detailPage/PhotoAlbumDetailPage.vue'), meta: { requiresAuth: true } },
     { path: ROUTE_PATHS.BULLETIN, component: () => import('@/pages/admin/BulletinPage.vue'), meta: { requiresAuth: true } },
     { path: ROUTE_PATHS.BULLETIN_DETAIL, component: () => import('@/pages/detailPage/BulletinDetailPage.vue'), meta: { requiresAuth: true } },
+    { path: ROUTE_PATHS.MISSION_NEWS, component: () => import('@/pages/admin/MissionNewsPage.vue') },
 
     // 404
     { path: '/:pathMatch(.*)*', component: () => import('@/pages/NotFoundPage.vue') },
