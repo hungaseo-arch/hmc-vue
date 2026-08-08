@@ -147,8 +147,9 @@ export interface ChurchNewsItem {
   id: string        // slug: '2024-09-01_999-prayer-campaign'
   title: string
   date: string
+  files: string[]   // storage paths — the durable identity; never parse these back out of a URL
   thumbnail: string
-  images: string[]  // all page URLs (multi-page support)
+  images: string[]  // signed URLs, index-aligned with files; re-minted before expiry
   content?: string | null
 }
 
@@ -156,8 +157,9 @@ export interface PhotoAlbumItem {
   id: string        // '{date}_{numId}' e.g. '2025-11-16_617'
   date: string      // 'YYYY-MM-DD'
   title: string
+  files: string[]   // storage paths — see note on ChurchNewsItem
   thumbnail: string
-  images: string[]
+  images: string[]  // signed URLs, index-aligned with files
   count: number
 }
 

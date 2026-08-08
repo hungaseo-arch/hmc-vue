@@ -58,8 +58,8 @@
             <div>
               <label class="block text-sm font-medium mb-2">현재 이미지</label>
               <div class="grid grid-cols-3 gap-2">
-                <div v-for="(url, i) in editImages" :key="url" class="relative">
-                  <img :src="url" class="w-full h-24 object-cover rounded-lg" :class="{ 'opacity-30': deleteMarked.includes(i) }" />
+                <div v-for="(img, i) in editImages" :key="img.path" class="relative">
+                  <img :src="img.url" :alt="`${editForm.title} ${i + 1}`" class="w-full h-24 object-cover rounded-lg" :class="{ 'opacity-30': deleteMarked.includes(i) }" />
                   <button
                     type="button"
                     class="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs transition"
@@ -131,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Plus, Pencil } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
@@ -140,12 +140,12 @@ import NewsCard from '@/components/NewsCard.vue'
 import { useChurchNews } from '@/composables/useChurchNews'
 import { useAuth } from '@/composables/useAuth'
 import { supabase } from '@/lib/supabase'
+import { mustAffectRows, mustRemoveFiles } from '@/lib/db'
 
 const router = useRouter()
 const { isAdmin } = useAuth()
 const { items, loading, error, fetchNews, reset } = useChurchNews()
-
-onMounted(fetchNews)
+fetchNews()
 
 function goToDetail(id: string) {
   router.push(`/admin/news/${id}`)
@@ -157,7 +157,8 @@ const editErrorMsg = ref('')
 const editProgress = ref('')
 const editingId = ref<string | null>(null)
 const editForm = ref({ title: '', content: '' })
-const editImages = ref<string[]>([])
+// path 와 url 을 함께 보관한다. 서명 URL 에서는 경로를 되파싱할 수 없다.
+const editImages = ref<{ path: string; url: string }[]>([])
 const deleteMarked = ref<number[]>([])
 const addFileInput = ref<HTMLInputElement | null>(null)
 
@@ -169,10 +170,10 @@ function toggleDelete(i: number) {
   }
 }
 
-function openEditModal(item: { id: string; title: string; content?: string | null; images: string[] }) {
+function openEditModal(item: { id: string; title: string; content?: string | null; files: string[]; images: string[] }) {
   editingId.value = item.id
   editForm.value = { title: item.title, content: item.content ?? '' }
-  editImages.value = [...item.images]
+  editImages.value = item.files.map((path, i) => ({ path, url: item.images[i] ?? '' }))
   deleteMarked.value = []
   editErrorMsg.value = ''
   editProgress.value = ''
@@ -185,15 +186,13 @@ async function handleEditSubmit() {
   editErrorMsg.value = ''
   editProgress.value = ''
   try {
-    // 삭제 대상 파일명 추출
+    // 삭제 대상은 보관해 둔 storage 경로를 그대로 사용
     const toDelete = editImages.value
       .filter((_, i) => deleteMarked.value.includes(i))
-      .map(url => decodeURIComponent(url.split('/churchNews/').pop() ?? ''))
-      .filter(Boolean)
+      .map(img => img.path)
     if (toDelete.length > 0) {
       editProgress.value = '이미지 삭제 중...'
-      const { error: delErr } = await supabase.storage.from('churchNews').remove(toDelete)
-      if (delErr) throw delErr
+      await mustRemoveFiles('이미지 삭제', 'churchNews', toDelete)
     }
     // 새 이미지 추가
     const newFiles = addFileInput.value?.files
@@ -208,11 +207,11 @@ async function handleEditSubmit() {
       }
     }
     // 제목/내용 저장
-    const { error: err } = await supabase.from('church_news_content').update({
-      title: editForm.value.title.trim(),
-      content: editForm.value.content.trim() || null,
-    }).eq('id', editingId.value)
-    if (err) throw err
+    await mustAffectRows('소식 수정',
+      supabase.from('church_news_content').update({
+        title: editForm.value.title.trim(),
+        content: editForm.value.content.trim() || null,
+      }).eq('id', editingId.value).select('id'))
     // 목록 새로고침
     reset()
     await fetchNews()
@@ -255,12 +254,12 @@ async function handleSubmit() {
       const { error: err } = await supabase.storage.from('churchNews').upload(`${base}_p${p}.${ext}`, files[i], { upsert: true })
       if (err) throw err
     }
-    const { error: dbErr } = await supabase.from('church_news_content').upsert({
-      id: base,
-      title: form.value.title.trim(),
-      content: form.value.content.trim() || null,
-    })
-    if (dbErr) throw dbErr
+    await mustAffectRows('소식 등록',
+      supabase.from('church_news_content').upsert({
+        id: base,
+        title: form.value.title.trim(),
+        content: form.value.content.trim() || null,
+      }).select('id'))
     reset()
     await fetchNews()
     closeModal()

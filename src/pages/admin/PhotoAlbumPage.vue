@@ -64,8 +64,8 @@
             <div>
               <label class="block text-sm font-medium mb-2">현재 사진</label>
               <div class="grid grid-cols-3 gap-2">
-                <div v-for="(url, i) in editImages" :key="url" class="relative">
-                  <img :src="url" class="w-full h-24 object-cover rounded-lg" :class="{ 'opacity-30': deleteMarked.includes(i) }" />
+                <div v-for="(img, i) in editImages" :key="img.path" class="relative">
+                  <img :src="img.url" :alt="`${editForm.title} ${i + 1}`" class="w-full h-24 object-cover rounded-lg" :class="{ 'opacity-30': deleteMarked.includes(i) }" />
                   <button
                     type="button"
                     class="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs transition"
@@ -133,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Image as ImageIcon, Plus, Pencil } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
@@ -141,12 +141,12 @@ import PageHeader from '@/components/PageHeader.vue'
 import { usePhotoAlbum } from '@/composables/usePhotoAlbum'
 import { useAuth } from '@/composables/useAuth'
 import { supabase } from '@/lib/supabase'
+import { mustAffectRows, mustRemoveFiles } from '@/lib/db'
 
 const router = useRouter()
 const { isAdmin } = useAuth()
 const { items, loading, error, fetchAlbums, reset } = usePhotoAlbum()
-
-onMounted(fetchAlbums)
+fetchAlbums()
 
 function goToDetail(id: string) {
   router.push(`/admin/photos/${id}`)
@@ -158,7 +158,8 @@ const editErrorMsg = ref('')
 const editProgress = ref('')
 const editingId = ref<string | null>(null)
 const editForm = ref({ title: '' })
-const editImages = ref<string[]>([])
+// path 와 url 을 함께 보관한다. 서명 URL 에서는 경로를 되파싱할 수 없다.
+const editImages = ref<{ path: string; url: string }[]>([])
 const deleteMarked = ref<number[]>([])
 const addFileInput = ref<HTMLInputElement | null>(null)
 
@@ -170,10 +171,10 @@ function toggleDelete(i: number) {
   }
 }
 
-function openEditModal(album: { id: string; title: string; images: string[] }) {
+function openEditModal(album: { id: string; title: string; files: string[]; images: string[] }) {
   editingId.value = album.id
   editForm.value = { title: album.title }
-  editImages.value = [...album.images]
+  editImages.value = album.files.map((path, i) => ({ path, url: album.images[i] ?? '' }))
   deleteMarked.value = []
   editErrorMsg.value = ''
   editProgress.value = ''
@@ -186,20 +187,13 @@ async function handleEditSubmit() {
   editErrorMsg.value = ''
   editProgress.value = ''
   try {
-    // 삭제 대상 파일명 추출
+    // 삭제 대상은 보관해 둔 storage 경로를 그대로 사용
     const toDelete = editImages.value
       .filter((_, i) => deleteMarked.value.includes(i))
-      .map(url => {
-        const parts = url.split('/storage/v1/object/public/photoAlbum/')
-        const raw = parts.length > 1 ? parts[1] : (url.split('/photoAlbum/').pop() ?? '')
-        return decodeURIComponent(raw.split('?')[0])
-      })
-      .filter(Boolean)
+      .map(img => img.path)
     if (toDelete.length > 0) {
       editProgress.value = '사진 삭제 중...'
-      const { data: delData, error: delErr } = await supabase.storage.from('photoAlbum').remove(toDelete)
-      if (delErr) throw new Error(delErr.message ?? JSON.stringify(delErr))
-      if (!delData || delData.length === 0) throw new Error('파일 삭제 권한이 없습니다. Supabase Storage에 DELETE 정책을 추가해주세요.')
+      await mustRemoveFiles('사진 삭제', 'photoAlbum', toDelete)
     }
     // 새 사진 추가
     const newFiles = addFileInput.value?.files
@@ -214,11 +208,11 @@ async function handleEditSubmit() {
       }
     }
     // 제목 저장
-    const { error: err } = await supabase.from('photo_album_meta').upsert({
-      id: editingId.value,
-      title: editForm.value.title.trim(),
-    })
-    if (err) throw err
+    await mustAffectRows('앨범 수정',
+      supabase.from('photo_album_meta').upsert({
+        id: editingId.value,
+        title: editForm.value.title.trim(),
+      }).select('id'))
     // 목록 새로고침
     reset()
     await fetchAlbums()
@@ -262,11 +256,11 @@ async function handleSubmit() {
       const { error: err } = await supabase.storage.from('photoAlbum').upload(`${base}_p${p}.${ext}`, files[i], { upsert: true })
       if (err) throw err
     }
-    const { error: metaErr } = await supabase.from('photo_album_meta').upsert({
-      id: base,
-      title: form.value.title.trim(),
-    })
-    if (metaErr) throw metaErr
+    await mustAffectRows('앨범 등록',
+      supabase.from('photo_album_meta').upsert({
+        id: base,
+        title: form.value.title.trim(),
+      }).select('id'))
     reset()
     await fetchAlbums()
     closeModal()

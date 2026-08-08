@@ -8,7 +8,6 @@ export const sermons: SermonItem[] = [
 ]
 
 export const historyData: HistoryItem[] = [
-  { year: 2025, events: ['테스트 이벤트'] },
   { year: 2018, events: ['01.07 백광호 목사 부임'] },
   { year: 2017, events: ['01.08 담임목사 취임식 / 장로, 안수집사, 권사 취임식'] },
   { year: 2016, events: ['10.02 장로, 안수집사, 권사 임직투표', '10.02 한마음교회 홈페이지 오픈', '08.07 상반기 새신자 환영회', '06.26 박헌식 장로 은퇴식', '04.10 청년 인니진출 전략세미나', '04.02 손정백, 민미경 전도사 부임', '03.19 특별 외부주일예배', '01.31 권사 임직식'] },
@@ -51,8 +50,8 @@ const HMC_YOUTUBE = 'https://www.youtube.com/@%EC%9E%90%EC%B9%B4%EB%A5%B4%ED%83%
 
 export const worshipVideos: WorshipVideo[] = [
   { label: '주일예배', description: '주일 대예배 실황', url: HMC_YOUTUBE },
-  { label: '새벽예배', description: '매일 새벽 말씀', url: HMC_YOUTUBE },
-  { label: '교육부', description: '다음세대 예배 영상', url: HMC_YOUTUBE },
+  { label: '새벽예배', description: '매일 새벽 말씀', url: 'https://www.youtube.com/playlist?list=PLTBFyC2v_y-__tHzJ9UvW-BVWIYBE_WHc' },
+  { label: '교육부', description: '다음세대 예배 영상', url: 'https://www.youtube.com/playlist?list=PLTBFyC2v_y-8o3kA7DUug5w_3yNqI2D-u' },
 ]
 
 // 선교소식 (인도네시아 선교지)

@@ -57,6 +57,7 @@ import { ChevronLeft, FileText } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
+import { signPaths } from '@/lib/storage'
 
 const router = useRouter()
 const route = useRoute()
@@ -77,25 +78,24 @@ const dateLabel = computed(() => {
 })
 
 onMounted(async () => {
-  const { data: files, error: err } = await supabase.storage
-    .from(BUCKET)
-    .list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } })
+  try {
+    // search 로 이 날짜 파일만 받아온다 — 예전에는 버킷 전체를 나열했다.
+    const { data: files, error: err } = await supabase.storage
+      .from(BUCKET)
+      .list('', { limit: 1000, search: `${date}-`, sortBy: { column: 'name', order: 'asc' } })
+    if (err) throw err
 
-  if (err) {
-    error.value = err.message
+    const paths = (files ?? [])
+      .filter(f => f.name.startsWith(`${date}-`))
+      .map(f => f.name)
+      .sort((a, b) => a.localeCompare(b))
+
+    const urls = await signPaths(BUCKET, paths)
+    pages.value = paths.map(p => urls[p]).filter(Boolean)
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : '주보를 불러오지 못했습니다.'
+  } finally {
     loading.value = false
-    return
   }
-
-  const matched = (files ?? [])
-    .filter(f => f.name.startsWith(date + '-'))
-    .sort((a, b) => a.name.localeCompare(b.name))
-
-  pages.value = matched.map(f => {
-    const { data } = supabase.storage.from(BUCKET).getPublicUrl(f.name)
-    return data.publicUrl
-  })
-
-  loading.value = false
 })
 </script>

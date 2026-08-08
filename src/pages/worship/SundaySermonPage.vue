@@ -197,6 +197,7 @@ import { BookOpen, Plus, Pencil, ChevronLeft, ChevronRight } from 'lucide-vue-ne
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
+import { mustAffectRows } from '@/lib/db'
 import { useAuth } from '@/composables/useAuth'
 import type { SermonItem } from '@/lib/index'
 
@@ -272,14 +273,15 @@ async function handleEditSubmit() {
   editSaving.value = true
   editErrorMsg.value = ''
   try {
-    const { error: err } = await supabase.from('sermons').update({
-      title: editForm.value.title,
-      scripture: editForm.value.scripture,
-      preacher: editForm.value.preacher,
-      date: editForm.value.date,
-      link: editForm.value.link || null,
-    }).eq('id', editingId.value)
-    if (err) throw err
+    // RLS 로 걸린 UPDATE 는 오류 없이 0행을 반환한다. mustAffectRows 가 그걸 잡아낸다.
+    await mustAffectRows('설교 수정',
+      supabase.from('sermons').update({
+        title: editForm.value.title,
+        scripture: editForm.value.scripture,
+        preacher: editForm.value.preacher,
+        date: editForm.value.date,
+        link: editForm.value.link || null,
+      }).eq('id', editingId.value).select('id'))
     const idx = sermons.value.findIndex(s => s.id === editingId.value)
     if (idx !== -1) sermons.value[idx] = { ...sermons.value[idx], ...editForm.value, link: editForm.value.link || undefined }
     showEditModal.value = false
@@ -294,10 +296,11 @@ async function handleSubmit() {
   saving.value = true
   errorMsg.value = ''
   try {
-    const { error: err } = await supabase
-      .from('sermons')
-      .insert({ title: form.value.title, scripture: form.value.scripture, preacher: form.value.preacher, date: form.value.date, link: form.value.link || null })
-    if (err) throw err
+    await mustAffectRows('설교 등록',
+      supabase
+        .from('sermons')
+        .insert({ title: form.value.title, scripture: form.value.scripture, preacher: form.value.preacher, date: form.value.date, link: form.value.link || null })
+        .select('id'))
     const { data } = await supabase.from('sermons').select('*')
     if (data) sermons.value = data
     showModal.value = false

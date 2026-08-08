@@ -1,5 +1,7 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { signPaths, SIGNED_URL_REFRESH_MS } from '@/lib/storage'
+import { registerCache } from '@/lib/cacheRegistry'
 import type { ChurchNewsItem } from '@/lib/index'
 
 // 모듈 싱글톤 — 페이지 이동 시 재요청 방지
@@ -7,6 +9,10 @@ const items = ref<ChurchNewsItem[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 let fetched = false
+let signedAt = 0
+let inflight: Promise<void> | null = null
+
+const BUCKET = 'churchNews'
 
 function slugToTitle(slug: string): string {
   return slug
@@ -14,67 +20,100 @@ function slugToTitle(slug: string): string {
     .replace(/\b\w/g, c => c.toUpperCase())
 }
 
+/** Fill in signed URLs from a path -> url map. */
+function applyUrls(list: ChurchNewsItem[], urls: Record<string, string>) {
+  for (const item of list) {
+    item.images = item.files.map(f => urls[f]).filter(Boolean)
+    item.thumbnail = item.images[0] ?? ''
+  }
+}
+
+/** Cache is warm but the URLs are near expiry: re-mint only — no list(), no select(). */
+async function resign() {
+  try {
+    const urls = await signPaths(BUCKET, items.value.flatMap(i => i.files))
+    applyUrls(items.value, urls)
+    items.value = [...items.value]
+    signedAt = Date.now()
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : '이미지를 불러오지 못했습니다.'
+  }
+}
+
+async function load() {
+  loading.value = true
+  error.value = null
+  try {
+    const [storageResult, contentResult] = await Promise.all([
+      supabase.storage.from(BUCKET).list('', { limit: 200, sortBy: { column: 'name', order: 'asc' } }),
+      supabase.from('church_news_content').select('id, title, content'),
+    ])
+
+    if (storageResult.error) throw storageResult.error
+    const data = storageResult.data
+    const contentRows = contentResult.data
+
+    // 파일명 기준으로 그룹핑 (_p01, _p02 → 같은 항목)
+    const groups: Record<string, string[]> = {}
+    for (const file of data ?? []) {
+      const base = file.name.replace(/\.[^.]+$/, '').replace(/_p\d{2}$/, '')
+      if (!groups[base]) groups[base] = []
+      groups[base].push(file.name)
+    }
+
+    // 각 그룹 내 페이지 정렬
+    for (const base of Object.keys(groups)) {
+      groups[base].sort()
+    }
+    const contentMap: Record<string, { title?: string; content?: string }> = {}
+    for (const row of contentRows ?? []) contentMap[row.id] = { title: row.title, content: row.content }
+
+    const result: ChurchNewsItem[] = []
+    for (const [base, files] of Object.entries(groups)) {
+      const match = base.match(/^(\d{4}-\d{2}-\d{2})_(.+)$/)
+      if (!match) continue
+      const [, date, titleSlug] = match
+
+      result.push({
+        id: base,
+        title: contentMap[base]?.title ?? slugToTitle(titleSlug),
+        date,
+        files,
+        thumbnail: '',
+        images: [],
+        content: contentMap[base]?.content ?? null,
+      })
+    }
+
+    // 날짜 내림차순
+    result.sort((a, b) => b.date.localeCompare(a.date))
+
+    // 모든 항목의 모든 페이지를 한 번의 요청으로 서명
+    applyUrls(result, await signPaths(BUCKET, result.flatMap(r => r.files)))
+    items.value = result
+    signedAt = Date.now()
+    fetched = true
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : '데이터를 불러오지 못했습니다.'
+  } finally {
+    loading.value = false
+  }
+}
+
+function reset() { fetched = false; signedAt = 0; items.value = [] }
+
+// 로그아웃 시 멤버 전용 데이터와 유효한 서명 URL이 남지 않도록
+registerCache(reset)
+
 export function useChurchNews() {
   async function fetchNews() {
-    if (fetched) return
-    loading.value = true
-    error.value = null
-    try {
-      const { data, error: err } = await supabase.storage
-        .from('churchNews')
-        .list('', { limit: 200, sortBy: { column: 'name', order: 'asc' } })
-
-      if (err) throw err
-
-      // 파일명 기준으로 그룹핑 (_p01, _p02 → 같은 항목)
-      const groups: Record<string, string[]> = {}
-      for (const file of data ?? []) {
-        const base = file.name.replace(/\.[^.]+$/, '').replace(/_p\d{2}$/, '')
-        if (!groups[base]) groups[base] = []
-        groups[base].push(file.name)
-      }
-
-      // 각 그룹 내 페이지 정렬
-      for (const base of Object.keys(groups)) {
-        groups[base].sort()
-      }
-
-      const { data: contentRows } = await supabase.from('church_news_content').select('id, title, content')
-      const contentMap: Record<string, { title?: string; content?: string }> = {}
-      for (const row of contentRows ?? []) contentMap[row.id] = { title: row.title, content: row.content }
-
-      const result: ChurchNewsItem[] = []
-      for (const [base, files] of Object.entries(groups)) {
-        const match = base.match(/^(\d{4}-\d{2}-\d{2})_(.+)$/)
-        if (!match) continue
-        const [, date, titleSlug] = match
-
-        const imageUrls = files.map(fname => {
-          const { data: urlData } = supabase.storage.from('churchNews').getPublicUrl(fname)
-          return urlData.publicUrl
-        })
-
-        result.push({
-          id: base,
-          title: contentMap[base]?.title ?? slugToTitle(titleSlug),
-          date,
-          thumbnail: imageUrls[0],
-          images: imageUrls,
-          content: contentMap[base]?.content ?? null,
-        })
-      }
-
-      // 날짜 내림차순
-      result.sort((a, b) => b.date.localeCompare(a.date))
-      items.value = result
-      fetched = true
-    } catch (e: unknown) {
-      error.value = e instanceof Error ? e.message : '데이터를 불러오지 못했습니다.'
-    } finally {
-      loading.value = false
-    }
+    if (fetched && Date.now() - signedAt < SIGNED_URL_REFRESH_MS) return
+    if (fetched) return resign()
+    // 동시 호출이 같은 로드를 공유하도록 (fetched 는 await 이후에야 true 가 됨)
+    if (inflight) return inflight
+    inflight = load().finally(() => { inflight = null })
+    return inflight
   }
 
-  function reset() { fetched = false; items.value = [] }
   return { items, loading, error, fetchNews, reset }
 }

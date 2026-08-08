@@ -127,12 +127,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { BookOpen, ChevronRight, Plus, Pencil } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
+import { mustAffectRows } from '@/lib/db'
 import { useAuth } from '@/composables/useAuth'
 import type { PastoralColumnItem } from '@/lib/index'
 
@@ -143,12 +144,12 @@ const columns = ref<PastoralColumnItem[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-onMounted(async () => {
+;(async () => {
   const { data, error: err } = await supabase.from('pastorColumn').select('*').order('id', { ascending: false })
   if (err) error.value = err.message
   else columns.value = data ?? []
   loading.value = false
-})
+})()
 
 function goToDetail(id: number) {
   router.push(`/worship/pastoral-column/${id}`)
@@ -194,12 +195,13 @@ async function handleEditSubmit() {
   editSaving.value = true
   editErrorMsg.value = ''
   try {
-    const { error: err } = await supabase.from('pastorColumn').update({
-      title: editForm.value.title,
-      content: editForm.value.content,
-      created_at: new Date(editForm.value.date).toISOString(),
-    }).eq('id', editingId.value)
-    if (err) throw err
+    // RLS 로 걸린 UPDATE 는 오류 없이 0행을 반환한다. mustAffectRows 가 그걸 잡아낸다.
+    await mustAffectRows('칼럼 수정',
+      supabase.from('pastorColumn').update({
+        title: editForm.value.title,
+        content: editForm.value.content,
+        created_at: new Date(editForm.value.date).toISOString(),
+      }).eq('id', editingId.value).select('id'))
     const idx = columns.value.findIndex(c => c.id === editingId.value)
     if (idx !== -1) columns.value[idx] = {
       ...columns.value[idx],
@@ -219,14 +221,15 @@ async function handleSubmit() {
   saving.value = true
   errorMsg.value = ''
   try {
-    const { error: err } = await supabase
-      .from('pastorColumn')
-      .insert({
-        title: form.value.title,
-        content: form.value.content,
-        created_at: form.value.date ? new Date(form.value.date).toISOString() : new Date().toISOString(),
-      })
-    if (err) throw err
+    await mustAffectRows('칼럼 등록',
+      supabase
+        .from('pastorColumn')
+        .insert({
+          title: form.value.title,
+          content: form.value.content,
+          created_at: form.value.date ? new Date(form.value.date).toISOString() : new Date().toISOString(),
+        })
+        .select('id'))
     const { data } = await supabase.from('pastorColumn').select('*').order('id', { ascending: false })
     if (data) columns.value = data
     showModal.value = false

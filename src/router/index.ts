@@ -17,11 +17,11 @@ const router = createRouter({
     { path: ROUTE_PATHS.WORSHIP_GUIDE, component: () => import('@/pages/introduction/WorshipGuidePage.vue') },
     { path: ROUTE_PATHS.DIRECTIONS, component: () => import('@/pages/introduction/DirectionsPage.vue') },
 
-    // 예배와기도
-    { path: ROUTE_PATHS.SUNDAY_SERMON, component: () => import('@/pages/worship/SundaySermonPage.vue'), meta: { requiresAuth: true } },
-    { path: ROUTE_PATHS.SUNDAY_SERMON_DETAIL, component: () => import('@/pages/detailPage/SundaySermonDetailPage.vue'), meta: { requiresAuth: true } },
-    { path: ROUTE_PATHS.PASTORAL_COLUMN, component: () => import('@/pages/worship/PastoralColumnPage.vue'), meta: { requiresAuth: true } },
-    { path: ROUTE_PATHS.PASTORAL_COLUMN_DETAIL, component: () => import('@/pages/detailPage/PastoralColumnDetailPage.vue'), meta: { requiresAuth: true } },
+    // 예배와기도 — 설교·목회칼럼은 개인정보가 없어 전체 공개한다.
+    { path: ROUTE_PATHS.SUNDAY_SERMON, component: () => import('@/pages/worship/SundaySermonPage.vue') },
+    { path: ROUTE_PATHS.SUNDAY_SERMON_DETAIL, component: () => import('@/pages/detailPage/SundaySermonDetailPage.vue') },
+    { path: ROUTE_PATHS.PASTORAL_COLUMN, component: () => import('@/pages/worship/PastoralColumnPage.vue') },
+    { path: ROUTE_PATHS.PASTORAL_COLUMN_DETAIL, component: () => import('@/pages/detailPage/PastoralColumnDetailPage.vue') },
     { path: ROUTE_PATHS.CHOIR, component: () => import('@/pages/worship/ChoirPage.vue') },
     { path: ROUTE_PATHS.CHURCH_VIDEO, component: () => import('@/pages/worship/ChurchVideoPage.vue') },
 
@@ -49,25 +49,16 @@ const router = createRouter({
   },
 })
 
+// 라우터 가드는 UI 편의일 뿐이다. 실제 접근 통제는 Supabase RLS 와
+// 비공개 버킷(서명 URL)이 담당한다.
 router.beforeEach(async (to) => {
-  const needsAuth = to.meta.requiresAuth || to.meta.requiresAdmin
+  const needsAuth = !!to.meta.requiresAuth
   if (!needsAuth && to.path !== ROUTE_PATHS.LOGIN) return
 
   const { data: { session } } = await supabase.auth.getSession()
-  console.log('[Guard]', to.path, '| session:', session ? session.user.email : 'null')
 
-  if (to.path === ROUTE_PATHS.LOGIN && session) {
-    return ROUTE_PATHS.HOME
-  }
-
-  if (needsAuth && !session) {
-    return ROUTE_PATHS.LOGIN
-  }
-
-  if (to.meta.requiresAdmin && session) {
-    const { data } = await supabase.from('profiles').select('role').eq('id', session.user.id).single()
-    if (data?.role !== 'admin') return ROUTE_PATHS.LOGIN
-  }
+  if (to.path === ROUTE_PATHS.LOGIN && session) return ROUTE_PATHS.HOME
+  if (needsAuth && !session) return ROUTE_PATHS.LOGIN
 })
 
 export default router

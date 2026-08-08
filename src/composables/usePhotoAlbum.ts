@@ -1,5 +1,7 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { signPaths, SIGNED_URL_REFRESH_MS } from '@/lib/storage'
+import { registerCache } from '@/lib/cacheRegistry'
 import type { PhotoAlbumItem } from '@/lib/index'
 
 const TITLES: Record<string, string> = {
@@ -87,18 +89,43 @@ const items = ref<PhotoAlbumItem[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 let fetched = false
+let signedAt = 0
+let inflight: Promise<void> | null = null
 
-export function usePhotoAlbum() {
-  async function fetchAlbums() {
-    if (fetched) return
+const BUCKET = 'photoAlbum'
+
+/** Fill in signed URLs from a path -> url map. */
+function applyUrls(list: PhotoAlbumItem[], urls: Record<string, string>) {
+  for (const item of list) {
+    item.images = item.files.map(f => urls[f]).filter(Boolean)
+    item.thumbnail = item.images[0] ?? ''
+  }
+}
+
+/** Cache is warm but the URLs are near expiry: re-mint only — no list(), no select(). */
+async function resign() {
+  try {
+    const urls = await signPaths(BUCKET, items.value.flatMap(i => i.files))
+    applyUrls(items.value, urls)
+    items.value = [...items.value]
+    signedAt = Date.now()
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : '이미지를 불러오지 못했습니다.'
+  }
+}
+
+async function load() {
     loading.value = true
     error.value = null
     try {
-      const { data, error: err } = await supabase.storage
-        .from('photoAlbum')
-        .list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } })
+      const [storageResult, metaResult] = await Promise.all([
+        supabase.storage.from(BUCKET).list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } }),
+        supabase.from('photo_album_meta').select('id, title'),
+      ])
 
-      if (err) throw err
+      if (storageResult.error) throw storageResult.error
+      const data = storageResult.data
+      const metaRows = metaResult.data
 
       // 파일명: {YYYY-MM-DD}_{numId}_{p01}.jpg
       // groupKey: '{date}_{numId}'
@@ -122,8 +149,6 @@ export function usePhotoAlbum() {
       for (const key of Object.keys(groups)) {
         groups[key].files.sort()
       }
-
-      const { data: metaRows } = await supabase.from('photo_album_meta').select('id, title')
       const metaMap: Record<string, string> = {}
       for (const row of metaRows ?? []) metaMap[row.id] = row.title
 
@@ -132,31 +157,46 @@ export function usePhotoAlbum() {
         const [date, numId] = key.split('_')
         const title = metaMap[key] ?? slugTitle ?? TITLES[numId] ?? ''
 
-        const imageUrls = files.map((fname: string) => {
-          const { data: urlData } = supabase.storage.from('photoAlbum').getPublicUrl(fname)
-          return urlData.publicUrl
-        })
-
         result.push({
           id: key,
           date,
           title,
-          thumbnail: imageUrls[0],
-          images: imageUrls,
-          count: imageUrls.length,
+          files,
+          thumbnail: '',
+          images: [],
+          // files, not images: the count stays correct even if a sign fails
+          count: files.length,
         })
       }
 
       result.sort((a, b) => b.date.localeCompare(a.date))
+
+      // 모든 앨범의 모든 사진을 한 번의 요청으로 서명
+      applyUrls(result, await signPaths(BUCKET, result.flatMap(r => r.files)))
       items.value = result
+      signedAt = Date.now()
       fetched = true
     } catch (e: unknown) {
       error.value = e instanceof Error ? e.message : '데이터를 불러오지 못했습니다.'
     } finally {
       loading.value = false
     }
+}
+
+function reset() { fetched = false; signedAt = 0; items.value = [] }
+
+// 로그아웃 시 멤버 전용 데이터와 유효한 서명 URL이 남지 않도록
+registerCache(reset)
+
+export function usePhotoAlbum() {
+  async function fetchAlbums() {
+    if (fetched && Date.now() - signedAt < SIGNED_URL_REFRESH_MS) return
+    if (fetched) return resign()
+    // 동시 호출이 같은 로드를 공유하도록 (fetched 는 await 이후에야 true 가 됨)
+    if (inflight) return inflight
+    inflight = load().finally(() => { inflight = null })
+    return inflight
   }
 
-  function reset() { fetched = false; items.value = [] }
   return { items, loading, error, fetchAlbums, reset }
 }

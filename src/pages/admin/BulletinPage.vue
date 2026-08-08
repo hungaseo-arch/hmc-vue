@@ -121,18 +121,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { FileText, Plus, Pencil, Trash2 } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
+import { mustRemoveFiles } from '@/lib/db'
 import { useAuth } from '@/composables/useAuth'
 
 interface BulletinGroup {
   date: string
   label: string
-  thumbnailUrl: string
   pageCount: number
 }
 
@@ -172,16 +172,17 @@ async function fetchBulletins() {
 
   bulletinGroups.value = Object.entries(groups)
     .sort(([a], [b]) => b.localeCompare(a))
-    .map(([date, fileNames]) => {
-      const thumbnail = fileNames.find(f => f.includes('-p01.')) ?? fileNames[0]
-      const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(thumbnail)
-      return { date, label: formatDateLabel(date), thumbnailUrl: urlData.publicUrl, pageCount: fileNames.length }
-    })
+    // 카드 썸네일은 CSS 그라디언트(getThumbnailBg)라 이미지 URL 이 필요 없다.
+    .map(([date, fileNames]) => ({
+      date,
+      label: formatDateLabel(date),
+      pageCount: fileNames.length,
+    }))
 
   loading.value = false
 }
 
-onMounted(fetchBulletins)
+fetchBulletins()
 
 function goToDetail(date: string) {
   router.push(`/admin/bulletin/${date}`)
@@ -248,13 +249,17 @@ async function handleDelete(date: string) {
   const group = bulletinGroups.value.find(g => g.date === date)
   if (!group) return
   if (!confirm(`${group.label} 주보를 삭제하시겠습니까?`)) return
-  const { data: files } = await supabase.storage.from(BUCKET).list('', { limit: 100 })
-  const targets = (files ?? []).filter(f => f.name.startsWith(`${date}-`)).map(f => f.name)
-  if (targets.length > 0) {
-    const { error: err } = await supabase.storage.from(BUCKET).remove(targets)
-    if (err) { alert(err.message); return }
+  try {
+    const { data: files } = await supabase.storage
+      .from(BUCKET)
+      .list('', { limit: 1000, search: `${date}-` })
+    const targets = (files ?? []).filter(f => f.name.startsWith(`${date}-`)).map(f => f.name)
+    await mustRemoveFiles('주보 삭제', BUCKET, targets)
+    // 삭제가 실제로 성공한 뒤에 목록에서 제거한다.
+    bulletinGroups.value = bulletinGroups.value.filter(g => g.date !== date)
+  } catch (e: unknown) {
+    alert((e as any)?.message ?? String(e))
   }
-  bulletinGroups.value = bulletinGroups.value.filter(g => g.date !== date)
 }
 
 // 파일 교체
@@ -285,16 +290,20 @@ async function handleReplace() {
   replaceSaving.value = true
   replaceErrorMsg.value = ''
   try {
-    // 기존 파일 삭제
-    const { data: existing } = await supabase.storage.from(BUCKET).list('', { limit: 100 })
+    // 기존 파일 삭제 — 실패하면 여기서 멈춘다. 예전에는 조용히 무시하고
+    // 업로드로 넘어가 "이미 존재함" 오류가 나던 자리다.
+    const { data: existing } = await supabase.storage
+      .from(BUCKET)
+      .list('', { limit: 1000, search: `${replacingDate.value}-` })
     const targets = (existing ?? []).filter(f => f.name.startsWith(`${replacingDate.value}-`)).map(f => f.name)
-    if (targets.length > 0) await supabase.storage.from(BUCKET).remove(targets)
+    replaceProgress.value = '기존 파일 삭제 중...'
+    await mustRemoveFiles('주보 삭제', BUCKET, targets)
     // 새 파일 업로드
     for (let i = 0; i < files.length; i++) {
       const ext = files[i].name.split('.').pop()
       const p = String(i + 1).padStart(2, '0')
       replaceProgress.value = `업로드 중... (${i + 1}/${files.length})`
-      const { error: err } = await supabase.storage.from(BUCKET).upload(`${replacingDate.value}-p${p}.${ext}`, files[i])
+      const { error: err } = await supabase.storage.from(BUCKET).upload(`${replacingDate.value}-p${p}.${ext}`, files[i], { upsert: true })
       if (err) throw err
     }
     await fetchBulletins()

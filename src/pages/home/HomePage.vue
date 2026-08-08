@@ -229,12 +229,25 @@
             전체 보기 →
           </RouterLink>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div v-if="isLoggedIn" class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <NewsCard
             v-for="item in newsItems"
             :key="item.id"
             :item="item"
           />
+        </div>
+        <!-- 교회소식은 성도 전용이다. 비로그인 상태에서는 아예 요청하지 않는다. -->
+        <div
+          v-else
+          class="rounded-2xl border border-dashed border-border bg-muted/30 px-8 py-14 text-center"
+        >
+          <p class="text-muted-foreground mb-4">교회소식은 성도님께만 공개됩니다.</p>
+          <RouterLink
+            :to="ROUTE_PATHS.LOGIN"
+            class="inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            로그인하고 보기
+          </RouterLink>
         </div>
       </div>
     </section>
@@ -287,7 +300,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ChevronLeft, ChevronRight, Clock, MapPin, BookOpen, Users, Heart, Cross } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import SermonCard from '@/components/SermonCard.vue'
@@ -297,6 +310,7 @@ import { worshipSchedules } from '@/data/index'
 import { supabase } from '@/lib/supabase'
 import type { SermonItem } from '@/lib/index'
 import { useChurchNews } from '@/composables/useChurchNews'
+import { useAuth } from '@/composables/useAuth'
 
 // ── 데이터 ──────────────────────────────────────────────────────
 const heroSlides = [
@@ -340,12 +354,14 @@ const current = ref(0)
 let timer: ReturnType<typeof setInterval>
 let scrollObserver: IntersectionObserver | null = null
 
+const { isLoggedIn } = useAuth()
 const { items: newsAll, fetchNews } = useChurchNews()
 const newsItems = computed(() => newsAll.value.slice(0, 3))
 
-onMounted(() => {
-  fetchNews()
+// 로그인 상태에서만 요청한다. 홈에 머문 채 로그인한 경우도 곧바로 채워진다.
+watch(isLoggedIn, v => { if (v) fetchNews() }, { immediate: true })
 
+onMounted(() => {
   timer = setInterval(() => {
     current.value = (current.value + 1) % heroSlides.length
   }, 5000)
