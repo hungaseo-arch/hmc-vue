@@ -76,6 +76,12 @@
 
     <Teleport to="body">
       <!-- 파일 교체 모달 -->
+      <!--
+        바깥을 눌러 닫는 모달. role="dialog" 라 키보드 사용자는 ESC(useEscapeToClose)와
+        안의 닫기 버튼으로 닫는다. 바깥 클릭은 마우스 편의 기능이라 여기에
+        키보드 핸들러를 더 달 이유가 없다.
+      -->
+      <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
       <div
         v-if="showReplaceModal"
         role="dialog"
@@ -89,8 +95,8 @@
           <p class="text-sm text-muted-foreground mb-6">{{ replacingLabel }} — 기존 파일을 삭제하고 새 파일로 교체합니다.</p>
           <form class="space-y-4" @submit.prevent="handleReplace">
             <div>
-              <label class="block text-sm font-medium mb-1.5">새 파일 선택</label>
-              <input ref="replaceFileInput" required type="file" multiple accept="image/*,.pdf" class="w-full border border-border rounded-xl px-4 py-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition" />
+              <label for="bulletinpage-field-1" class="block text-sm font-medium mb-1.5">새 파일 선택</label>
+              <input id="bulletinpage-field-1" ref="replaceFileInput" required type="file" multiple accept="image/*,.pdf" class="w-full border border-border rounded-xl px-4 py-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition" />
             </div>
             <p v-if="replaceProgress" class="text-sm text-muted-foreground">{{ replaceProgress }}</p>
             <p v-if="replaceErrorMsg" class="text-sm text-red-500">{{ replaceErrorMsg }}</p>
@@ -104,6 +110,12 @@
         </div>
       </div>
 
+      <!--
+        바깥을 눌러 닫는 모달. role="dialog" 라 키보드 사용자는 ESC(useEscapeToClose)와
+        안의 닫기 버튼으로 닫는다. 바깥 클릭은 마우스 편의 기능이라 여기에
+        키보드 핸들러를 더 달 이유가 없다.
+      -->
+      <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
       <div
         v-if="showModal"
         role="dialog"
@@ -116,12 +128,12 @@
           <h3 id="bulletin-showModal-title" class="text-lg font-bold mb-6">주보 업로드</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>
-              <label class="block text-sm font-medium mb-1.5">주보 날짜</label>
-              <input v-model="form.date" required type="date" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="bulletinpage-form-date" class="block text-sm font-medium mb-1.5">주보 날짜</label>
+              <input id="bulletinpage-form-date" v-model="form.date" required type="date" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">파일 선택 (여러 페이지는 순서대로 선택)</label>
-              <input ref="fileInput" required type="file" multiple accept="image/*,.pdf" class="w-full border border-border rounded-xl px-4 py-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition" />
+              <label for="bulletinpage-field-2" class="block text-sm font-medium mb-1.5">파일 선택 (여러 페이지는 순서대로 선택)</label>
+              <input id="bulletinpage-field-2" ref="fileInput" required type="file" multiple accept="image/*,.pdf" class="w-full border border-border rounded-xl px-4 py-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition" />
             </div>
             <p v-if="uploadProgress" class="text-sm text-muted-foreground">{{ uploadProgress }}</p>
             <p v-if="errorMsg" class="text-sm text-red-500">{{ errorMsg }}</p>
@@ -139,6 +151,7 @@
 </template>
 
 <script setup lang="ts">
+import { errorMessage } from '@/lib/errors'
 import { ref } from 'vue'
 import { FileText, Plus, Pencil, Trash2 } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
@@ -272,7 +285,7 @@ async function handleDelete(date: string) {
     // 삭제가 실제로 성공한 뒤에 목록에서 제거한다.
     bulletinGroups.value = bulletinGroups.value.filter(g => g.date !== date)
   } catch (e: unknown) {
-    alert((e as any)?.message ?? String(e))
+    alert(errorMessage(e))
   }
 }
 
@@ -323,7 +336,7 @@ async function handleReplace() {
     await fetchBulletins()
     closeReplaceModal()
   } catch (e: unknown) {
-    replaceErrorMsg.value = (e as any)?.message ?? String(e)
+    replaceErrorMsg.value = errorMessage(e)
   } finally {
     replaceSaving.value = false
     replaceProgress.value = ''

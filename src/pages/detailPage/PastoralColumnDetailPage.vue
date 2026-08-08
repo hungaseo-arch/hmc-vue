@@ -37,10 +37,14 @@
 
           <!-- 본문 -->
           <div class="px-8 py-10">
-            <div
-              class="prose prose-sm max-w-none text-foreground/80 leading-relaxed"
-              v-html="cleanContent(column.content)"
-            />
+            <!--
+              v-html 이었는데 순수 텍스트로 바꾼다. pastorColumn 134건을 확인해
+              보니 HTML 태그가 하나도 없다. 태그가 없는 글을 v-html 로 넣으면
+              줄바꿈(\n)이 공백으로 뭉개져서 17건이 한 덩어리로 나오고 있었다.
+              whitespace-pre-line 으로 줄을 살리고, 덤으로 관리자가 나중에
+              태그를 붙여 넣어도 그대로 그려지지 않는다.
+            -->
+            <p class="text-foreground/80 leading-relaxed whitespace-pre-line">{{ cleanContent(column.content) }}</p>
           </div>
         </div>
 

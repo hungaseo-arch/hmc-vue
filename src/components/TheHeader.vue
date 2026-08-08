@@ -56,12 +56,22 @@
 
         <!-- Desktop nav -->
         <nav class="hidden lg:flex items-center gap-1">
+          <!--
+            마우스를 올리면 열리는 메뉴다. 키보드로도 같게 동작해야 하므로
+            focusin/focusout 을 같이 단다. 탭으로 메뉴 버튼에 닿으면 열리고,
+            하위 링크를 다 지나 밖으로 나가면 닫힌다.
+            이 div 자체는 위치 잡기용 껍데기고 실제 조작은 안의 <button> 이
+            맡는다. 그래서 정적 요소 규칙만 끈다.
+          -->
+          <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
           <div
             v-for="item in NAV_ITEMS"
             :key="item.label"
             class="relative"
             @mouseenter="activeDropdown = item.label"
             @mouseleave="activeDropdown = null"
+            @focusin="activeDropdown = item.label"
+            @focusout="onDropdownFocusOut($event, item.label)"
           >
             <button
               type="button"
@@ -89,6 +99,12 @@
             </button>
 
             <Transition name="dropdown">
+              <!--
+                펼침 목록. 안의 링크에 포커스가 있을 때도 ESC 로 닫히도록
+                여기서 keydown 을 받는다. 조작은 링크와 버튼이 하고 이 div 는
+                담는 상자라서 role 을 따로 주지 않는다.
+              -->
+              <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
               <div
                 v-if="activeDropdown === item.label"
                 :id="`navmenu-${item.label}`"
@@ -193,13 +209,25 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Menu, X, ChevronDown, Phone, MapPin } from 'lucide-vue-next'
+import { Menu, X, ChevronDown } from 'lucide-vue-next'
 import { NAV_ITEMS, ROUTE_PATHS } from '@/lib/index'
 import { useScrolled } from '@/composables/useScrolled'
 import { useAuth } from '@/composables/useAuth'
 
 const isMenuOpen = ref(false)
 const activeDropdown = ref<string | null>(null)
+
+/*
+  focusout 은 같은 메뉴 안에서 버튼 → 하위 링크로 옮겨갈 때도 터진다.
+  그때 닫아버리면 탭을 한 번 누르는 순간 메뉴가 사라진다.
+  새로 포커스를 받는 곳(relatedTarget)이 이 메뉴 밖일 때만 닫는다.
+*/
+function onDropdownFocusOut(e: FocusEvent, label: string) {
+  const wrap = e.currentTarget as HTMLElement | null
+  const next = e.relatedTarget as Node | null
+  if (wrap && next && wrap.contains(next)) return
+  if (activeDropdown.value === label) activeDropdown.value = null
+}
 const mobileOpenMenu = ref<string | null>(null)
 const headerRef = ref<HTMLDivElement | null>(null)
 

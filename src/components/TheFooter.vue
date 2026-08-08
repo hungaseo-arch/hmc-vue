@@ -14,7 +14,8 @@
 </template>
 
 <script setup lang="ts">
-import { MapPin, Phone } from 'lucide-vue-next'
+// MapPin·Phone 아이콘은 3단 레이아웃을 걷어내면서 쓰는 곳이 없어졌다.
+// 레이아웃을 되살리면 lucide-vue-next 에서 다시 가져오면 된다.
 
 // 푸터용 예배 시간 (데이터를 컴포넌트 내에서 정의)
 // const footerSchedules = [

@@ -1,6 +1,11 @@
 <template>
   <TheLayout>
-    <!-- ── Hero Carousel ───────────────────────────────────────── -->
+    <!-- ── Hero Carousel ─────────────────────────────────────────
+      마우스를 올리거나 포커스가 들어오면 자동 넘김을 멈춘다. 글을 읽는 중에
+      화면이 바뀌지 않게 하는 것이라 클릭 동작이 아니다. 키보드 사용자를 위해
+      focusin/focusout 을 이미 쌍으로 달아 뒀다.
+    -->
+    <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
     <section
       class="relative h-125 md:h-150 overflow-hidden"
       aria-roledescription="carousel"

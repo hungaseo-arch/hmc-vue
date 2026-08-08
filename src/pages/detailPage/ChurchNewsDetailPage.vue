@@ -31,16 +31,23 @@
             <p class="text-sm leading-relaxed whitespace-pre-line text-foreground">{{ item.content }}</p>
           </div>
 
+          <!-- 사진이 도착하기 전에 자리를 잡는다. useImageRatio 설명 참고. -->
           <div class="divide-y divide-border">
-            <img
+            <div
               v-for="(url, i) in item.images"
               :key="i"
-              :src="url"
-              :alt="`${item.title} ${i + 1}/${item.images.length}`"
-              class="w-full object-contain"
-              loading="lazy"
-              decoding="async"
-            />
+              class="bg-muted"
+              :style="boxStyle(url)"
+            >
+              <img
+                :src="url"
+                :alt="`${item.title} ${i + 1}/${item.images.length}`"
+                class="w-full h-full object-contain"
+                loading="lazy"
+                decoding="async"
+                @load="remember(url, $event)"
+              />
+            </div>
           </div>
         </div>
 
@@ -56,6 +63,10 @@ import { ChevronLeft, Calendar } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useChurchNews } from '@/composables/useChurchNews'
+import { useImageRatio } from '@/composables/useImageRatio'
+
+// 소식 사진은 행사 스냅이 대부분이라 가로 4:3 을 기본으로 둔다.
+const { boxStyle, remember } = useImageRatio(4 / 3)
 
 const router = useRouter()
 const route = useRoute()

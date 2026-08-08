@@ -98,6 +98,12 @@
     </section>
 
     <Teleport to="body">
+      <!--
+        바깥을 눌러 닫는 모달. role="dialog" 라 키보드 사용자는 ESC(useEscapeToClose)와
+        안의 닫기 버튼으로 닫는다. 바깥 클릭은 마우스 편의 기능이라 여기에
+        키보드 핸들러를 더 달 이유가 없다.
+      -->
+      <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
       <div
         v-if="showModal"
         role="dialog"
@@ -110,26 +116,26 @@
           <h3 id="sundaysermon-showModal-title" class="text-lg font-bold mb-6">새 설교 등록</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>
-              <label class="block text-sm font-medium mb-1.5">제목</label>
-              <input v-model="form.title" required type="text" placeholder="설교 제목" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="sundaysermonpage-form-title" class="block text-sm font-medium mb-1.5">제목</label>
+              <input id="sundaysermonpage-form-title" v-model="form.title" required type="text" placeholder="설교 제목" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm font-medium mb-1.5">본문</label>
-                <input v-model="form.scripture" required type="text" placeholder="요 3:16" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+                <label for="sundaysermonpage-form-scripture" class="block text-sm font-medium mb-1.5">본문</label>
+                <input id="sundaysermonpage-form-scripture" v-model="form.scripture" required type="text" placeholder="요 3:16" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1.5">설교자</label>
-                <input v-model="form.preacher" required type="text" placeholder="담임목사" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+                <label for="sundaysermonpage-form-preacher" class="block text-sm font-medium mb-1.5">설교자</label>
+                <input id="sundaysermonpage-form-preacher" v-model="form.preacher" required type="text" placeholder="담임목사" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">날짜</label>
-              <input v-model="form.date" required type="date" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="sundaysermonpage-form-date" class="block text-sm font-medium mb-1.5">날짜</label>
+              <input id="sundaysermonpage-form-date" v-model="form.date" required type="date" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">링크 (선택)</label>
-              <input v-model="form.link" type="url" placeholder="https://youtube.com/..." class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="sundaysermonpage-form-link" class="block text-sm font-medium mb-1.5">링크 (선택)</label>
+              <input id="sundaysermonpage-form-link" v-model="form.link" type="url" placeholder="https://youtube.com/..." class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <p v-if="errorMsg" class="text-sm text-red-500">{{ errorMsg }}</p>
             <div class="flex gap-3 pt-2">
@@ -142,6 +148,12 @@
         </div>
       </div>
       <!-- 수정 모달 -->
+      <!--
+        바깥을 눌러 닫는 모달. role="dialog" 라 키보드 사용자는 ESC(useEscapeToClose)와
+        안의 닫기 버튼으로 닫는다. 바깥 클릭은 마우스 편의 기능이라 여기에
+        키보드 핸들러를 더 달 이유가 없다.
+      -->
+      <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
       <div
         v-if="showEditModal"
         role="dialog"
@@ -154,26 +166,26 @@
           <h3 id="sundaysermon-showEditModal-title" class="text-lg font-bold mb-6">설교 수정</h3>
           <form class="space-y-4" @submit.prevent="handleEditSubmit">
             <div>
-              <label class="block text-sm font-medium mb-1.5">제목</label>
-              <input v-model="editForm.title" required type="text" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="sundaysermonpage-editform-title" class="block text-sm font-medium mb-1.5">제목</label>
+              <input id="sundaysermonpage-editform-title" v-model="editForm.title" required type="text" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm font-medium mb-1.5">본문</label>
-                <input v-model="editForm.scripture" required type="text" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+                <label for="sundaysermonpage-editform-scripture" class="block text-sm font-medium mb-1.5">본문</label>
+                <input id="sundaysermonpage-editform-scripture" v-model="editForm.scripture" required type="text" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1.5">설교자</label>
-                <input v-model="editForm.preacher" required type="text" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+                <label for="sundaysermonpage-editform-preacher" class="block text-sm font-medium mb-1.5">설교자</label>
+                <input id="sundaysermonpage-editform-preacher" v-model="editForm.preacher" required type="text" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">날짜</label>
-              <input v-model="editForm.date" required type="date" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="sundaysermonpage-editform-date" class="block text-sm font-medium mb-1.5">날짜</label>
+              <input id="sundaysermonpage-editform-date" v-model="editForm.date" required type="date" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">링크 (선택)</label>
-              <input v-model="editForm.link" type="url" placeholder="https://youtube.com/..." class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="sundaysermonpage-editform-link" class="block text-sm font-medium mb-1.5">링크 (선택)</label>
+              <input id="sundaysermonpage-editform-link" v-model="editForm.link" type="url" placeholder="https://youtube.com/..." class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <p v-if="editErrorMsg" class="text-sm text-red-500">{{ editErrorMsg }}</p>
             <div class="flex gap-3 pt-2">
@@ -190,6 +202,7 @@
 </template>
 
 <script setup lang="ts">
+import { errorMessage } from '@/lib/errors'
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { BookOpen, Plus, Pencil } from 'lucide-vue-next'
@@ -274,7 +287,7 @@ async function handleEditSubmit() {
     patch(editingId.value, { ...editForm.value, link: editForm.value.link || undefined })
     showEditModal.value = false
   } catch (e: unknown) {
-    editErrorMsg.value = (e as any)?.message ?? String(e)
+    editErrorMsg.value = errorMessage(e)
   } finally {
     editSaving.value = false
   }
@@ -294,7 +307,7 @@ async function handleSubmit() {
     showModal.value = false
     form.value = { title: '', scripture: '', preacher: '', date: '', link: '' }
   } catch (e: unknown) {
-    errorMsg.value = (e as any)?.message ?? String(e)
+    errorMsg.value = errorMessage(e)
   } finally {
     saving.value = false
   }

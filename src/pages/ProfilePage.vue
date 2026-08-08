@@ -15,13 +15,13 @@
             <!-- 이름 / 성별 -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium mb-1.5">이름</label>
-                <input v-model="form.name" type="text" placeholder="이름"
+                <label for="profilepage-form-name" class="block text-sm font-medium mb-1.5">이름</label>
+                <input id="profilepage-form-name" v-model="form.name" type="text" placeholder="이름"
                   class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1.5">성별</label>
-                <select v-model="form.gender"
+                <label for="profilepage-form-gender" class="block text-sm font-medium mb-1.5">성별</label>
+                <select id="profilepage-form-gender" v-model="form.gender"
                   class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition bg-white">
                   <option value="">선택</option>
                   <option value="남">남</option>
@@ -33,38 +33,38 @@
             <!-- 전화번호 / 직책 -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium mb-1.5">전화번호</label>
-                <input v-model="form.phone" type="tel" placeholder="010-0000-0000"
+                <label for="profilepage-form-phone" class="block text-sm font-medium mb-1.5">전화번호</label>
+                <input id="profilepage-form-phone" v-model="form.phone" type="tel" placeholder="010-0000-0000"
                   class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1.5">직책</label>
-                <input v-model="form.position" type="text" placeholder="집사, 장로, 권사 등"
+                <label for="profilepage-form-position" class="block text-sm font-medium mb-1.5">직책</label>
+                <input id="profilepage-form-position" v-model="form.position" type="text" placeholder="집사, 장로, 권사 등"
                   class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
               </div>
             </div>
 
             <!-- 가족 -->
             <div>
-              <label class="block text-sm font-medium mb-1.5">가족대표</label>
-              <input v-model="form.family_head" type="text" placeholder="가족대표 이름"
+              <label for="profilepage-form-family-head" class="block text-sm font-medium mb-1.5">가족대표</label>
+              <input id="profilepage-form-family-head" v-model="form.family_head" type="text" placeholder="가족대표 이름"
                 class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
 
             <div class="grid grid-cols-3 gap-4">
               <div>
-                <label class="block text-sm font-medium mb-1.5">자녀 1</label>
-                <input v-model="form.child1" type="text" placeholder="이름"
+                <label for="profilepage-form-child1" class="block text-sm font-medium mb-1.5">자녀 1</label>
+                <input id="profilepage-form-child1" v-model="form.child1" type="text" placeholder="이름"
                   class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1.5">자녀 2</label>
-                <input v-model="form.child2" type="text" placeholder="이름"
+                <label for="profilepage-form-child2" class="block text-sm font-medium mb-1.5">자녀 2</label>
+                <input id="profilepage-form-child2" v-model="form.child2" type="text" placeholder="이름"
                   class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1.5">자녀 3</label>
-                <input v-model="form.child3" type="text" placeholder="이름"
+                <label for="profilepage-form-child3" class="block text-sm font-medium mb-1.5">자녀 3</label>
+                <input id="profilepage-form-child3" v-model="form.child3" type="text" placeholder="이름"
                   class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
               </div>
             </div>

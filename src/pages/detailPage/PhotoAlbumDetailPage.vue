@@ -31,17 +31,23 @@
           </div>
 
           <div class="flex flex-col gap-4">
+            <!--
+              boxStyle 이 사진이 도착하기 전에 자리를 잡아 준다. 이게 없으면
+              사진이 하나씩 뜰 때마다 아래가 통째로 밀린다. useImageRatio 설명 참고.
+            -->
             <div
               v-for="(url, i) in album.images"
               :key="i"
-              class="rounded-2xl overflow-hidden shadow-sm border border-border"
+              class="rounded-2xl overflow-hidden shadow-sm border border-border bg-muted"
+              :style="boxStyle(url)"
             >
               <img
                 :src="url"
                 :alt="`사진 ${i + 1}`"
-                class="w-full object-contain"
+                class="w-full h-full object-contain"
                 loading="lazy"
                 decoding="async"
+                @load="remember(url, $event)"
               />
             </div>
           </div>
@@ -59,6 +65,10 @@ import { ChevronLeft, Calendar, Image as ImageIcon } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { usePhotoAlbum } from '@/composables/usePhotoAlbum'
+import { useImageRatio } from '@/composables/useImageRatio'
+
+// 행사 사진은 가로가 많다. 세로 사진은 첫 방문에만 좌우 여백이 생긴다.
+const { boxStyle, remember } = useImageRatio(4 / 3)
 
 const router = useRouter()
 const route = useRoute()

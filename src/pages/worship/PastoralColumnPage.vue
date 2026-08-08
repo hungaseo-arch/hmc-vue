@@ -73,6 +73,12 @@
     </section>
 
     <Teleport to="body">
+      <!--
+        바깥을 눌러 닫는 모달. role="dialog" 라 키보드 사용자는 ESC(useEscapeToClose)와
+        안의 닫기 버튼으로 닫는다. 바깥 클릭은 마우스 편의 기능이라 여기에
+        키보드 핸들러를 더 달 이유가 없다.
+      -->
+      <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
       <div
         v-if="showModal"
         role="dialog"
@@ -85,16 +91,16 @@
           <h3 id="pastoralcolumn-showModal-title" class="text-lg font-bold mb-6">새 칼럼 작성</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>
-              <label class="block text-sm font-medium mb-1.5">제목</label>
-              <input v-model="form.title" required type="text" placeholder="칼럼 제목" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="pastoralcolumnpage-form-title" class="block text-sm font-medium mb-1.5">제목</label>
+              <input id="pastoralcolumnpage-form-title" v-model="form.title" required type="text" placeholder="칼럼 제목" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">날짜</label>
-              <input v-model="form.date" required type="date" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="pastoralcolumnpage-form-date" class="block text-sm font-medium mb-1.5">날짜</label>
+              <input id="pastoralcolumnpage-form-date" v-model="form.date" required type="date" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">내용</label>
-              <textarea v-model="form.content" required rows="8" placeholder="칼럼 내용을 입력하세요..." class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none" />
+              <label for="pastoralcolumnpage-form-content" class="block text-sm font-medium mb-1.5">내용</label>
+              <textarea id="pastoralcolumnpage-form-content" v-model="form.content" required rows="8" placeholder="칼럼 내용을 입력하세요..." class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none" />
             </div>
             <p v-if="errorMsg" class="text-sm text-red-500">{{ errorMsg }}</p>
             <div class="flex gap-3 pt-2">
@@ -107,6 +113,12 @@
         </div>
       </div>
       <!-- 수정 모달 -->
+      <!--
+        바깥을 눌러 닫는 모달. role="dialog" 라 키보드 사용자는 ESC(useEscapeToClose)와
+        안의 닫기 버튼으로 닫는다. 바깥 클릭은 마우스 편의 기능이라 여기에
+        키보드 핸들러를 더 달 이유가 없다.
+      -->
+      <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
       <div
         v-if="showEditModal"
         role="dialog"
@@ -119,16 +131,16 @@
           <h3 id="pastoralcolumn-showEditModal-title" class="text-lg font-bold mb-6">칼럼 수정</h3>
           <form class="space-y-4" @submit.prevent="handleEditSubmit">
             <div>
-              <label class="block text-sm font-medium mb-1.5">제목</label>
-              <input v-model="editForm.title" required type="text" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="pastoralcolumnpage-editform-title" class="block text-sm font-medium mb-1.5">제목</label>
+              <input id="pastoralcolumnpage-editform-title" v-model="editForm.title" required type="text" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">날짜</label>
-              <input v-model="editForm.date" required type="date" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="pastoralcolumnpage-editform-date" class="block text-sm font-medium mb-1.5">날짜</label>
+              <input id="pastoralcolumnpage-editform-date" v-model="editForm.date" required type="date" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">내용</label>
-              <textarea v-model="editForm.content" required rows="8" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none" />
+              <label for="pastoralcolumnpage-editform-content" class="block text-sm font-medium mb-1.5">내용</label>
+              <textarea id="pastoralcolumnpage-editform-content" v-model="editForm.content" required rows="8" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none" />
             </div>
             <p v-if="editErrorMsg" class="text-sm text-red-500">{{ editErrorMsg }}</p>
             <div class="flex gap-3 pt-2">
@@ -145,6 +157,7 @@
 </template>
 
 <script setup lang="ts">
+import { errorMessage } from '@/lib/errors'
 import { ref, computed, watch } from 'vue'
 import { BookOpen, ChevronRight, Plus, Pencil } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
@@ -204,7 +217,7 @@ async function openEditModal(col: PastoralColumnListItem) {
   try {
     editForm.value.content = await fetchContent(col.id)
   } catch (e: unknown) {
-    editErrorMsg.value = (e as any)?.message ?? String(e)
+    editErrorMsg.value = errorMessage(e)
   }
 }
 
@@ -224,7 +237,7 @@ async function handleEditSubmit() {
     await invalidate(currentPage.value)
     showEditModal.value = false
   } catch (e: unknown) {
-    editErrorMsg.value = (e as any)?.message ?? String(e)
+    editErrorMsg.value = errorMessage(e)
   } finally {
     editSaving.value = false
   }
@@ -248,7 +261,7 @@ async function handleSubmit() {
     showModal.value = false
     form.value = { title: '', date: '', content: '' }
   } catch (e: unknown) {
-    errorMsg.value = (e as any)?.message ?? String(e)
+    errorMsg.value = errorMessage(e)
   } finally {
     saving.value = false
   }

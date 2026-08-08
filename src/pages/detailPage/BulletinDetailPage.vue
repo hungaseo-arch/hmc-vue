@@ -30,17 +30,20 @@
           </div>
 
           <div class="flex flex-col gap-4">
+            <!-- 사진이 도착하기 전에 자리를 잡는다. useImageRatio 설명 참고. -->
             <div
               v-for="(url, i) in pages"
               :key="url"
-              class="rounded-2xl overflow-hidden shadow-sm border border-border"
+              class="rounded-2xl overflow-hidden shadow-sm border border-border bg-muted"
+              :style="boxStyle(url)"
             >
               <img
                 :src="url"
                 :alt="`${dateLabel} ${i + 1}페이지`"
-                class="w-full object-contain"
+                class="w-full h-full object-contain"
                 loading="lazy"
                 decoding="async"
+                @load="remember(url, $event)"
               />
             </div>
           </div>
@@ -59,6 +62,10 @@ import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
 import { signPaths } from '@/lib/storage'
+import { useImageRatio } from '@/composables/useImageRatio'
+
+// 주보는 A4 를 스캔한 세로 문서라 거의 전부 1:√2 다.
+const { boxStyle, remember } = useImageRatio(1 / 1.414)
 
 const router = useRouter()
 const route = useRoute()

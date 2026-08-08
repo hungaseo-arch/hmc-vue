@@ -29,8 +29,7 @@
                 </div>
                 <div>
                   <p class="font-semibold mb-1">{{ info.label }}</p>
-                  <!-- v-html 사용 (신뢰된 내부 데이터만) -->
-                  <p class="text-sm text-muted-foreground leading-relaxed" v-html="info.content" />
+                  <p class="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{{ info.content }}</p>
                 </div>
               </div>
             </div>
@@ -50,7 +49,9 @@ const locationInfo = [
   {
     icon: MapPin,
     label: '주소',
-    content: 'Pengelola Darmawangsa Square - The City Walk Lt. 1 Lot. 1 Area A<br/>Jl. Darmawangsa VI &amp; IX Jakarta 12160, Indonesia',
+    // <br/> 와 &amp; 대신 줄바꿈과 & 를 그대로 쓴다. 화면에서는
+    // whitespace-pre-line 이 줄을 나눠 준다. v-html 을 쓸 이유가 없어진다.
+    content: 'Pengelola Darmawangsa Square - The City Walk Lt. 1 Lot. 1 Area A\nJl. Darmawangsa VI & IX Jakarta 12160, Indonesia',
   },
   {
     icon: Phone,

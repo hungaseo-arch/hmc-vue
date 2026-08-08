@@ -46,6 +46,12 @@
 
     <Teleport to="body">
       <!-- 수정 모달 -->
+      <!--
+        바깥을 눌러 닫는 모달. role="dialog" 라 키보드 사용자는 ESC(useEscapeToClose)와
+        안의 닫기 버튼으로 닫는다. 바깥 클릭은 마우스 편의 기능이라 여기에
+        키보드 핸들러를 더 달 이유가 없다.
+      -->
+      <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
       <div
         v-if="showEditModal"
         role="dialog"
@@ -58,15 +64,15 @@
           <h3 id="churchnews-showEditModal-title" class="text-lg font-bold mb-6">소식 수정</h3>
           <form class="space-y-4" @submit.prevent="handleEditSubmit">
             <div>
-              <label class="block text-sm font-medium mb-1.5">제목</label>
-              <input v-model="editForm.title" required type="text" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="churchnewspage-editform-title" class="block text-sm font-medium mb-1.5">제목</label>
+              <input id="churchnewspage-editform-title" v-model="editForm.title" required type="text" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">내용</label>
-              <textarea v-model="editForm.content" rows="4" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none" />
+              <label for="churchnewspage-editform-content" class="block text-sm font-medium mb-1.5">내용</label>
+              <textarea id="churchnewspage-editform-content" v-model="editForm.content" rows="4" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-2">현재 이미지</label>
+              <p class="block text-sm font-medium mb-2">현재 이미지</p>
               <div class="grid grid-cols-3 gap-2">
                 <div v-for="(img, i) in editImages" :key="img.path" class="relative">
                   <img :src="img.url" :alt="`${editForm.title} ${i + 1}`" class="w-full h-24 object-cover rounded-lg" :class="{ 'opacity-30': deleteMarked.includes(i) }" />
@@ -88,8 +94,8 @@
               <p v-if="deleteMarked.length > 0" class="text-xs text-red-500 mt-1">{{ deleteMarked.length }}장 삭제 예정 (저장 시 적용)</p>
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">이미지 추가</label>
-              <input ref="addFileInput" type="file" multiple accept="image/*" class="w-full border border-border rounded-xl px-4 py-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition" />
+              <label for="churchnewspage-field-1" class="block text-sm font-medium mb-1.5">이미지 추가</label>
+              <input id="churchnewspage-field-1" ref="addFileInput" type="file" multiple accept="image/*" class="w-full border border-border rounded-xl px-4 py-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition" />
             </div>
             <p v-if="editProgress" class="text-sm text-muted-foreground">{{ editProgress }}</p>
             <p v-if="editErrorMsg" class="text-sm text-red-500">{{ editErrorMsg }}</p>
@@ -103,6 +109,12 @@
         </div>
       </div>
 
+      <!--
+        바깥을 눌러 닫는 모달. role="dialog" 라 키보드 사용자는 ESC(useEscapeToClose)와
+        안의 닫기 버튼으로 닫는다. 바깥 클릭은 마우스 편의 기능이라 여기에
+        키보드 핸들러를 더 달 이유가 없다.
+      -->
+      <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
       <div
         v-if="showModal"
         role="dialog"
@@ -115,20 +127,20 @@
           <h3 id="churchnews-showModal-title" class="text-lg font-bold mb-6">새 소식 등록</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>
-              <label class="block text-sm font-medium mb-1.5">날짜</label>
-              <input v-model="form.date" required type="date" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="churchnewspage-form-date" class="block text-sm font-medium mb-1.5">날짜</label>
+              <input id="churchnewspage-form-date" v-model="form.date" required type="date" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">제목</label>
-              <input v-model="form.title" required type="text" placeholder="소식 제목" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+              <label for="churchnewspage-form-title" class="block text-sm font-medium mb-1.5">제목</label>
+              <input id="churchnewspage-form-title" v-model="form.title" required type="text" placeholder="소식 제목" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">내용</label>
-              <textarea v-model="form.content" rows="5" placeholder="소식 내용을 입력하세요..." class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none" />
+              <label for="churchnewspage-form-content" class="block text-sm font-medium mb-1.5">내용</label>
+              <textarea id="churchnewspage-form-content" v-model="form.content" rows="5" placeholder="소식 내용을 입력하세요..." class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">이미지 파일</label>
-              <input ref="fileInput" required type="file" multiple accept="image/*" class="w-full border border-border rounded-xl px-4 py-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition" />
+              <label for="churchnewspage-field-2" class="block text-sm font-medium mb-1.5">이미지 파일</label>
+              <input id="churchnewspage-field-2" ref="fileInput" required type="file" multiple accept="image/*" class="w-full border border-border rounded-xl px-4 py-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition" />
             </div>
             <p v-if="uploadProgress" class="text-sm text-muted-foreground">{{ uploadProgress }}</p>
             <p v-if="errorMsg" class="text-sm text-red-500">{{ errorMsg }}</p>
@@ -146,6 +158,7 @@
 </template>
 
 <script setup lang="ts">
+import { errorMessage } from '@/lib/errors'
 import { ref } from 'vue'
 import { Plus, Pencil, Newspaper } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
@@ -228,7 +241,7 @@ async function handleEditSubmit() {
     await fetchNews()
     showEditModal.value = false
   } catch (e: unknown) {
-    editErrorMsg.value = (e as any)?.message ?? String(e)
+    editErrorMsg.value = errorMessage(e)
   } finally {
     editSaving.value = false
     editProgress.value = ''
@@ -275,7 +288,7 @@ async function handleSubmit() {
     await fetchNews()
     closeModal()
   } catch (e: unknown) {
-    errorMsg.value = (e as any)?.message ?? String(e)
+    errorMsg.value = errorMessage(e)
   } finally {
     saving.value = false
     uploadProgress.value = ''
