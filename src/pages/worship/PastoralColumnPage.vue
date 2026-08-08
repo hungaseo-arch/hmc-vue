@@ -21,32 +21,42 @@
         <div v-if="loading" class="text-center py-12 text-muted-foreground">불러오는 중...</div>
         <div v-else-if="error" class="text-center py-12 text-red-500">{{ error }}</div>
 
-        <div v-else-if="columns.length === 0" class="bg-white rounded-2xl shadow-sm border border-border p-12 text-center">
-          <div class="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-            <BookOpen class="w-8 h-8 text-muted-foreground" />
-          </div>
-          <h3 class="text-xl font-semibold mb-3">목회칼럼 준비 중</h3>
-          <p class="text-muted-foreground">목회칼럼 내용이 곧 업데이트될 예정입니다.</p>
-        </div>
+        <EmptyState
+          v-else-if="columns.length === 0"
+          :icon="BookOpen"
+          title="목회칼럼 준비 중"
+          description="목회칼럼 내용이 곧 업데이트될 예정입니다."
+        />
 
         <div v-else class="space-y-4">
+          <!--
+            role="link" + tabindex 로 흉내내던 것을 진짜 RouterLink 로 바꾼다.
+            제목에 링크를 걸고 before 로 카드 전체를 덮어, 카드 아무 데나 눌러도
+            열리면서 새 탭 열기·주소 복사·크롤링이 모두 된다.
+          -->
           <div
             v-for="col in columns"
             :key="col.id"
-            class="bg-white rounded-2xl shadow-sm border border-border px-7 py-6 hover:shadow-md hover:border-primary/30 transition-all cursor-pointer"
-            @click="goToDetail(col.id)"
+            class="relative bg-white rounded-2xl shadow-sm border border-border px-7 py-6 hover:shadow-md hover:border-primary/30 transition-all"
           >
             <div class="flex items-start justify-between gap-4">
               <div class="flex-1 min-w-0">
-                <h3 class="font-semibold text-base mb-2 truncate">{{ cleanTitle(col.title) }}</h3>
-                <p class="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{{ stripHtml(col.content) }}</p>
+                <h3 class="font-semibold text-base mb-2 truncate">
+                  <RouterLink
+                    :to="`/worship/pastoral-column/${col.id}`"
+                    class="before:absolute before:inset-0 before:content-[''] before:rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >{{ cleanTitle(col.title) }}</RouterLink>
+                </h3>
+                <p class="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{{ cleanExcerpt(col.excerpt) }}</p>
               </div>
               <div class="flex flex-col items-end gap-2 shrink-0">
                 <span class="text-xs text-muted-foreground">{{ formatDate(col.created_at) }}</span>
                 <div class="flex items-center gap-1">
+                  <!-- relative z-10: 카드를 덮는 링크(before) 위로 올려야 눌린다. -->
                   <button
                     v-if="isAdmin"
-                    class="p-1.5 rounded-lg hover:bg-muted transition"
+                    class="relative z-10 p-1.5 rounded-lg hover:bg-muted transition"
+                    :aria-label="`${cleanTitle(col.title)} 수정`"
                     @click.stop="openEditModal(col)"
                   >
                     <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
@@ -57,17 +67,22 @@
             </div>
           </div>
         </div>
+
+        <ThePagination v-if="!loading && !error" v-model="currentPage" :total-pages="totalPages" />
       </div>
     </section>
 
     <Teleport to="body">
       <div
         v-if="showModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pastoralcolumn-showModal-title"
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="showModal = false"
       >
         <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-xl">
-          <h3 class="text-lg font-bold mb-6">새 칼럼 작성</h3>
+          <h3 id="pastoralcolumn-showModal-title" class="text-lg font-bold mb-6">새 칼럼 작성</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>
               <label class="block text-sm font-medium mb-1.5">제목</label>
@@ -94,11 +109,14 @@
       <!-- 수정 모달 -->
       <div
         v-if="showEditModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pastoralcolumn-showEditModal-title"
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="showEditModal = false"
       >
         <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-xl">
-          <h3 class="text-lg font-bold mb-6">칼럼 수정</h3>
+          <h3 id="pastoralcolumn-showEditModal-title" class="text-lg font-bold mb-6">칼럼 수정</h3>
           <form class="space-y-4" @submit.prevent="handleEditSubmit">
             <div>
               <label class="block text-sm font-medium mb-1.5">제목</label>
@@ -127,33 +145,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch } from 'vue'
 import { BookOpen, ChevronRight, Plus, Pencil } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import ThePagination from '@/components/ThePagination.vue'
 import { supabase } from '@/lib/supabase'
 import { mustAffectRows } from '@/lib/db'
 import { useAuth } from '@/composables/useAuth'
-import type { PastoralColumnItem } from '@/lib/index'
+import { useEscapeToClose } from '@/composables/useEscapeToClose'
+import { usePastoralColumns, PAGE_SIZE } from '@/composables/usePastoralColumns'
+import type { PastoralColumnListItem } from '@/lib/index'
 
-const router = useRouter()
 const { isAdmin } = useAuth()
 
-const columns = ref<PastoralColumnItem[]>([])
-const loading = ref(true)
-const error = ref<string | null>(null)
+const {
+  items: columns, total, loading, error,
+  fetchPage, invalidate, fetchContent,
+} = usePastoralColumns()
 
-;(async () => {
-  const { data, error: err } = await supabase.from('pastorColumn').select('*').order('id', { ascending: false })
-  if (err) error.value = err.message
-  else columns.value = data ?? []
-  loading.value = false
-})()
+const currentPage = ref(1)
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
 
-function goToDetail(id: number) {
-  router.push(`/worship/pastoral-column/${id}`)
-}
+watch(currentPage, page => { void fetchPage(page) }, { immediate: true })
 
 function formatDate(isoString: string): string {
   return new Date(isoString).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -163,9 +178,10 @@ function cleanTitle(title: string): string {
   return title.replace(/^\d{4}\.\d{1,2}\.?\s*\d{1,2}\.?\s*/, '').trim()
 }
 
-function stripHtml(html: string | null): string {
-  if (!html) return ''
-  return html.replace(/<[^>]*>/g, '').replace(/^고목사의 짧은 단상\s*/g, '').trim()
+// 태그 제거는 DB 생성 컬럼이 이미 했다. 여기서는 머리말만 걷어낸다.
+function cleanExcerpt(excerpt: string | null): string {
+  if (!excerpt) return ''
+  return excerpt.replace(/^고목사의 짧은 단상\s*/, '').trim()
 }
 
 const showModal = ref(false)
@@ -179,15 +195,17 @@ const editErrorMsg = ref('')
 const editingId = ref<number | null>(null)
 const editForm = ref({ title: '', date: '', content: '' })
 
-function openEditModal(col: PastoralColumnItem) {
+async function openEditModal(col: PastoralColumnListItem) {
   editingId.value = col.id
-  editForm.value = {
-    title: col.title,
-    date: col.created_at ? col.created_at.slice(0, 10) : '',
-    content: col.content ?? '',
-  }
+  // 목록에는 발췌만 있다. 수정하려면 본문을 따로 받아야 한다.
+  editForm.value = { title: col.title, date: col.created_at ? col.created_at.slice(0, 10) : '', content: '' }
   editErrorMsg.value = ''
   showEditModal.value = true
+  try {
+    editForm.value.content = await fetchContent(col.id)
+  } catch (e: unknown) {
+    editErrorMsg.value = (e as any)?.message ?? String(e)
+  }
 }
 
 async function handleEditSubmit() {
@@ -202,13 +220,8 @@ async function handleEditSubmit() {
         content: editForm.value.content,
         created_at: new Date(editForm.value.date).toISOString(),
       }).eq('id', editingId.value).select('id'))
-    const idx = columns.value.findIndex(c => c.id === editingId.value)
-    if (idx !== -1) columns.value[idx] = {
-      ...columns.value[idx],
-      title: editForm.value.title,
-      content: editForm.value.content,
-      created_at: new Date(editForm.value.date).toISOString(),
-    }
+    // excerpt 는 생성 컬럼이라 서버가 다시 계산한다. 다시 받아야 목록이 맞다.
+    await invalidate(currentPage.value)
     showEditModal.value = false
   } catch (e: unknown) {
     editErrorMsg.value = (e as any)?.message ?? String(e)
@@ -230,8 +243,8 @@ async function handleSubmit() {
           created_at: form.value.date ? new Date(form.value.date).toISOString() : new Date().toISOString(),
         })
         .select('id'))
-    const { data } = await supabase.from('pastorColumn').select('*').order('id', { ascending: false })
-    if (data) columns.value = data
+    currentPage.value = 1
+    await invalidate(1)
     showModal.value = false
     form.value = { title: '', date: '', content: '' }
   } catch (e: unknown) {
@@ -240,4 +253,10 @@ async function handleSubmit() {
     saving.value = false
   }
 }
+
+// Esc 로 모달 닫기
+useEscapeToClose([
+  { isOpen: () => showModal.value, close: () => (showModal.value = false) },
+  { isOpen: () => showEditModal.value, close: () => (showEditModal.value = false) },
+])
 </script>

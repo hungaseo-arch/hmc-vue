@@ -18,21 +18,19 @@
         <div v-if="loading" class="text-center py-12 text-muted-foreground">불러오는 중...</div>
         <div v-else-if="error" class="text-center py-12 text-red-500">{{ error }}</div>
 
-        <div v-else-if="bulletinGroups.length === 0" class="bg-white rounded-2xl shadow-sm border border-border p-12 text-center">
-          <div class="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-            <FileText class="w-8 h-8 text-muted-foreground" />
-          </div>
-          <h3 class="text-xl font-semibold mb-3">주보 준비 중</h3>
-          <p class="text-muted-foreground">주보가 곧 업로드될 예정입니다.</p>
-        </div>
+        <EmptyState
+          v-else-if="bulletinGroups.length === 0"
+          :icon="FileText"
+          title="주보 준비 중"
+          description="주보가 곧 업로드될 예정입니다."
+        />
 
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div
             v-for="(group, i) in bulletinGroups"
             :key="group.date"
-            class="relative bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md transition-all hover:-translate-y-1 cursor-pointer group animate-fade-in-up"
+            class="relative bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md transition-all hover:-translate-y-1 group animate-fade-in-up"
             :style="{ animationDelay: `${i * 0.08}s` }"
-            @click="goToDetail(group.date)"
           >
             <div
               class="relative h-48 overflow-hidden flex items-center justify-center transition-all duration-300"
@@ -44,16 +42,30 @@
               <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <FileText class="w-4 h-4 text-primary" />
               </div>
+              <!-- before 로 카드 전체를 덮는 진짜 링크. 새 탭 열기·주소 복사가 된다. -->
               <div class="min-w-0">
-                <h3 class="font-semibold text-sm truncate">{{ group.label }}</h3>
+                <h3 class="font-semibold text-sm truncate">
+                  <RouterLink
+                    :to="`/community/bulletin/${group.date}`"
+                    class="before:absolute before:inset-0 before:content-[''] before:rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >{{ group.label }}</RouterLink>
+                </h3>
                 <p class="text-xs text-muted-foreground mt-0.5">{{ group.pageCount }}페이지</p>
               </div>
             </div>
-            <div v-if="isAdmin" class="absolute top-2 right-2 flex gap-1" @click.stop>
-              <button class="p-1.5 bg-white/90 rounded-lg shadow hover:bg-white transition" @click="openReplaceModal(group)">
+            <div v-if="isAdmin" class="absolute top-2 right-2 z-10 flex gap-1" @click.stop>
+              <button
+                class="p-1.5 bg-white/90 rounded-lg shadow hover:bg-white transition"
+                :aria-label="`${group.label} 주보 교체`"
+                @click="openReplaceModal(group)"
+              >
                 <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
               </button>
-              <button class="p-1.5 bg-white/90 rounded-lg shadow hover:bg-red-50 transition" @click="handleDelete(group.date)">
+              <button
+                class="p-1.5 bg-white/90 rounded-lg shadow hover:bg-red-50 transition"
+                :aria-label="`${group.label} 주보 삭제`"
+                @click="handleDelete(group.date)"
+              >
                 <Trash2 class="w-3.5 h-3.5 text-red-400" />
               </button>
             </div>
@@ -66,11 +78,14 @@
       <!-- 파일 교체 모달 -->
       <div
         v-if="showReplaceModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bulletin-showReplaceModal-title"
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="closeReplaceModal"
       >
         <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
-          <h3 class="text-lg font-bold mb-2">주보 파일 교체</h3>
+          <h3 id="bulletin-showReplaceModal-title" class="text-lg font-bold mb-2">주보 파일 교체</h3>
           <p class="text-sm text-muted-foreground mb-6">{{ replacingLabel }} — 기존 파일을 삭제하고 새 파일로 교체합니다.</p>
           <form class="space-y-4" @submit.prevent="handleReplace">
             <div>
@@ -91,11 +106,14 @@
 
       <div
         v-if="showModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bulletin-showModal-title"
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="closeModal"
       >
         <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
-          <h3 class="text-lg font-bold mb-6">주보 업로드</h3>
+          <h3 id="bulletin-showModal-title" class="text-lg font-bold mb-6">주보 업로드</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>
               <label class="block text-sm font-medium mb-1.5">주보 날짜</label>
@@ -122,13 +140,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { FileText, Plus, Pencil, Trash2 } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import EmptyState from '@/components/EmptyState.vue'
 import { supabase } from '@/lib/supabase'
 import { mustRemoveFiles } from '@/lib/db'
 import { useAuth } from '@/composables/useAuth'
+import { useEscapeToClose } from '@/composables/useEscapeToClose'
 
 interface BulletinGroup {
   date: string
@@ -136,7 +155,6 @@ interface BulletinGroup {
   pageCount: number
 }
 
-const router = useRouter()
 const { isAdmin } = useAuth()
 const bulletinGroups = ref<BulletinGroup[]>([])
 const loading = ref(true)
@@ -183,10 +201,6 @@ async function fetchBulletins() {
 }
 
 fetchBulletins()
-
-function goToDetail(date: string) {
-  router.push(`/admin/bulletin/${date}`)
-}
 
 const MONTH_GRADIENTS: [string, string][] = [
   ['#ecfccb', '#a3e635'], ['#dcfce7', '#10b981'], ['#d1fae5', '#22d3ee'],
@@ -315,4 +329,10 @@ async function handleReplace() {
     replaceProgress.value = ''
   }
 }
+
+// Esc 로 모달 닫기
+useEscapeToClose([
+  { isOpen: () => showModal.value, close: closeModal },
+  { isOpen: () => showReplaceModal.value, close: closeReplaceModal },
+])
 </script>

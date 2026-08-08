@@ -2,33 +2,39 @@
   <div class="min-h-screen bg-muted flex items-center justify-center px-4">
     <div class="bg-white rounded-2xl shadow-sm border border-border w-full max-w-sm p-8">
       <div class="text-center mb-8">
-        <img src="/logo_hmc.png" alt="한마음교회" class="h-14 w-auto mx-auto mb-4 object-contain" />
+        <img src="/logo_hmc.webp" alt="한마음교회" width="320" height="122" class="h-14 w-auto mx-auto mb-4 object-contain" />
         <h1 class="text-xl font-bold">로그인</h1>
       </div>
 
       <form class="space-y-4" @submit.prevent="handleLogin">
         <div>
-          <label class="block text-sm font-medium mb-1.5">이메일</label>
+          <label for="login-email" class="block text-sm font-medium mb-1.5">이메일</label>
           <input
+            id="login-email"
             v-model="email"
             type="email"
             required
+            autocomplete="email"
+            inputmode="email"
             placeholder="이메일 주소"
             class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
           />
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1.5">비밀번호</label>
+          <label for="login-password" class="block text-sm font-medium mb-1.5">비밀번호</label>
           <input
+            id="login-password"
             v-model="password"
             type="password"
             required
+            autocomplete="current-password"
             placeholder="비밀번호"
             class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
           />
         </div>
 
-        <p v-if="errorMsg" class="text-sm text-red-500 text-center">{{ errorMsg }}</p>
+        <!-- role=alert: 화면 낭독기가 로그인 실패를 즉시 읽어준다. -->
+        <p v-if="errorMsg" role="alert" class="text-sm text-red-500 text-center">{{ errorMsg }}</p>
 
         <button
           type="submit"

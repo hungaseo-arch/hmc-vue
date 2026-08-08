@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
-import { signPaths, SIGNED_URL_REFRESH_MS } from '@/lib/storage'
+import { signPaths, signThumbnails, SIGNED_URL_REFRESH_MS } from '@/lib/storage'
 import { registerCache } from '@/lib/cacheRegistry'
 import type { ChurchNewsItem } from '@/lib/index'
 
@@ -21,18 +21,32 @@ function slugToTitle(slug: string): string {
 }
 
 /** Fill in signed URLs from a path -> url map. */
-function applyUrls(list: ChurchNewsItem[], urls: Record<string, string>) {
+function applyUrls(
+  list: ChurchNewsItem[],
+  urls: Record<string, string>,
+  thumbs: Record<string, string>,
+) {
   for (const item of list) {
     item.images = item.files.map(f => urls[f]).filter(Boolean)
-    item.thumbnail = item.images[0] ?? ''
+    // 카드에는 축소본. 변환에 실패하면 원본으로 떨어진다.
+    const first = item.files[0]
+    item.thumbnail = (first && thumbs[first]) || item.images[0] || ''
   }
+}
+
+/** 카드에 실제로 보이는 첫 장만 축소 변환한다. */
+function coverPaths(list: ChurchNewsItem[]) {
+  return list.map(i => i.files[0]).filter(Boolean)
 }
 
 /** Cache is warm but the URLs are near expiry: re-mint only — no list(), no select(). */
 async function resign() {
   try {
-    const urls = await signPaths(BUCKET, items.value.flatMap(i => i.files))
-    applyUrls(items.value, urls)
+    const [urls, thumbs] = await Promise.all([
+      signPaths(BUCKET, items.value.flatMap(i => i.files)),
+      signThumbnails(BUCKET, coverPaths(items.value)),
+    ])
+    applyUrls(items.value, urls, thumbs)
     items.value = [...items.value]
     signedAt = Date.now()
   } catch (e: unknown) {
@@ -88,8 +102,12 @@ async function load() {
     // 날짜 내림차순
     result.sort((a, b) => b.date.localeCompare(a.date))
 
-    // 모든 항목의 모든 페이지를 한 번의 요청으로 서명
-    applyUrls(result, await signPaths(BUCKET, result.flatMap(r => r.files)))
+    // 원본은 한 번의 요청으로 전부 서명(상세 보기용), 카드에 뜨는 첫 장만 축소본을 따로 만든다.
+    const [urls, thumbs] = await Promise.all([
+      signPaths(BUCKET, result.flatMap(r => r.files)),
+      signThumbnails(BUCKET, coverPaths(result)),
+    ])
+    applyUrls(result, urls, thumbs)
     items.value = result
     signedAt = Date.now()
     fetched = true

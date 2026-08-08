@@ -45,8 +45,11 @@
         <!-- Logo -->
         <RouterLink :to="ROUTE_PATHS.HOME" class="flex items-center group">
           <img
-            src="/logo_hmc.png"
+            src="/logo_hmc.webp"
             alt="자카르타 한마음교회"
+            width="320"
+            height="122"
+            fetchpriority="high"
             class="h-12 w-auto object-contain group-hover:opacity-90 transition-opacity"
           />
         </RouterLink>
@@ -61,15 +64,23 @@
             @mouseleave="activeDropdown = null"
           >
             <button
+              type="button"
+              :id="`navbtn-${item.label}`"
+              :aria-expanded="activeDropdown === item.label"
+              aria-haspopup="true"
+              :aria-controls="`navmenu-${item.label}`"
               :class="[
-                'flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                'flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
                 activeDropdown === item.label
                   ? 'bg-primary/10 text-primary'
                   : 'text-foreground hover:bg-muted hover:text-primary'
               ]"
+              @click="activeDropdown = activeDropdown === item.label ? null : item.label"
+              @keydown.escape="activeDropdown = null"
             >
               {{ item.label }}
               <ChevronDown
+                aria-hidden="true"
                 :class="[
                   'w-3.5 h-3.5 transition-transform duration-200',
                   activeDropdown === item.label ? 'rotate-180' : ''
@@ -80,7 +91,10 @@
             <Transition name="dropdown">
               <div
                 v-if="activeDropdown === item.label"
+                :id="`navmenu-${item.label}`"
+                :aria-labelledby="`navbtn-${item.label}`"
                 class="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-border/50 py-1.5 min-w-40 overflow-hidden"
+                @keydown.escape="activeDropdown = null"
               >
                 <RouterLink
                   v-for="child in item.children"
@@ -98,12 +112,15 @@
 
         <!-- Mobile menu button -->
         <button
-          class="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors"
-          aria-label="메뉴 열기"
+          type="button"
+          class="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          :aria-label="isMenuOpen ? '메뉴 닫기' : '메뉴 열기'"
+          :aria-expanded="isMenuOpen"
+          aria-controls="mobile-menu"
           @click="isMenuOpen = !isMenuOpen"
         >
-          <X v-if="isMenuOpen" class="w-5 h-5" />
-          <Menu v-else class="w-5 h-5" />
+          <X v-if="isMenuOpen" class="w-5 h-5" aria-hidden="true" />
+          <Menu v-else class="w-5 h-5" aria-hidden="true" />
         </button>
       </div>
     </div>
@@ -112,16 +129,21 @@
     <Transition name="slide-down">
       <div
         v-if="isMenuOpen"
+        id="mobile-menu"
         class="lg:hidden border-t border-border bg-white overflow-hidden"
       >
         <div class="container mx-auto px-4 py-3 space-y-1">
           <div v-for="item in NAV_ITEMS" :key="item.label">
             <button
-              class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-muted transition-colors"
+              type="button"
+              :aria-expanded="mobileOpenMenu === item.label"
+              :aria-controls="`mobile-${item.label}`"
+              class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               @click="toggleMobileMenu(item.label)"
             >
               {{ item.label }}
               <ChevronDown
+                aria-hidden="true"
                 :class="[
                   'w-4 h-4 transition-transform duration-200',
                   mobileOpenMenu === item.label ? 'rotate-180' : ''
@@ -132,6 +154,7 @@
             <Transition name="slide-down">
               <div
                 v-if="mobileOpenMenu === item.label"
+                :id="`mobile-${item.label}`"
                 class="overflow-hidden pl-3"
               >
                 <RouterLink

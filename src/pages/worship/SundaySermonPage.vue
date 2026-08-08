@@ -35,6 +35,13 @@
 
         <div v-if="loading" class="text-center py-12 text-muted-foreground">불러오는 중...</div>
         <div v-else-if="error" class="text-center py-12 text-red-500">{{ error }}</div>
+        <!-- 검색·필터 결과가 없을 때 빈 표만 남지 않도록. -->
+        <EmptyState
+          v-else-if="pagedSermons.length === 0"
+          :icon="BookOpen"
+          title="설교가 없습니다"
+          description="조건에 맞는 설교를 찾지 못했습니다. 다른 조건으로 찾아보세요."
+        />
         <div v-else class="bg-white rounded-2xl shadow-sm border border-border overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -56,12 +63,27 @@
                   @click="goToDetail(sermon.id)"
                 >
                   <!-- <td class="py-4 px-4 text-muted-foreground">{{ sermon.id }}</td> -->
-                  <td class="py-4 px-4 font-medium truncate">{{ sermon.title }}</td>
+                  <!--
+                    <tr> 은 <a> 로 감쌀 수 없으니 제목에 진짜 링크를 건다.
+                    키보드·새 탭 열기·크롤링은 이 링크가 담당하고, 행 전체 클릭은
+                    마우스 편의로 남긴다. .stop 이 없으면 같은 곳으로 두 번 간다.
+                  -->
+                  <td class="py-4 px-4 font-medium truncate">
+                    <RouterLink
+                      :to="`/worship/sunday-sermon/${sermon.id}`"
+                      class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      @click.stop
+                    >{{ sermon.title }}</RouterLink>
+                  </td>
                   <td class="py-4 px-4 text-muted-foreground hidden sm:table-cell">{{ sermon.scripture }}</td>
                   <td class="py-4 px-4 text-muted-foreground hidden md:table-cell">{{ sermon.preacher }}</td>
                   <td class="py-4 px-4 text-muted-foreground text-right text-xs whitespace-nowrap">{{ sermon.date }}</td>
                   <td v-if="isAdmin" class="py-4 px-4" @click.stop>
-                    <button class="p-1.5 rounded-lg hover:bg-muted transition" @click="openEditModal(sermon)">
+                    <button
+                      class="p-1.5 rounded-lg hover:bg-muted transition"
+                      :aria-label="`${sermon.title} 수정`"
+                      @click="openEditModal(sermon)"
+                    >
                       <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
                     </button>
                   </td>
@@ -71,47 +93,21 @@
           </div>
         </div>
 
-        <!-- 페이지네이션 -->
-        <div v-if="!loading && !error && totalPages > 1" class="flex items-center justify-center gap-1 mt-6">
-          <button
-            class="p-2 rounded-lg text-muted-foreground hover:bg-muted transition disabled:opacity-40 disabled:cursor-not-allowed"
-            :disabled="currentPage === 1"
-            @click="goToPage(currentPage - 1)"
-          >
-            <ChevronLeft class="w-4 h-4" />
-          </button>
-          <button
-            v-for="page in pageNumbers"
-            :key="page"
-            :class="[
-              'w-9 h-9 rounded-lg text-sm font-medium transition-colors',
-              page === currentPage
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-muted'
-            ]"
-            @click="goToPage(page)"
-          >
-            {{ page }}
-          </button>
-          <button
-            class="p-2 rounded-lg text-muted-foreground hover:bg-muted transition disabled:opacity-40 disabled:cursor-not-allowed"
-            :disabled="currentPage === totalPages"
-            @click="goToPage(currentPage + 1)"
-          >
-            <ChevronRight class="w-4 h-4" />
-          </button>
-        </div>
+        <ThePagination v-if="!loading && !error" v-model="currentPage" :total-pages="totalPages" />
       </div>
     </section>
 
     <Teleport to="body">
       <div
         v-if="showModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sundaysermon-showModal-title"
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="showModal = false"
       >
         <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
-          <h3 class="text-lg font-bold mb-6">새 설교 등록</h3>
+          <h3 id="sundaysermon-showModal-title" class="text-lg font-bold mb-6">새 설교 등록</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>
               <label class="block text-sm font-medium mb-1.5">제목</label>
@@ -148,11 +144,14 @@
       <!-- 수정 모달 -->
       <div
         v-if="showEditModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sundaysermon-showEditModal-title"
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="showEditModal = false"
       >
         <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
-          <h3 class="text-lg font-bold mb-6">설교 수정</h3>
+          <h3 id="sundaysermon-showEditModal-title" class="text-lg font-bold mb-6">설교 수정</h3>
           <form class="space-y-4" @submit.prevent="handleEditSubmit">
             <div>
               <label class="block text-sm font-medium mb-1.5">제목</label>
@@ -193,12 +192,16 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { BookOpen, Plus, Pencil, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { BookOpen, Plus, Pencil } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import ThePagination from '@/components/ThePagination.vue'
 import { supabase } from '@/lib/supabase'
 import { mustAffectRows } from '@/lib/db'
 import { useAuth } from '@/composables/useAuth'
+import { useEscapeToClose } from '@/composables/useEscapeToClose'
+import { useSermons } from '@/composables/useSermons'
 import type { SermonItem } from '@/lib/index'
 
 const router = useRouter()
@@ -208,47 +211,33 @@ function goToDetail(id: number) {
   router.push(`/worship/sunday-sermon/${id}`)
 }
 
-const sermons = ref<SermonItem[]>([])
-const loading = ref(true)
-const error = ref<string | null>(null)
-
-;(async () => {
-  const { data, error: err } = await supabase.from('sermons').select('*')
-  if (err) error.value = err.message
-  else sermons.value = data ?? []
-  loading.value = false
-})()
+// 홈과 같은 캐시를 쓴다. 홈을 거쳐 왔다면 요청이 아예 나가지 않는다.
+const { items: sermons, loading, error, fetchSermons, refresh, patch } = useSermons()
+void fetchSermons()
 
 const sortDesc = ref(true)
 const sortOptions = [
   { label: '최신순', value: true },
   { label: '오래된 순', value: false },
 ]
+// 캐시는 id 내림차순으로 들어온다. 오래된 순은 뒤집기만 하면 된다.
 const sortedSermons = computed(() =>
-  [...sermons.value].sort((a, b) => sortDesc.value ? b.id - a.id : a.id - b.id)
+  sortDesc.value ? sermons.value : [...sermons.value].reverse()
 )
 
-// 페이지네이션
+// 페이지네이션 (전체가 gzip 6.7KB 라 한 번 받아 클라이언트에서 나눈다)
 const pageSize = 10
 const currentPage = ref(1)
 const totalPages = computed(() => Math.max(1, Math.ceil(sortedSermons.value.length / pageSize)))
 const pagedSermons = computed(() =>
   sortedSermons.value.slice((currentPage.value - 1) * pageSize, currentPage.value * pageSize)
 )
-const pageNumbers = computed(() =>
-  Array.from({ length: totalPages.value }, (_, i) => i + 1)
-)
 
 // 정렬 변경 또는 목록 길이 변화 시 페이지 보정
-watch([sortDesc, totalPages], () => {
+watch(totalPages, () => {
   if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
 })
 watch(sortDesc, () => { currentPage.value = 1 })
-
-function goToPage(page: number) {
-  if (page < 1 || page > totalPages.value) return
-  currentPage.value = page
-}
 
 const showModal = ref(false)
 const saving = ref(false)
@@ -282,8 +271,7 @@ async function handleEditSubmit() {
         date: editForm.value.date,
         link: editForm.value.link || null,
       }).eq('id', editingId.value).select('id'))
-    const idx = sermons.value.findIndex(s => s.id === editingId.value)
-    if (idx !== -1) sermons.value[idx] = { ...sermons.value[idx], ...editForm.value, link: editForm.value.link || undefined }
+    patch(editingId.value, { ...editForm.value, link: editForm.value.link || undefined })
     showEditModal.value = false
   } catch (e: unknown) {
     editErrorMsg.value = (e as any)?.message ?? String(e)
@@ -301,8 +289,8 @@ async function handleSubmit() {
         .from('sermons')
         .insert({ title: form.value.title, scripture: form.value.scripture, preacher: form.value.preacher, date: form.value.date, link: form.value.link || null })
         .select('id'))
-    const { data } = await supabase.from('sermons').select('*')
-    if (data) sermons.value = data
+    await refresh()
+    currentPage.value = 1
     showModal.value = false
     form.value = { title: '', scripture: '', preacher: '', date: '', link: '' }
   } catch (e: unknown) {
@@ -311,4 +299,10 @@ async function handleSubmit() {
     saving.value = false
   }
 }
+
+// Esc 로 모달 닫기
+useEscapeToClose([
+  { isOpen: () => showModal.value, close: () => (showModal.value = false) },
+  { isOpen: () => showEditModal.value, close: () => (showEditModal.value = false) },
+])
 </script>

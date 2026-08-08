@@ -17,28 +17,48 @@
 
         <div v-if="loading" class="text-center py-20 text-muted-foreground">불러오는 중...</div>
         <div v-else-if="error" class="text-center py-20 text-red-500">{{ error }}</div>
+        <EmptyState
+          v-else-if="items.length === 0"
+          :icon="ImageIcon"
+          title="등록된 앨범이 없습니다"
+          description="교회 행사 사진이 올라오면 이곳에 표시됩니다."
+        />
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div
             v-for="(album, i) in items"
             :key="album.id"
-            class="relative bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md transition-all hover:-translate-y-1 cursor-pointer group animate-fade-in-up"
+            class="relative bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md transition-all hover:-translate-y-1 group animate-fade-in-up"
             :style="{ animationDelay: `${i * 0.08}s` }"
-            @click="goToDetail(album.id)"
           >
             <div class="relative overflow-hidden h-48">
-              <img :src="album.thumbnail" :alt="album.date" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+              <img
+                :src="album.thumbnail"
+                :alt="album.title || album.date"
+                width="640"
+                height="384"
+                loading="lazy"
+                decoding="async"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
               <div class="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                 <ImageIcon class="w-3 h-3" />
                 {{ album.count }}장
               </div>
             </div>
+            <!-- before 로 카드 전체를 덮는 진짜 링크. 새 탭 열기·주소 복사가 된다. -->
             <div class="p-4">
-              <p v-if="album.title" class="text-sm font-medium text-foreground mb-1 line-clamp-2">{{ album.title }}</p>
-              <p class="text-xs text-muted-foreground">{{ album.date }}</p>
+              <RouterLink
+                :to="`/community/photos/${album.id}`"
+                class="before:absolute before:inset-0 before:content-[''] before:rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                <span v-if="album.title" class="block text-sm font-medium text-foreground mb-1 line-clamp-2">{{ album.title }}</span>
+                <span class="block text-xs text-muted-foreground">{{ album.date }}</span>
+              </RouterLink>
             </div>
             <button
               v-if="isAdmin"
-              class="absolute top-2 right-2 p-1.5 bg-white/90 rounded-lg shadow hover:bg-white transition"
+              class="absolute top-2 right-2 z-10 p-1.5 bg-white/90 rounded-lg shadow hover:bg-white transition"
+              :aria-label="`${album.title || album.date} 앨범 수정`"
               @click.stop="openEditModal(album)"
             >
               <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
@@ -51,11 +71,14 @@
     <Teleport to="body">
       <div
         v-if="showEditModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="photoalbum-showEditModal-title"
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="showEditModal = false"
       >
         <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
-          <h3 class="text-lg font-bold mb-6">앨범 수정</h3>
+          <h3 id="photoalbum-showEditModal-title" class="text-lg font-bold mb-6">앨범 수정</h3>
           <form class="space-y-4" @submit.prevent="handleEditSubmit">
             <div>
               <label class="block text-sm font-medium mb-1.5">앨범 제목</label>
@@ -68,6 +91,8 @@
                   <img :src="img.url" :alt="`${editForm.title} ${i + 1}`" class="w-full h-24 object-cover rounded-lg" :class="{ 'opacity-30': deleteMarked.includes(i) }" />
                   <button
                     type="button"
+                    :aria-label="deleteMarked.includes(i) ? `${i + 1}번째 사진 삭제 취소` : `${i + 1}번째 사진 삭제`"
+                    :aria-pressed="deleteMarked.includes(i)"
                     class="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs transition"
                     :class="deleteMarked.includes(i) ? 'bg-muted-foreground' : 'bg-red-500 hover:bg-red-600'"
                     @click="toggleDelete(i)"
@@ -99,11 +124,14 @@
 
       <div
         v-if="showModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="photoalbum-showModal-title"
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="closeModal"
       >
         <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
-          <h3 class="text-lg font-bold mb-6">새 앨범 등록</h3>
+          <h3 id="photoalbum-showModal-title" class="text-lg font-bold mb-6">새 앨범 등록</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>
               <label class="block text-sm font-medium mb-1.5">날짜</label>
@@ -134,23 +162,19 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { Image as ImageIcon, Plus, Pencil } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import EmptyState from '@/components/EmptyState.vue'
 import { usePhotoAlbum } from '@/composables/usePhotoAlbum'
 import { useAuth } from '@/composables/useAuth'
+import { useEscapeToClose } from '@/composables/useEscapeToClose'
 import { supabase } from '@/lib/supabase'
 import { mustAffectRows, mustRemoveFiles } from '@/lib/db'
 
-const router = useRouter()
 const { isAdmin } = useAuth()
 const { items, loading, error, fetchAlbums, reset } = usePhotoAlbum()
 fetchAlbums()
-
-function goToDetail(id: string) {
-  router.push(`/admin/photos/${id}`)
-}
 
 const showEditModal = ref(false)
 const editSaving = ref(false)
@@ -271,4 +295,10 @@ async function handleSubmit() {
     uploadProgress.value = ''
   }
 }
+
+// Esc 로 모달 닫기
+useEscapeToClose([
+  { isOpen: () => showModal.value, close: closeModal },
+  { isOpen: () => showEditModal.value, close: () => (showEditModal.value = false) },
+])
 </script>

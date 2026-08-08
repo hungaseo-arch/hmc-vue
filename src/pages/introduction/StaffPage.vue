@@ -15,6 +15,10 @@
                 v-if="staff.image"
                 :src="staff.image"
                 :alt="staff.name"
+                width="192"
+                height="240"
+                loading="lazy"
+                decoding="async"
                 class="w-full h-full object-cover"
               />
               <User v-else class="w-24 h-24 text-muted-foreground/30" />

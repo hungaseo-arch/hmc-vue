@@ -40,6 +40,7 @@
                 :alt="`${dateLabel} ${i + 1}페이지`"
                 class="w-full object-contain"
                 loading="lazy"
+                decoding="async"
               />
             </div>
           </div>

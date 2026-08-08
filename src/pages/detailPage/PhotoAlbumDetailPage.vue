@@ -41,6 +41,7 @@
                 :alt="`사진 ${i + 1}`"
                 class="w-full object-contain"
                 loading="lazy"
+                decoding="async"
               />
             </div>
           </div>

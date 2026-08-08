@@ -2,84 +2,129 @@
   <div class="min-h-screen bg-muted flex items-center justify-center px-4 py-10">
     <div class="bg-white rounded-2xl shadow-sm border border-border w-full max-w-sm p-8">
       <div class="text-center mb-8">
-        <img src="/logo_hmc.png" alt="한마음교회" class="h-14 w-auto mx-auto mb-4 object-contain" />
+        <img src="/logo_hmc.webp" alt="한마음교회" width="320" height="122" class="h-14 w-auto mx-auto mb-4 object-contain" />
         <h1 class="text-xl font-bold">회원가입</h1>
       </div>
 
       <form class="space-y-4" @submit.prevent="handleSignUp">
         <div>
-          <label class="block text-sm font-medium mb-1.5">이름 <span class="text-red-500">*</span></label>
+          <label for="signup-name" class="block text-sm font-medium mb-1.5">이름 <span class="text-red-500" aria-hidden="true">*</span></label>
           <input
+            id="signup-name"
             v-model="form.name"
             type="text"
             required
+            autocomplete="name"
             placeholder="이름"
             class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
           />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium mb-1.5">성별 <span class="text-red-500">*</span></label>
+        <!--
+          라디오는 sr-only 로 감춘다. display:none(=hidden)이면 키보드로 아예
+          고를 수 없어 성별 선택이 마우스 전용이 되어버린다.
+        -->
+        <fieldset>
+          <legend class="block text-sm font-medium mb-1.5">성별 <span class="text-red-500" aria-hidden="true">*</span></legend>
           <div class="flex gap-3">
-            <label class="flex-1 flex items-center justify-center gap-2 border border-border rounded-xl px-4 py-2.5 text-sm cursor-pointer transition"
-              :class="form.gender === '남' ? 'border-primary bg-primary/5 text-primary font-medium' : 'hover:bg-muted'">
-              <input v-model="form.gender" type="radio" value="남" required class="hidden" />
-              남
-            </label>
-            <label class="flex-1 flex items-center justify-center gap-2 border border-border rounded-xl px-4 py-2.5 text-sm cursor-pointer transition"
-              :class="form.gender === '여' ? 'border-primary bg-primary/5 text-primary font-medium' : 'hover:bg-muted'">
-              <input v-model="form.gender" type="radio" value="여" class="hidden" />
-              여
+            <label
+              v-for="g in ['남', '여']"
+              :key="g"
+              class="flex-1 flex items-center justify-center gap-2 border border-border rounded-xl px-4 py-2.5 text-sm cursor-pointer transition focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary"
+              :class="form.gender === g ? 'border-primary bg-primary/5 text-primary font-medium' : 'hover:bg-muted'"
+            >
+              <input v-model="form.gender" type="radio" name="gender" :value="g" required class="sr-only" />
+              {{ g }}
             </label>
           </div>
-        </div>
+        </fieldset>
 
         <div>
-          <label class="block text-sm font-medium mb-1.5">전화번호 <span class="text-red-500">*</span></label>
+          <label for="signup-phone" class="block text-sm font-medium mb-1.5">전화번호 <span class="text-red-500" aria-hidden="true">*</span></label>
           <input
+            id="signup-phone"
             v-model="form.phone"
             type="tel"
             required
+            autocomplete="tel"
+            inputmode="tel"
             placeholder="010-0000-0000"
             class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1.5">이메일 <span class="text-red-500">*</span></label>
+          <label for="signup-email" class="block text-sm font-medium mb-1.5">이메일 <span class="text-red-500" aria-hidden="true">*</span></label>
           <input
+            id="signup-email"
             v-model="form.email"
             type="email"
             required
+            autocomplete="email"
+            inputmode="email"
             placeholder="이메일 주소"
             class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1.5">비밀번호 <span class="text-red-500">*</span></label>
+          <label for="signup-password" class="block text-sm font-medium mb-1.5">비밀번호 <span class="text-red-500" aria-hidden="true">*</span></label>
           <input
+            id="signup-password"
             v-model="form.password"
             type="password"
             required
-            minlength="6"
-            placeholder="6자 이상"
+            :minlength="MIN_PASSWORD"
+            autocomplete="new-password"
+            aria-describedby="signup-password-hint"
+            :placeholder="`${MIN_PASSWORD}자 이상`"
             class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
           />
+          <p id="signup-password-hint" class="text-xs text-muted-foreground mt-1">
+            {{ MIN_PASSWORD }}자 이상으로 정해주세요. 다른 사이트에서 쓰는 비밀번호는 피해주세요.
+          </p>
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1.5">비밀번호 확인 <span class="text-red-500">*</span></label>
+          <label for="signup-password-confirm" class="block text-sm font-medium mb-1.5">비밀번호 확인 <span class="text-red-500" aria-hidden="true">*</span></label>
           <input
+            id="signup-password-confirm"
             v-model="form.passwordConfirm"
             type="password"
             required
+            autocomplete="new-password"
             placeholder="비밀번호 재입력"
             class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
           />
         </div>
 
-        <p v-if="errorMsg" class="text-sm text-red-500 text-center">{{ errorMsg }}</p>
+        <!-- 개인정보 수집·이용 동의. 체크하지 않으면 제출되지 않는다. -->
+        <div class="rounded-xl border border-border bg-muted/40 p-4">
+          <label for="signup-consent" class="flex items-start gap-2.5 text-sm cursor-pointer">
+            <input
+              id="signup-consent"
+              v-model="form.consent"
+              type="checkbox"
+              required
+              class="mt-0.5 h-4 w-4 shrink-0 accent-primary"
+            />
+            <span>
+              개인정보 수집·이용에 동의합니다 <span class="text-red-500" aria-hidden="true">*</span>
+            </span>
+          </label>
+          <details class="mt-2 text-xs text-muted-foreground">
+            <summary class="cursor-pointer hover:text-foreground">수집 항목과 이용 목적 보기</summary>
+            <dl class="mt-2 space-y-1.5 leading-relaxed">
+              <div><dt class="inline font-medium text-foreground">수집 항목: </dt><dd class="inline">이름, 성별, 전화번호, 이메일</dd></div>
+              <div><dt class="inline font-medium text-foreground">이용 목적: </dt><dd class="inline">교인 확인, 교회 소식·주보 등 회원 전용 자료 제공</dd></div>
+              <div><dt class="inline font-medium text-foreground">보유 기간: </dt><dd class="inline">회원 탈퇴 시까지. 탈퇴하면 지체 없이 파기합니다.</dd></div>
+              <div><dt class="inline font-medium text-foreground">동의 거부: </dt><dd class="inline">동의하지 않으실 수 있으나, 그 경우 회원 가입과 회원 전용 자료 이용이 제한됩니다.</dd></div>
+            </dl>
+          </details>
+        </div>
+
+        <!-- role=alert: 화면 낭독기가 오류를 즉시 읽어준다. -->
+        <p v-if="errorMsg" role="alert" class="text-sm text-red-500 text-center">{{ errorMsg }}</p>
 
         <button
           type="submit"
@@ -110,6 +155,12 @@ import { ROUTE_PATHS } from '@/lib/index'
 const router = useRouter()
 const { signUp } = useAuth()
 
+/**
+ * Supabase Auth 쪽 최소 길이와 맞춰야 한다.
+ * 대시보드 → Authentication → Policies → Minimum password length.
+ */
+const MIN_PASSWORD = 8
+
 const form = ref({
   name: '',
   gender: '' as '남' | '여' | '',
@@ -117,6 +168,7 @@ const form = ref({
   email: '',
   password: '',
   passwordConfirm: '',
+  consent: false,
 })
 
 const submitting = ref(false)
@@ -127,6 +179,14 @@ async function handleSignUp() {
 
   if (!form.value.gender) {
     errorMsg.value = '성별을 선택해주세요.'
+    return
+  }
+  if (!form.value.consent) {
+    errorMsg.value = '개인정보 수집·이용에 동의해주세요.'
+    return
+  }
+  if (form.value.password.length < MIN_PASSWORD) {
+    errorMsg.value = `비밀번호는 ${MIN_PASSWORD}자 이상이어야 합니다.`
     return
   }
   if (form.value.password !== form.value.passwordConfirm) {

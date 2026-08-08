@@ -17,17 +17,24 @@
 
         <div v-if="loading" class="text-center py-20 text-muted-foreground">불러오는 중...</div>
         <div v-else-if="error" class="text-center py-20 text-red-500">{{ error }}</div>
+        <EmptyState
+          v-else-if="items.length === 0"
+          :icon="Newspaper"
+          title="등록된 소식이 없습니다"
+          description="새로운 교회 소식이 올라오면 이곳에 표시됩니다."
+        />
         <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div v-for="(item, i) in items" :key="item.id" class="relative">
+            <!-- NewsCard 자체가 RouterLink 다. 여기서 또 push 하면 같은 곳으로 두 번 간다. -->
             <NewsCard
               :item="item"
               class="animate-fade-in-up"
               :style="{ animationDelay: `${i * 0.07}s` }"
-              @click="goToDetail(item.id)"
             />
             <button
               v-if="isAdmin"
-              class="absolute top-2 right-2 p-1.5 bg-white/90 rounded-lg shadow hover:bg-white transition"
+              class="absolute top-2 right-2 z-10 p-1.5 bg-white/90 rounded-lg shadow hover:bg-white transition"
+              :aria-label="`${item.title} 수정`"
               @click.stop="openEditModal(item)"
             >
               <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
@@ -41,11 +48,14 @@
       <!-- 수정 모달 -->
       <div
         v-if="showEditModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="churchnews-showEditModal-title"
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="showEditModal = false"
       >
         <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
-          <h3 class="text-lg font-bold mb-6">소식 수정</h3>
+          <h3 id="churchnews-showEditModal-title" class="text-lg font-bold mb-6">소식 수정</h3>
           <form class="space-y-4" @submit.prevent="handleEditSubmit">
             <div>
               <label class="block text-sm font-medium mb-1.5">제목</label>
@@ -62,6 +72,8 @@
                   <img :src="img.url" :alt="`${editForm.title} ${i + 1}`" class="w-full h-24 object-cover rounded-lg" :class="{ 'opacity-30': deleteMarked.includes(i) }" />
                   <button
                     type="button"
+                    :aria-label="deleteMarked.includes(i) ? `${i + 1}번째 사진 삭제 취소` : `${i + 1}번째 사진 삭제`"
+                    :aria-pressed="deleteMarked.includes(i)"
                     class="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs transition"
                     :class="deleteMarked.includes(i) ? 'bg-muted-foreground' : 'bg-red-500 hover:bg-red-600'"
                     @click="toggleDelete(i)"
@@ -93,11 +105,14 @@
 
       <div
         v-if="showModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="churchnews-showModal-title"
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="closeModal"
       >
         <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
-          <h3 class="text-lg font-bold mb-6">새 소식 등록</h3>
+          <h3 id="churchnews-showModal-title" class="text-lg font-bold mb-6">새 소식 등록</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>
               <label class="block text-sm font-medium mb-1.5">날짜</label>
@@ -132,24 +147,20 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { Plus, Pencil } from 'lucide-vue-next'
+import { Plus, Pencil, Newspaper } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import EmptyState from '@/components/EmptyState.vue'
 import NewsCard from '@/components/NewsCard.vue'
 import { useChurchNews } from '@/composables/useChurchNews'
 import { useAuth } from '@/composables/useAuth'
+import { useEscapeToClose } from '@/composables/useEscapeToClose'
 import { supabase } from '@/lib/supabase'
 import { mustAffectRows, mustRemoveFiles } from '@/lib/db'
 
-const router = useRouter()
 const { isAdmin } = useAuth()
 const { items, loading, error, fetchNews, reset } = useChurchNews()
 fetchNews()
-
-function goToDetail(id: string) {
-  router.push(`/admin/news/${id}`)
-}
 
 const showEditModal = ref(false)
 const editSaving = ref(false)
@@ -270,4 +281,10 @@ async function handleSubmit() {
     uploadProgress.value = ''
   }
 }
+
+// Esc 로 모달 닫기
+useEscapeToClose([
+  { isOpen: () => showModal.value, close: closeModal },
+  { isOpen: () => showEditModal.value, close: () => (showEditModal.value = false) },
+])
 </script>

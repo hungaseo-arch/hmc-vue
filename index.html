@@ -4,19 +4,68 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/hmc-logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--
+      아래 태그들은 홈 기준 기본값이다. 경로별 값은 src/lib/seo.ts 의 setMeta 가
+      라우팅 때마다 덮어쓴다. JS 를 실행하지 않는 크롤러는 이 값을 읽는다.
+      %SITE_URL% 은 vite.config.ts 가 빌드 시 채운다.
+    -->
+    <title>자카르타 한마음교회 (Jakarta Hanmaeum Church)</title>
     <meta name="description" content="인도네시아 자카르타 한마음교회 공식 홈페이지 - 삼위일체 하나님을 예배하고, 기도하며, 말씀을 배우고 행하는 공동체" />
     <meta name="theme-color" content="#3b5fc0" />
+    <link rel="canonical" href="%SITE_URL%/" />
+
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="자카르타 한마음교회" />
+    <meta property="og:site_name" content="자카르타 한마음교회" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="자카르타 한마음교회 (Jakarta Hanmaeum Church)" />
     <meta property="og:description" content="인도네시아 자카르타에서 삼위일체 하나님을 예배하는 공동체" />
-    <meta property="og:image" content="/logo_hmc.png" />
-    <title>자카르타 한마음교회 (Jakarta Hanmaeum Church)</title>
-    <!-- Google Fonts: preconnect 후 stylesheet 로드 (렌더 블로킹 방지) -->
+    <meta property="og:url" content="%SITE_URL%/" />
+    <meta property="og:image" content="%SITE_URL%/logo_hmc.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="자카르타 한마음교회 (Jakarta Hanmaeum Church)" />
+    <meta name="twitter:description" content="인도네시아 자카르타에서 삼위일체 하나님을 예배하는 공동체" />
+    <meta name="twitter:image" content="%SITE_URL%/logo_hmc.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Church",
+        "name": "자카르타 한마음교회",
+        "alternateName": "Jakarta Hanmaeum Church",
+        "url": "%SITE_URL%/",
+        "logo": "%SITE_URL%/logo_hmc.png",
+        "image": "%SITE_URL%/logo_hmc.png",
+        "description": "인도네시아 자카르타에서 삼위일체 하나님을 예배하고, 기도하며, 말씀을 배우고 행하는 한인 교회",
+        "foundingDate": "2002",
+        "telephone": "+62-21-739-5035",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Darmawangsa Square - The City Walk Lt. 1 Lot. 1 Area A, Jl. Darmawangsa VI & IX",
+          "addressLocality": "Jakarta Selatan",
+          "postalCode": "12160",
+          "addressCountry": "ID"
+        }
+      }
+    </script>
+
+    <!--
+      Google Fonts. 이 <link> 는 렌더를 막으므로 크기가 그대로 첫 화면 지연이 된다.
+      한글 폰트는 유니코드 구간별로 쪼개져 있어 굵기 하나가 곧 @font-face 124개다.
+      그래서 굵기를 낱개(400;500;600;700)로 받지 않고 가변축(400..700)으로 받는다.
+      구간당 파일 하나로 400~700 전 굵기가 해결된다.
+        낱개 3패밀리:  847 KB (gzip 202 KB), @font-face 1150개
+        가변축 2패밀리: 191 KB (gzip  47 KB), @font-face  248개
+      IBM Plex Sans KR 은 --font-sans 에서 Noto Sans KR 뒤 대체용으로만 있어
+      사실상 한 번도 그려지지 않았다. 그래서 뺐다.
+      Noto Serif KR 은 PageHeader·홈·인사말 제목에서 실제로 쓴다(600·700만).
+    -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@400;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400..700&family=Noto+Serif+KR:wght@600..700&display=swap"
     />
   </head>
   <body>

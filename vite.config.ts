@@ -3,12 +3,23 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath, URL } from 'node:url'
 
+// 사이트 정식 주소. 커스텀 도메인을 붙이면 여기(또는 VITE_SITE_URL)만 고치면
+// index.html 의 og/canonical, src/lib/seo.ts, sitemap 이 함께 따라간다.
+const SITE_URL = (process.env.VITE_SITE_URL || 'https://hmc.hunga-seo.workers.dev').replace(/\/$/, '')
+
 export default defineConfig(({ command }) => ({
   // Cloudflare 루트 도메인 배포. GitHub Pages 서브경로('/hmc-vue/')는 폐기했다.
   base: '/',
+  define: {
+    'import.meta.env.VITE_SITE_URL': JSON.stringify(SITE_URL),
+  },
   plugins: [
     vue(),
     tailwindcss(),
+    {
+      name: 'html-site-url',
+      transformIndexHtml: (html: string) => html.replaceAll('%SITE_URL%', SITE_URL),
+    },
   ],
   resolve: {
     alias: {

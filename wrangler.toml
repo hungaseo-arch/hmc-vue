@@ -3,3 +3,6 @@ compatibility_date = "2025-01-01"
 
 [assets]
 directory = "./dist"
+# 히스토리 모드 SPA. /worship/sunday-sermon 같은 딥링크로 직접 들어와도
+# index.html 을 돌려줘야 라우터가 받는다. 이게 없으면 404 가 뜬다.
+not_found_handling = "single-page-application"

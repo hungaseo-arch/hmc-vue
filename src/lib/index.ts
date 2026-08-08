@@ -20,14 +20,15 @@ export const ROUTE_PATHS = {
   JA_YU: '/education/ja-yu',
   YOUTH: '/education/youth',
   ADULT_EDU: '/education/adult',
-  // 행정과관리
-  CHURCH_NEWS: '/admin/news',
-  CHURCH_NEWS_DETAIL: '/admin/news/:id',
-  PHOTO_ALBUM: '/admin/photos',
-  PHOTO_ALBUM_DETAIL: '/admin/photos/:id',
-  BULLETIN: '/admin/bulletin',
-  BULLETIN_DETAIL: '/admin/bulletin/:id',
-  MISSION_NEWS: '/admin/mission-news',
+  // 행정과관리 — 관리자 도구가 아니라 교인용 콘텐츠라 /admin 이 아닌 /community 를 쓴다.
+  // 예전 /admin/* 주소는 router 에서 리디렉트로 받는다.
+  CHURCH_NEWS: '/community/news',
+  CHURCH_NEWS_DETAIL: '/community/news/:id',
+  PHOTO_ALBUM: '/community/photos',
+  PHOTO_ALBUM_DETAIL: '/community/photos/:id',
+  BULLETIN: '/community/bulletin',
+  BULLETIN_DETAIL: '/community/bulletin/:id',
+  MISSION_NEWS: '/community/mission-news',
   LOGIN: '/login',
   SIGNUP: '/signup',
   PROFILE: '/profile',
@@ -99,6 +100,16 @@ export interface PastoralColumnItem {
   title: string
   content: string | null
   created_at: string
+  /** DB 생성 컬럼. content 에서 태그를 걷어낸 앞 200자. */
+  excerpt?: string | null
+}
+
+/** 목록용. content 대신 DB 생성 컬럼 excerpt(태그 제거 앞 200자)만 싣는다. */
+export interface PastoralColumnListItem {
+  id: number
+  title: string
+  created_at: string
+  excerpt: string | null
 }
 
 export interface HistoryItem {

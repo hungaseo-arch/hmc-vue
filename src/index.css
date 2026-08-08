@@ -11,7 +11,9 @@
 */
 
 :root {
-  --font-sans: 'Noto Sans KR', 'IBM Plex Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* IBM Plex Sans KR 은 더 이상 받지 않는다. Noto Sans KR 이 한글을 다 덮어
+     대체로 쓰일 일이 없는데 폰트 CSS 만 176 KB 늘리고 있었다. */
+  --font-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
   --radius: 0.75rem;
 
@@ -193,4 +195,26 @@
 
 .animate-fade-in-up {
   animation: fadeInUp 0.5s ease forwards;
+}
+
+/*
+  움직임 최소화 설정(prefers-reduced-motion)을 켠 사용자에게는 애니메이션을 끈다.
+  transform 이 걸린 요소가 시작 상태로 굳어버리지 않도록 완전히 없애지 않고
+  아주 짧게 만들어 끝 상태로 즉시 도달시킨다.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 키보드 포커스는 항상 눈에 보여야 한다. 마우스 클릭에는 뜨지 않는다. */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }

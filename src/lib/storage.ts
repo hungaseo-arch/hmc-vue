@@ -45,3 +45,54 @@ export async function signPaths(
   }
   return out
 }
+
+/**
+ * Thumbnail geometry for the album / news grids.
+ *
+ * The cells are `h-48` (192px) and at most ~400px wide, so 640x384 covers a 2x
+ * display without overshooting. Originals average 221KB; a grid of 31 of them
+ * was ~6.8MB. Transformed thumbnails come back as WebP automatically.
+ */
+export const THUMB = { width: 640, height: 384, resize: 'cover', quality: 70 } as const
+
+/** Individual signs run concurrently, but not all at once. */
+const THUMB_CONCURRENCY = 8
+
+/**
+ * Mint transformed (resized) signed URLs.
+ *
+ * Deliberately separate from `signPaths`: the batch endpoint does not accept
+ * transform options — the transformation is baked into the token, so each URL
+ * needs its own request. Only pass the one image per item that a grid actually
+ * shows; Supabase bills per distinct origin image transformed per month
+ * (Pro includes 100), so transforming whole albums would be wasteful.
+ *
+ * Failures are dropped from the map rather than thrown; callers should fall
+ * back to the full-size URL.
+ */
+export async function signThumbnails(
+  bucket: string,
+  paths: string[],
+): Promise<Record<string, string>> {
+  const out: Record<string, string> = {}
+  if (paths.length === 0) return out
+
+  let next = 0
+  async function worker() {
+    while (next < paths.length) {
+      const path = paths[next++]
+      try {
+        const { data } = await supabase.storage
+          .from(bucket)
+          .createSignedUrl(path, SIGNED_URL_TTL_SEC, { transform: { ...THUMB } })
+        if (data?.signedUrl) out[path] = data.signedUrl
+      } catch {
+        // 원본 URL 로 대체된다.
+      }
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(THUMB_CONCURRENCY, paths.length) }, worker)
+  )
+  return out
+}

@@ -61,6 +61,7 @@ import { ChevronLeft, BookOpen, Calendar } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
+import { setMeta } from '@/lib/seo'
 import type { PastoralColumnItem } from '@/lib/index'
 
 const router = useRouter()
@@ -82,6 +83,12 @@ onMounted(async () => {
     error.value = err.message
   } else {
     column.value = data
+    // 라우터가 깔아둔 '목회칼럼' 을 실제 제목으로 바꾼다.
+    setMeta({
+      title: cleanTitle(data.title),
+      description: (data.excerpt || cleanContent(data.content).replace(/<[^>]*>/g, ' ')).slice(0, 160).trim(),
+      type: 'article',
+    })
   }
   loading.value = false
 })

@@ -39,6 +39,7 @@
               :alt="`${item.title} ${i + 1}/${item.images.length}`"
               class="w-full object-contain"
               loading="lazy"
+              decoding="async"
             />
           </div>
         </div>

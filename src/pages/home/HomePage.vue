@@ -1,16 +1,40 @@
 <template>
   <TheLayout>
     <!-- ── Hero Carousel ───────────────────────────────────────── -->
-    <section class="relative h-125 md:h-150 overflow-hidden">
+    <section
+      class="relative h-125 md:h-150 overflow-hidden"
+      aria-roledescription="carousel"
+      aria-label="교회 소개 슬라이드"
+      @mouseenter="pauseAuto"
+      @mouseleave="resumeAuto"
+      @focusin="pauseAuto"
+      @focusout="resumeAuto"
+    >
       <div
         v-for="(slide, i) in heroSlides"
         :key="i"
+        role="group"
+        aria-roledescription="slide"
+        :aria-label="`${i + 1} / ${heroSlides.length}`"
+        :aria-hidden="i !== current"
+        :inert="i !== current || undefined"
         :class="[
           'absolute inset-0 transition-opacity duration-1000',
           i === current ? 'opacity-100' : 'opacity-0'
         ]"
       >
-        <img :src="slide.bg" :alt="slide.title" class="w-full h-full object-cover" />
+        <!-- alt 는 비운다 — 제목·구절은 바로 아래 텍스트로 이미 읽힌다. -->
+        <img
+          v-if="shown.has(i)"
+          :src="heroSrc(slide.bg, 1600)"
+          :srcset="heroSrcset(slide.bg)"
+          sizes="100vw"
+          alt=""
+          width="1600"
+          height="900"
+          :fetchpriority="i === 0 ? 'high' : 'auto'"
+          class="w-full h-full object-cover"
+        />
         <div class="absolute inset-0 bg-linear-to-b from-black/50 via-black/40 to-black/60" />
         <div class="absolute inset-0 flex items-center justify-center">
           <div class="text-center text-white px-4">
@@ -45,25 +69,33 @@
 
       <!-- Carousel controls -->
       <button
-        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors"
+        type="button"
+        aria-label="이전 슬라이드"
+        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         @click="prev"
       >
-        <ChevronLeft class="w-5 h-5" />
+        <ChevronLeft class="w-5 h-5" aria-hidden="true" />
       </button>
       <button
-        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors"
+        type="button"
+        aria-label="다음 슬라이드"
+        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         @click="next"
       >
-        <ChevronRight class="w-5 h-5" />
+        <ChevronRight class="w-5 h-5" aria-hidden="true" />
       </button>
 
       <!-- Dots -->
-      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2" role="tablist" aria-label="슬라이드 선택">
         <button
-          v-for="(_, i) in heroSlides"
+          v-for="(slide, i) in heroSlides"
           :key="i"
+          type="button"
+          role="tab"
+          :aria-label="slide.title"
+          :aria-selected="i === current"
           :class="[
-            'transition-all duration-300 rounded-full',
+            'transition-all duration-300 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
             i === current ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/50'
           ]"
           @click="current = i"
@@ -115,8 +147,12 @@
           </div>
           <div class="relative">
             <img
-              src="https://images.unsplash.com/photo-1583402435141-5fcbce5a18f4?w=800&q=80"
-              alt="Jakarta"
+              src="https://images.unsplash.com/photo-1583402435141-5fcbce5a18f4?w=800&q=70&fm=webp&fit=crop&auto=format"
+              alt="자카르타 시내 전경"
+              width="800"
+              height="600"
+              loading="lazy"
+              decoding="async"
               class="rounded-2xl w-full h-64 md:h-80 object-cover shadow-lg"
             />
             <div class="absolute -bottom-4 -left-4 bg-primary text-primary-foreground rounded-xl p-4 shadow-lg">
@@ -307,32 +343,40 @@ import SermonCard from '@/components/SermonCard.vue'
 import NewsCard from '@/components/NewsCard.vue'
 import { ROUTE_PATHS } from '@/lib/index'
 import { worshipSchedules } from '@/data/index'
-import { supabase } from '@/lib/supabase'
-import type { SermonItem } from '@/lib/index'
 import { useChurchNews } from '@/composables/useChurchNews'
+import { useSermons } from '@/composables/useSermons'
 import { useAuth } from '@/composables/useAuth'
 
 // ── 데이터 ──────────────────────────────────────────────────────
+// bg 는 쿼리 없는 원본 주소. 폭은 heroSrc 가 붙인다.
 const heroSlides = [
   {
-    bg: 'https://images.unsplash.com/photo-1769755410067-a1ea14b0602a?w=1600&q=80',
+    bg: 'https://images.unsplash.com/photo-1769755410067-a1ea14b0602a',
     title: '2026년 교회 표어',
     subtitle: '주안에 뿌리내리고 함께 자라나 열매 맺는 성도의 교회',
     verse: '요한복음 15:5',
   },
   {
-    bg: 'https://images.unsplash.com/photo-1759592702518-b0393a8f7eed?w=1600&q=80',
+    bg: 'https://images.unsplash.com/photo-1759592702518-b0393a8f7eed',
     title: '한마음교회 방문을 환영합니다',
     subtitle: '내가 이 반석 위에 교회를 세우리니',
     verse: '마태복음 16:18',
   },
   {
-    bg: 'https://images.unsplash.com/photo-1583402435141-5fcbce5a18f4?w=1600&q=80',
+    bg: 'https://images.unsplash.com/photo-1583402435141-5fcbce5a18f4',
     title: '환영하며 축복합니다',
     subtitle: '교인으로 등록하시면 건강한 신앙인으로 함께 자라갈 수 있습니다',
     verse: '인도네시아 자카르타 한마음교회',
   },
 ]
+
+/** 화면 폭에 맞는 크기만 받는다. fm=webp 로 JPEG 대비 절반 가까이 줄어든다. */
+function heroSrc(bg: string, w: number) {
+  return `${bg}?w=${w}&q=70&fm=webp&fit=crop&auto=format`
+}
+function heroSrcset(bg: string) {
+  return [640, 1024, 1600].map(w => `${heroSrc(bg, w)} ${w}w`).join(', ')
+}
 
 const communityValues = [
   { icon: BookOpen, label: '말씀공동체', desc: '성경을 배우고 훈련하며 행하는', color: 'text-chart-2' },
@@ -351,10 +395,39 @@ const educationLinks = [
 
 // ── 캐러셀 로직 ─────────────────────────────────────────────────
 const current = ref(0)
-let timer: ReturnType<typeof setInterval>
+let timer: ReturnType<typeof setInterval> | undefined
+let preloadTimer: ReturnType<typeof setTimeout> | undefined
 let scrollObserver: IntersectionObserver | null = null
 
+// 화면에 들어온 적 있는 장만 <img> 를 만든다. 세 장을 한꺼번에 걸어두면
+// opacity 0 이어도 브라우저는 전부 받아버려 첫 화면이 3배로 무거워진다.
+const shown = ref(new Set([0]))
+function reveal(i: number) {
+  shown.value.add(i)
+  // 다음 장을 미리 받아둬야 전환 순간이 비지 않는다.
+  shown.value.add((i + 1) % heroSlides.length)
+}
+watch(current, reveal)
+
+// WCAG 2.2.2 — 자동으로 움직이는 것은 멈출 수 있어야 한다.
+// 마우스를 올리거나 키보드 포커스가 들어오면 넘김을 세운다.
+const AUTOPLAY_MS = 5000
+const prefersReducedMotion =
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+function startAuto() {
+  if (prefersReducedMotion) return
+  clearInterval(timer)
+  timer = setInterval(() => {
+    current.value = (current.value + 1) % heroSlides.length
+  }, AUTOPLAY_MS)
+}
+function pauseAuto() { clearInterval(timer) }
+function resumeAuto() { startAuto() }
+
 const { isLoggedIn } = useAuth()
+// 설교 목록 페이지와 같은 캐시. 어느 쪽을 먼저 열든 요청은 한 번이다.
+const { recent: recentSermons, fetchSermons } = useSermons()
 const { items: newsAll, fetchNews } = useChurchNews()
 const newsItems = computed(() => newsAll.value.slice(0, 3))
 
@@ -362,18 +435,12 @@ const newsItems = computed(() => newsAll.value.slice(0, 3))
 watch(isLoggedIn, v => { if (v) fetchNews() }, { immediate: true })
 
 onMounted(() => {
-  timer = setInterval(() => {
-    current.value = (current.value + 1) % heroSlides.length
-  }, 5000)
+  startAuto()
 
-  supabase
-    .from('sermons')
-    .select('*')
-    .order('id', { ascending: false })
-    .limit(3)
-    .then(({ data }) => {
-      if (data) sermons.value = data
-    })
+  // 첫 장이 뜨고 난 뒤에 두 번째를 받는다. LCP 와 대역폭을 다투지 않게.
+  preloadTimer = setTimeout(() => reveal(0), 2500)
+
+  void fetchSermons()
 
   const cards = document.querySelectorAll('[data-index]')
   scrollObserver = new IntersectionObserver(
@@ -392,11 +459,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   clearInterval(timer)
+  clearTimeout(preloadTimer)
   scrollObserver?.disconnect()
 })
 
-const sermons = ref<SermonItem[]>([])
-const recentSermons = computed(() => sermons.value.slice(0, 3))
 const mainSchedules = computed(() => worshipSchedules.slice(0, 4))
 
 function prev() {

@@ -106,6 +106,8 @@ import { ChevronLeft, BookOpen, User, BookMarked, Calendar, PlayCircle } from 'l
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
+import { resolveScripture, loadBook } from '@/lib/bible'
+import { setMeta } from '@/lib/seo'
 import type { SermonItem } from '@/lib/index'
 
 const router = useRouter()
@@ -119,18 +121,25 @@ const bibleData = ref<Record<string, string>>({})
 onMounted(async () => {
   const id = Number(route.params.id)
 
-  const [sermonResult, bibleResult] = await Promise.all([
-    supabase.from('sermons').select('*').eq('id', id).single(),
-    fetch(`${import.meta.env.BASE_URL}bible.json`).then(r => r.json()),
-  ])
-
-  if (sermonResult.error) {
-    error.value = sermonResult.error.message
-  } else {
-    sermon.value = sermonResult.data
+  const { data, error: err } = await supabase.from('sermons').select('*').eq('id', id).single()
+  if (err) {
+    error.value = err.message
+    loading.value = false
+    return
   }
-  bibleData.value = bibleResult
+  sermon.value = data
   loading.value = false
+
+  // 라우터가 깔아둔 '주일설교' 를 실제 설교 제목으로 바꾼다.
+  setMeta({
+    title: data.title,
+    description: [data.scripture, data.preacher, data.date].filter(Boolean).join(' · '),
+    type: 'article',
+  })
+
+  // 설교 본문에 해당하는 한 권만 받는다. 예전에는 성경 전체(5MB)를 받았다.
+  const parsed = resolveScripture(data?.scripture)
+  if (parsed) bibleData.value = await loadBook(parsed.abbrev)
 })
 
 // YouTube URL → embed URL 변환
@@ -156,55 +165,12 @@ const embedUrl = computed(() => {
   return videoId ? `https://www.youtube.com/embed/${videoId}` : null
 })
 
-// 전체 책이름 → bible.json 약어 매핑
-const BOOK_MAP: Record<string, string> = {
-  // 구약
-  '창세기': '창', '출애굽기': '출', '레위기': '레', '민수기': '민', '신명기': '신',
-  '여호수아': '수', '사사기': '삿', '룻기': '룻', '사무엘상': '삼상', '사무엘하': '삼하',
-  '열왕기상': '왕상', '열왕기하': '왕하', '역대상': '대상', '역대하': '대하',
-  '에스라': '스', '느헤미야': '느', '에스더': '에', '욥기': '욥', '시편': '시',
-  '잠언': '잠', '전도서': '전', '아가': '아', '이사야': '사', '예레미야': '렘',
-  '예레미야애가': '애', '에스겔': '겔', '다니엘': '단', '호세아': '호', '요엘': '욜',
-  '아모스': '암', '오바댜': '옵', '요나': '욘', '미가': '미', '나훔': '나',
-  '하박국': '합', '스바냐': '습', '학개': '학', '스가랴': '슥', '말라기': '말',
-  // 신약
-  '마태복음': '마', '마가복음': '막', '누가복음': '눅', '요한복음': '요',
-  '사도행전': '행', '로마서': '롬', '고린도전서': '고전', '고린도후서': '고후',
-  '갈라디아서': '갈', '에베소서': '엡', '빌립보서': '빌', '골로새서': '골',
-  '데살로니가전서': '살전', '데살로니가후서': '살후', '디모데전서': '딤전', '디모데후서': '딤후',
-  '디도서': '딛', '빌레몬서': '몬', '히브리서': '히', '야고보서': '약',
-  '베드로전서': '벧전', '베드로후서': '벧후', '요한일서': '요일', '요한이서': '요이',
-  '요한삼서': '요삼', '유다서': '유', '요한계시록': '계',
-}
-
-// scripture 파싱 → bible.json 구절 배열 반환
+// scripture 파싱 → 구절 배열 반환
 // 지원: "요한복음 15:1-5", "시편 27:4", "역대하 7:14-16", "요15:1" (약어 직접 입력)
 const bibleVerses = computed(() => {
-  const scripture = sermon.value?.scripture?.trim()
-  if (!scripture) return []
-
-  // 1) 전체 책이름 매핑 (긴 이름부터 먼저 비교해 부분 매칭 방지)
-  let abbrev = ''
-  let rest = scripture
-  const bookNames = Object.keys(BOOK_MAP).sort((a, b) => b.length - a.length)
-  for (const name of bookNames) {
-    if (rest.startsWith(name)) {
-      abbrev = BOOK_MAP[name]
-      rest = rest.slice(name.length).trim()
-      break
-    }
-  }
-
-  // 2) 약어 직접 입력 처리 ("요15:1" 등)
-  if (!abbrev) {
-    const m = rest.match(/^([가-힣]+)/)
-    if (m) {
-      abbrev = m[1]
-      rest = rest.slice(abbrev.length).trim()
-    }
-  }
-
-  if (!abbrev) return []
+  const parsed = resolveScripture(sermon.value?.scripture)
+  if (!parsed) return []
+  const { abbrev, rest } = parsed
 
   const result: { key: string; text: string }[] = []
 
