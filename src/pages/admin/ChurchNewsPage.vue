@@ -170,6 +170,7 @@ import { useAuth } from '@/composables/useAuth'
 import { useEscapeToClose } from '@/composables/useEscapeToClose'
 import { supabase } from '@/lib/supabase'
 import { mustAffectRows, mustRemoveFiles } from '@/lib/db'
+import { compressImages, sizeSummary } from '@/lib/imageCompress'
 
 const { isAdmin } = useAuth()
 const { items, loading, error, fetchNews, reset } = useChurchNews()
@@ -221,12 +222,17 @@ async function handleEditSubmit() {
     // 새 이미지 추가
     const newFiles = addFileInput.value?.files
     if (newFiles && newFiles.length > 0) {
+      // 올리기 전에 브라우저에서 300 KB 아래로 줄인다. imageCompress 설명 참고.
+      const ready = await compressImages(newFiles, (d, t) => {
+        editProgress.value = `이미지 줄이는 중... (${d}/${t})`
+      })
+      const summary = sizeSummary(newFiles, ready)
       const startPage = editImages.value.length + 1
-      for (let i = 0; i < newFiles.length; i++) {
-        const ext = newFiles[i].name.split('.').pop()
+      for (let i = 0; i < ready.length; i++) {
+        const ext = ready[i].name.split('.').pop()
         const p = String(startPage + i).padStart(2, '0')
-        editProgress.value = `이미지 업로드 중... (${i + 1}/${newFiles.length})`
-        const { error: upErr } = await supabase.storage.from('churchNews').upload(`${editingId.value}_p${p}.${ext}`, newFiles[i], { upsert: true })
+        editProgress.value = `이미지 업로드 중... (${i + 1}/${ready.length})${summary}`
+        const { error: upErr } = await supabase.storage.from('churchNews').upload(`${editingId.value}_p${p}.${ext}`, ready[i], { upsert: true })
         if (upErr) throw upErr
       }
     }
@@ -271,11 +277,16 @@ async function handleSubmit() {
   errorMsg.value = ''
   try {
     const base = `${form.value.date}_${Date.now()}`
-    for (let i = 0; i < files.length; i++) {
-      const ext = files[i].name.split('.').pop()
+    // 올리기 전에 브라우저에서 300 KB 아래로 줄인다. imageCompress 설명 참고.
+    const ready = await compressImages(files, (d, t) => {
+      uploadProgress.value = `이미지 줄이는 중... (${d}/${t})`
+    })
+    const summary = sizeSummary(files, ready)
+    for (let i = 0; i < ready.length; i++) {
+      const ext = ready[i].name.split('.').pop()
       const p = String(i + 1).padStart(2, '0')
-      uploadProgress.value = `업로드 중... (${i + 1}/${files.length})`
-      const { error: err } = await supabase.storage.from('churchNews').upload(`${base}_p${p}.${ext}`, files[i], { upsert: true })
+      uploadProgress.value = `업로드 중... (${i + 1}/${ready.length})${summary}`
+      const { error: err } = await supabase.storage.from('churchNews').upload(`${base}_p${p}.${ext}`, ready[i], { upsert: true })
       if (err) throw err
     }
     await mustAffectRows('소식 등록',

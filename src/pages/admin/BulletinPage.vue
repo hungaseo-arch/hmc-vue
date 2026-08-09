@@ -159,6 +159,7 @@ import PageHeader from '@/components/PageHeader.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import { supabase } from '@/lib/supabase'
 import { mustRemoveFiles } from '@/lib/db'
+import { compressImages, sizeSummary } from '@/lib/imageCompress'
 import { useAuth } from '@/composables/useAuth'
 import { useEscapeToClose } from '@/composables/useEscapeToClose'
 
@@ -250,15 +251,32 @@ async function handleSubmit() {
   const files = fileInput.value?.files
   if (!files || files.length === 0) { errorMsg.value = '파일을 선택해주세요.'; return }
 
+  const dateFormatted = form.value.date.replace(/-/g, '')
+
+  /*
+    주보 파일 이름은 날짜만으로 정해진다(20260809-p01.jpg). 예전에는 같은
+    날짜로 다시 올리면 확장자가 같아 덮어써졌지만, 이제 압축을 거치면서
+    .webp 로 바뀌기 때문에 옛 .jpg 가 그대로 남아 같은 장이 두 번 보이게 된다.
+    같은 날짜는 '교체' 로 보낸다. 교체는 기존 파일을 먼저 지우고 올린다.
+  */
+  if (bulletinGroups.value.some(g => g.date === dateFormatted)) {
+    errorMsg.value = '이미 등록된 날짜입니다. 목록에서 해당 주보의 [교체]를 눌러주세요.'
+    return
+  }
+
   saving.value = true
   errorMsg.value = ''
   try {
-    const dateFormatted = form.value.date.replace(/-/g, '')
-    for (let i = 0; i < files.length; i++) {
-      const ext = files[i].name.split('.').pop()
+    // 올리기 전에 브라우저에서 300 KB 아래로 줄인다. PDF 는 그대로 지나간다.
+    const ready = await compressImages(files, (d, t) => {
+      uploadProgress.value = `파일 줄이는 중... (${d}/${t})`
+    })
+    const summary = sizeSummary(files, ready)
+    for (let i = 0; i < ready.length; i++) {
+      const ext = ready[i].name.split('.').pop()
       const p = String(i + 1).padStart(2, '0')
-      uploadProgress.value = `업로드 중... (${i + 1}/${files.length})`
-      const { error: err } = await supabase.storage.from(BUCKET).upload(`${dateFormatted}-p${p}.${ext}`, files[i], { upsert: true })
+      uploadProgress.value = `업로드 중... (${i + 1}/${ready.length})${summary}`
+      const { error: err } = await supabase.storage.from(BUCKET).upload(`${dateFormatted}-p${p}.${ext}`, ready[i], { upsert: true })
       if (err) throw err
     }
     await fetchBulletins()
@@ -325,12 +343,16 @@ async function handleReplace() {
     const targets = (existing ?? []).filter(f => f.name.startsWith(`${replacingDate.value}-`)).map(f => f.name)
     replaceProgress.value = '기존 파일 삭제 중...'
     await mustRemoveFiles('주보 삭제', BUCKET, targets)
-    // 새 파일 업로드
-    for (let i = 0; i < files.length; i++) {
-      const ext = files[i].name.split('.').pop()
+    // 새 파일 업로드. 올리기 전에 300 KB 아래로 줄인다. PDF 는 그대로 지나간다.
+    const ready = await compressImages(files, (d, t) => {
+      replaceProgress.value = `파일 줄이는 중... (${d}/${t})`
+    })
+    const summary = sizeSummary(files, ready)
+    for (let i = 0; i < ready.length; i++) {
+      const ext = ready[i].name.split('.').pop()
       const p = String(i + 1).padStart(2, '0')
-      replaceProgress.value = `업로드 중... (${i + 1}/${files.length})`
-      const { error: err } = await supabase.storage.from(BUCKET).upload(`${replacingDate.value}-p${p}.${ext}`, files[i], { upsert: true })
+      replaceProgress.value = `업로드 중... (${i + 1}/${ready.length})${summary}`
+      const { error: err } = await supabase.storage.from(BUCKET).upload(`${replacingDate.value}-p${p}.${ext}`, ready[i], { upsert: true })
       if (err) throw err
     }
     await fetchBulletins()
