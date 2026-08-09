@@ -1,83 +1,156 @@
 <template>
-  <div class="min-h-screen bg-muted flex items-center justify-center px-4">
-    <div class="bg-white rounded-2xl shadow-sm border border-border w-full max-w-sm p-8">
+  <div class="min-h-screen bg-muted flex items-center justify-center px-4 py-10">
+    <div class="bg-white rounded-2xl shadow-sm border border-border w-full max-w-md p-6 sm:p-8">
       <div class="text-center mb-8">
-        <img src="/logo_hmc.webp" alt="한마음교회" width="320" height="122" class="h-14 w-auto mx-auto mb-4 object-contain" />
-        <h1 class="text-xl font-bold">로그인</h1>
+        <img src="/logo_hmc.webp" alt="한마음교회" width="320" height="122" class="h-16 w-auto mx-auto mb-5 object-contain" />
+        <h1 class="text-[24px] font-bold text-foreground">로그인</h1>
+        <p class="mt-3 text-[18px] leading-relaxed text-muted-foreground">
+          교인 전용 자료를 보시려면<br />로그인이 필요합니다.
+        </p>
       </div>
 
-      <form class="space-y-4" @submit.prevent="handleLogin">
-        <div>
-          <label for="login-email" class="block text-sm font-medium mb-1.5">이메일</label>
-          <input
-            id="login-email"
-            v-model="email"
-            type="email"
-            required
-            autocomplete="email"
-            inputmode="email"
-            placeholder="이메일 주소"
-            class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
-          />
-        </div>
-        <div>
-          <label for="login-password" class="block text-sm font-medium mb-1.5">비밀번호</label>
-          <input
-            id="login-password"
-            v-model="password"
-            type="password"
-            required
-            autocomplete="current-password"
-            placeholder="비밀번호"
-            class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
-          />
-        </div>
+      <!-- role=alert: 화면 낭독기가 실패 사유를 즉시 읽어준다. -->
+      <p
+        v-if="errorMsg"
+        role="alert"
+        class="mb-5 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-[18px] leading-relaxed text-red-700"
+      >
+        {{ errorMsg }}
+      </p>
 
-        <!-- role=alert: 화면 낭독기가 로그인 실패를 즉시 읽어준다. -->
-        <p v-if="errorMsg" role="alert" class="text-sm text-red-500 text-center">{{ errorMsg }}</p>
+      <!--
+        카카오 버튼이 첫 번째다. 노년 사용자에게 이메일과 비밀번호를 새로
+        외우게 하는 것이 이 화면에서 가장 큰 장벽이기 때문이다.
 
+        색과 문구는 카카오 로그인 디자인 가이드를 따른다. 배경 #FEE500,
+        글자는 검정 85%, 문구는 '카카오'로 시작한다. 이 두 색은 브랜드가
+        정한 값이라 사이트 팔레트로 바꿔 쓸 수 없다.
+        https://developers.kakao.com/docs/latest/ko/kakaologin/design-guide
+      -->
+      <button
+        type="button"
+        :disabled="kakaoBusy"
+        class="w-full min-h-16 rounded-xl flex items-center justify-center gap-3 text-[20px] font-semibold transition hover:brightness-95 disabled:opacity-60 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
+        style="background-color: #FEE500; color: rgba(0, 0, 0, 0.85)"
+        @click="handleKakao"
+      >
+        <svg viewBox="0 0 24 24" class="h-7 w-7 shrink-0" fill="currentColor" aria-hidden="true">
+          <path d="M12 3C6.477 3 2 6.463 2 10.735c0 2.756 1.86 5.174 4.653 6.545-.153.55-.986 3.542-1.016 3.777 0 0-.02.17.09.235.11.065.24.015.24.015.31-.043 3.594-2.35 4.162-2.75.61.086 1.24.131 1.871.131 5.523 0 10-3.463 10-7.735S17.523 3 12 3z" />
+        </svg>
+        {{ kakaoBusy ? '카카오로 이동 중...' : '카카오로 시작하기' }}
+      </button>
+
+      <p class="mt-4 text-[18px] leading-relaxed text-muted-foreground">
+        카카오톡에 로그인되어 있으면 비밀번호를 넣지 않아도 됩니다.
+        처음이시면 카카오 화면에서 [동의하고 계속하기]를 눌러 주세요.
+      </p>
+
+      <!-- 기존 이메일 로그인은 그대로 남긴다. 이미 쓰고 계신 분들이 있다. -->
+      <div class="mt-8 pt-6 border-t border-border">
         <button
-          type="submit"
-          :disabled="submitting"
-          class="w-full bg-primary text-primary-foreground rounded-xl py-2.5 text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-50"
+          type="button"
+          class="w-full min-h-14 rounded-xl bg-secondary text-secondary-foreground text-[18px] font-semibold transition hover:brightness-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
+          :aria-expanded="showEmail"
+          aria-controls="email-login"
+          @click="showEmail = !showEmail"
         >
-          {{ submitting ? '로그인 중...' : '로그인' }}
+          {{ showEmail ? '이메일 로그인 닫기' : '이메일로 로그인하기' }}
         </button>
-      </form>
 
-      <div class="mt-6 text-center text-xs text-muted-foreground space-y-2">
-        <p>
+        <form v-show="showEmail" id="email-login" class="mt-5 space-y-4" @submit.prevent="handleLogin">
+          <div>
+            <label for="login-email" class="block text-[18px] font-semibold mb-2 text-foreground">이메일</label>
+            <input
+              id="login-email"
+              v-model="email"
+              type="email"
+              :required="showEmail"
+              autocomplete="email"
+              inputmode="email"
+              placeholder="이메일 주소"
+              class="w-full min-h-14 border border-border rounded-xl px-4 text-[18px] outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+            />
+          </div>
+          <div>
+            <label for="login-password" class="block text-[18px] font-semibold mb-2 text-foreground">비밀번호</label>
+            <input
+              id="login-password"
+              v-model="password"
+              type="password"
+              :required="showEmail"
+              autocomplete="current-password"
+              placeholder="비밀번호"
+              class="w-full min-h-14 border border-border rounded-xl px-4 text-[18px] outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+            />
+          </div>
+          <button
+            type="submit"
+            :disabled="submitting"
+            class="w-full min-h-14 bg-primary text-primary-foreground rounded-xl text-[18px] font-semibold hover:bg-primary/90 transition disabled:opacity-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
+          >
+            {{ submitting ? '로그인 중...' : '로그인' }}
+          </button>
+        </form>
+      </div>
+
+      <div class="mt-8 text-center text-[18px] space-y-3">
+        <p class="text-muted-foreground">
           계정이 없으신가요?
-          <RouterLink :to="ROUTE_PATHS.SIGNUP" class="text-primary hover:underline font-medium">회원가입</RouterLink>
+          <RouterLink :to="ROUTE_PATHS.SIGNUP" class="text-primary hover:underline font-semibold">회원가입</RouterLink>
         </p>
-        <RouterLink :to="ROUTE_PATHS.HOME" class="block hover:underline">홈으로 돌아가기</RouterLink>
+        <RouterLink :to="ROUTE_PATHS.HOME" class="block text-muted-foreground hover:underline">홈으로 돌아가기</RouterLink>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuth, takeAuthNotice } from '@/composables/useAuth'
 import { ROUTE_PATHS } from '@/lib/index'
 
+const route = useRoute()
 const router = useRouter()
-const { login } = useAuth()
+const { login, signInWithKakao } = useAuth()
 
 const email = ref('')
 const password = ref('')
 const submitting = ref(false)
+const kakaoBusy = ref(false)
+const showEmail = ref(false)
 const errorMsg = ref('')
+
+// 카카오에서 실패해 돌아온 경우 App.vue 가 남겨 둔 안내를 꺼내 보여준다.
+onMounted(() => {
+  errorMsg.value = takeAuthNotice()
+})
+
+async function handleKakao() {
+  submitting.value = false
+  kakaoBusy.value = true
+  errorMsg.value = ''
+  try {
+    // 가드에 막혀 여기로 왔다면 원래 가려던 곳으로 되돌려 준다.
+    const back = typeof route.query.next === 'string' ? route.query.next : ROUTE_PATHS.HOME
+    await signInWithKakao(back)
+    // 성공하면 카카오 화면으로 넘어가므로 여기 아래는 실행되지 않는다.
+  } catch (e: unknown) {
+    errorMsg.value = e instanceof Error ? e.message : '카카오 로그인을 시작하지 못했습니다.'
+    kakaoBusy.value = false
+  }
+}
 
 async function handleLogin() {
   submitting.value = true
   errorMsg.value = ''
   try {
     await login(email.value, password.value)
-    router.push(ROUTE_PATHS.HOME)
-  } catch (e: unknown) {
-    errorMsg.value = e instanceof Error ? e.message : '로그인에 실패했습니다.'
+    const back = typeof route.query.next === 'string' ? route.query.next : ROUTE_PATHS.HOME
+    router.push(back)
+  } catch {
+    // 원문(영어) 오류를 그대로 보여주지 않는다. 무엇을 다시 해야 하는지만 알린다.
+    errorMsg.value = '이메일 또는 비밀번호가 맞지 않습니다. 다시 확인해 주세요.'
   } finally {
     submitting.value = false
   }
