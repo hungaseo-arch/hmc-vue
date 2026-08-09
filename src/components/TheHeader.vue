@@ -22,6 +22,13 @@
             회원 승인
           </RouterLink>
           <RouterLink
+            v-if="accessLevel >= 2"
+            :to="ROUTE_PATHS.ADMIN_AUDIT_LOG"
+            class="text-xs opacity-80 hover:opacity-100 transition-opacity underline underline-offset-2"
+          >
+            접속 기록
+          </RouterLink>
+          <RouterLink
             v-if="isLoggedIn"
             :to="ROUTE_PATHS.PROFILE"
             class="flex items-center gap-1.5 text-xs opacity-80 hover:opacity-100 transition-opacity underline underline-offset-2"
@@ -209,6 +216,13 @@
                 class="block px-3 py-2.5 text-sm rounded-lg hover:bg-muted transition-colors font-medium text-primary"
               >
                 회원 승인
+              </RouterLink>
+              <RouterLink
+                v-if="accessLevel >= 2"
+                :to="ROUTE_PATHS.ADMIN_AUDIT_LOG"
+                class="block px-3 py-2.5 text-sm rounded-lg hover:bg-muted transition-colors font-medium text-primary"
+              >
+                접속 기록
               </RouterLink>
               <button class="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-muted transition-colors text-red-500" @click="handleLogout">로그아웃</button>
             </template>

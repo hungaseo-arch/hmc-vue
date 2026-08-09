@@ -57,7 +57,9 @@ const router = createRouter({
     // 구간이 매개변수보다 우선이라 순서와 무관하게 매칭되지만, 읽는 사람이
     // 헷갈리지 않게 앞에 놓는다.
     { path: ROUTE_PATHS.ADMIN_MEMBERS, component: () => import('@/pages/admin/MemberApprovalPage.vue'), meta: { access: 2, title: '회원 승인', noindex: true } },
-    // (T8 접속 기록 화면이 여기에 붙는다)
+    // noAudit: 접속 기록 화면 자체는 기록하지 않는다. 관리자가 목록을 훑을
+    // 때마다 view_sensitive 가 쌓이면 기록이 자기 자신으로 가득 찬다.
+    { path: ROUTE_PATHS.ADMIN_AUDIT_LOG, component: () => import('@/pages/admin/AuditLogPage.vue'), meta: { access: 2, noAudit: true, title: '접속 기록', noindex: true } },
 
     // 예전 /admin/* 주소를 /community/* 로 넘긴다. 회원들이 저장해 둔 링크와
     // 카톡 등에 뿌려진 주소가 깨지지 않게. 404 규칙보다 위에 있어야 한다.
@@ -111,7 +113,7 @@ router.beforeEach(async (to) => {
 
   // 민감 등급(2) 화면에 들어간 것만 기록한다. 1등급까지 남기면 하루에도
   // 수백 줄이 쌓여 정작 봐야 할 기록이 묻힌다.
-  if (need >= 2) void logEvent('view_sensitive', to.fullPath)
+  if (need >= 2 && !to.meta.noAudit) void logEvent('view_sensitive', to.fullPath)
 })
 
 // 상세 페이지는 제목을 알아야 하므로 컴포넌트가 setMeta 를 다시 부른다.
