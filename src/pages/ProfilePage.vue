@@ -143,6 +143,7 @@ async function handleSave() {
     })
     successMsg.value = '저장되었습니다.'
   } catch (e: unknown) {
+    console.warn('[내 정보] 저장 실패:', e)
     errorMsg.value = e instanceof Error ? e.message : '저장에 실패했습니다.'
   } finally {
     saving.value = false
