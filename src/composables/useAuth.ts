@@ -4,6 +4,15 @@ import { resetAllCaches } from '@/lib/cacheRegistry'
 import { mustAffectRows } from '@/lib/db'
 import type { User } from '@supabase/supabase-js'
 
+/** 승인 절차. pending 은 가입 신청만 된 상태로 교인 자료를 보지 못한다. */
+export type MemberStatus = 'pending' | 'active' | 'suspended' | 'rejected'
+
+/** 0=공개, 1=교인, 2=민감(관리자). 자세한 정의는 T1 마이그레이션 머리말 참고. */
+export type AccessLevel = 0 | 1 | 2
+
+/** 클라이언트가 남길 수 있는 기록. 승인·반려는 서버 함수만 남긴다. */
+export type AuditEvent = 'login' | 'logout' | 'view_sensitive' | 'access_denied'
+
 export interface Profile {
   role: string
   name: string | null
@@ -14,7 +23,17 @@ export interface Profile {
   child1: string | null
   child2: string | null
   child3: string | null
+  member_status: MemberStatus
+  access_level: AccessLevel
+  provider: string | null
+  created_at: string | null
 }
+
+const PROFILE_COLUMNS =
+  'role, name, phone, position, gender, family_head, child1, child2, child3, member_status, access_level, provider, created_at'
+
+/** 카카오로 떠나기 전에 보던 경로. 돌아온 뒤 여기로 되돌린다. */
+export const RETURN_TO_KEY = 'returnTo'
 
 const user = ref<User | null>(null)
 const profile = ref<Profile | null>(null)
@@ -26,10 +45,37 @@ export const authReady = new Promise<void>(r => { resolveReady = r })
 async function fetchProfile(uid: string) {
   const { data } = await supabase
     .from('profiles')
-    .select('role, name, phone, position, gender, family_head, child1, child2, child3')
+    .select(PROFILE_COLUMNS)
     .eq('id', uid)
     .single()
-  profile.value = data ?? null
+  profile.value = (data as Profile | null) ?? null
+}
+
+/**
+ * 접근 기록을 남긴다. 실패해도 화면 동작을 막지 않는다 — 기록이 안 남는 것보다
+ * 사용자가 버튼을 못 누르게 되는 쪽이 더 나쁘다. 그래서 절대 던지지 않는다.
+ *
+ * user_id 는 서버(log_event)가 auth.uid() 로 정한다. 클라이언트가 남의 이름으로
+ * 위조할 수 없다.
+ *
+ * 보통은 기다릴 필요가 없지만(void 로 버려도 된다), 로그아웃처럼 곧바로 세션이
+ * 사라지는 자리에서는 await 해야 기록이 토큰과 함께 날아가지 않는다.
+ */
+export async function logEvent(
+  type: AuditEvent,
+  resource?: string,
+  detail?: Record<string, unknown>,
+): Promise<void> {
+  try {
+    const { error } = await supabase.rpc('log_event', {
+      p_event_type: type,
+      p_resource: resource ?? null,
+      p_detail: detail ?? null,
+    })
+    if (error) console.warn('[감사로그] 기록 실패:', error.message)
+  } catch (e) {
+    console.warn('[감사로그] 기록 실패:', e)
+  }
 }
 
 /**
@@ -79,12 +125,67 @@ supabase.auth.onAuthStateChange((event, session) => {
     return
   }
   if (changedUser) void fetchProfile(nextUser.id)
+
+  // 새로고침으로 세션이 복원될 때는 INITIAL_SESSION 이 온다. 그때까지
+  // 로그인으로 세면 하루에도 수십 건이 쌓여 기록이 무의미해진다.
+  // 이 콜백 안에서는 await 하지 않는다 — auth 클라이언트가 잠긴다.
+  if (event === 'SIGNED_IN' && changedUser) void logEvent('login')
 })
+
+/**
+ * App.vue 가 부른다. 구독은 이미 이 모듈이 읽히는 시점에 한 번만 등록되고
+ * 앱이 살아 있는 동안 유지된다 — 라우터 가드가 App 마운트보다 먼저 도는데,
+ * 그때 이미 세션 판정이 준비돼 있어야 하기 때문이다.
+ * 그래서 여기서는 준비 완료만 기다린다. 여러 번 불러도 안전하다.
+ */
+export function init(): Promise<void> {
+  return authReady
+}
 
 export function useAuth() {
   const isLoggedIn = computed(() => !!user.value)
   const isAdmin = computed(() => profile.value?.role === 'admin')
   const displayName = computed(() => profile.value?.name ?? user.value?.email ?? '')
+
+  const memberStatus = computed<MemberStatus | null>(() => profile.value?.member_status ?? null)
+  const isApproved = computed(() => memberStatus.value === 'active')
+
+  /*
+    role='admin' 도 함께 본다. DB 의 current_access_level() 과 같은 규칙이라야
+    화면에서는 관리자인데 데이터는 못 읽는 어긋남이 생기지 않는다.
+  */
+  const accessLevel = computed<AccessLevel>(() => {
+    if (!isApproved.value) return 0
+    const fromRole: AccessLevel = profile.value?.role === 'admin' ? 2 : 0
+    const fromColumn = (profile.value?.access_level ?? 0) as AccessLevel
+    return Math.max(fromRole, fromColumn) as AccessLevel
+  })
+
+  /**
+   * 카카오 로그인 시작. 돌아올 곳은 반드시 해시 없는 루트여야 한다.
+   * 지금은 히스토리 모드라 상관없지만, 해시 모드로 되돌아가면
+   * `/#/경로?code=...` 가 되어 인가 코드가 해시 안에 갇히고 supabase-js 가
+   * 찾지 못한다. 원래 보던 경로는 sessionStorage 로 따로 들고 간다.
+   */
+  async function signInWithKakao(returnTo?: string) {
+    try {
+      sessionStorage.setItem(RETURN_TO_KEY, returnTo ?? '/')
+    } catch {
+      // 저장 못 해도 로그인은 되고 홈으로 돌아갈 뿐이다.
+    }
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: { redirectTo: window.location.origin + '/' },
+    })
+
+    // 원문 오류를 그대로 보여주지 않는다. 노년 사용자에게 영어 오류 문구는
+    // 아무 도움이 안 되고, 다음에 무엇을 해야 할지도 알려주지 못한다.
+    if (error) {
+      console.warn('[카카오 로그인] 시작 실패:', error.message)
+      throw new Error('카카오 로그인을 시작하지 못했습니다. 인터넷 연결을 확인하시고 다시 눌러 주세요.')
+    }
+  }
 
   async function login(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
@@ -96,9 +197,18 @@ export function useAuth() {
   }
 
   async function logout() {
+    // 로그아웃 기록은 반드시 signOut 앞에서 '끝까지' 남긴다. 세션이 사라지고
+    // 나면 auth.uid() 가 null 이라 log_event 가 아무것도 쓰지 않는다.
+    await logEvent('logout')
+
     await supabase.auth.signOut()
     user.value = null
     profile.value = null
+    try {
+      sessionStorage.removeItem(RETURN_TO_KEY)
+    } catch {
+      // 무시
+    }
     // 로그인 상태에서 받은 멤버 전용 데이터와 서명 URL 을 즉시 폐기한다.
     resetAllCaches()
   }
@@ -107,27 +217,32 @@ export function useAuth() {
     const { data, error } = await supabase.auth.signUp({ email, password })
     if (error) throw error
     if (data.user) {
-      // role 은 보내지 않는다 — 컬럼 기본값('member')이 채우고,
-      // 클라이언트에는 쓰기 권한이 없다.
-      const { error: insertError } = await supabase.from('profiles').insert({
+      /*
+        insert 가 아니라 upsert 다. 이제 auth.users 트리거(handle_new_user)가
+        가입 즉시 프로필 행을 먼저 만들기 때문에, insert 로 보내면 기본키
+        충돌(23505)로 회원가입이 통째로 실패한다.
+        role·member_status·access_level 은 보내지 않는다 — 컬럼 권한이 없어
+        보내도 거부되고, 보낼 수 있다면 스스로 관리자가 될 수 있다는 뜻이다.
+      */
+      const { error: upsertError } = await supabase.from('profiles').upsert({
         id: data.user.id,
         ...fields,
       })
-      if (insertError) throw insertError
+      if (upsertError) throw upsertError
       user.value = data.user
       await fetchProfile(data.user.id)
     }
   }
 
-  async function updateProfile(fields: Partial<Omit<Profile, 'role'>>) {
+  async function updateProfile(fields: Partial<Omit<Profile, 'role' | 'member_status' | 'access_level' | 'provider' | 'created_at'>>) {
     if (!user.value) throw new Error('로그인이 필요합니다.')
-    // role 은 보내지 않는다. 보내면 회원이 스스로 admin 으로 올릴 수 있다.
+    // 등급 관련 컬럼은 보내지 않는다. 보내면 회원이 스스로 승급할 수 있다.
     const rows = await mustAffectRows(
       '프로필 저장',
       supabase
         .from('profiles')
         .upsert({ id: user.value.id, ...fields })
-        .select('role, name, phone, position, gender, family_head, child1, child2, child3'),
+        .select(PROFILE_COLUMNS),
     )
     profile.value = rows[0] as Profile
   }
@@ -137,5 +252,11 @@ export function useAuth() {
     await fetchProfile(user.value.id)
   }
 
-  return { user, profile, loading, isLoggedIn, isAdmin, displayName, login, logout, signUp, updateProfile, refreshProfile }
+  return {
+    user, profile, loading,
+    isLoggedIn, isAdmin, displayName,
+    memberStatus, isApproved, accessLevel,
+    login, logout, signUp, signInWithKakao, updateProfile, refreshProfile,
+    logEvent,
+  }
 }
