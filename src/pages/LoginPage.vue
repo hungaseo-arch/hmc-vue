@@ -27,6 +27,27 @@
         정한 값이라 사이트 팔레트로 바꿔 쓸 수 없다.
         https://developers.kakao.com/docs/latest/ko/kakaologin/design-guide
       -->
+      <!--
+        체크박스를 버튼 '위' 에 둔다. 아래에 있으면 이미 카카오로 넘어간 뒤라
+        고를 기회가 없다. 기본은 켜짐 — 대부분 본인 휴대폰으로 들어오고,
+        매번 로그인하게 만드는 것이 이 사이트에서 가장 큰 이탈 요인이다.
+      -->
+      <label class="mb-4 flex items-start gap-3 cursor-pointer select-none">
+        <input
+          v-model="rememberMe"
+          type="checkbox"
+          class="mt-1 h-6 w-6 shrink-0 rounded border-border accent-primary"
+        />
+        <span class="text-[18px] leading-relaxed text-foreground">
+          이 기기는 제 것입니다
+          <span class="block text-muted-foreground">
+            {{ rememberMe
+              ? '다음에 오실 때 로그인이 유지됩니다.'
+              : '브라우저를 닫으면 로그아웃됩니다. 공용 컴퓨터에 알맞습니다.' }}
+          </span>
+        </span>
+      </label>
+
       <button
         type="button"
         :disabled="kakaoBusy"
@@ -105,9 +126,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth, takeAuthNotice } from '@/composables/useAuth'
+import { isRemembering, setRememberMe } from '@/lib/authStorage'
 import { ROUTE_PATHS } from '@/lib/index'
 
 const route = useRoute()
@@ -120,6 +142,14 @@ const submitting = ref(false)
 const kakaoBusy = ref(false)
 const showEmail = ref(false)
 const errorMsg = ref('')
+
+/*
+  체크를 바꾸는 즉시 반영한다. 로그인 버튼을 누를 때 한 번에 적용하면,
+  카카오로 넘어갔다 돌아오는 동안 PKCE 검증값이 엉뚱한 저장소에 남아
+  교환이 실패한다. 검증값도 sb- 접두사라 같이 옮겨져야 한다.
+*/
+const rememberMe = ref(isRemembering())
+watch(rememberMe, v => setRememberMe(v))
 
 // 카카오에서 실패해 돌아온 경우 App.vue 가 남겨 둔 안내를 꺼내 보여준다.
 onMounted(() => {

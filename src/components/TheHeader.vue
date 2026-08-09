@@ -27,7 +27,9 @@
             class="flex items-center gap-1.5 text-xs opacity-80 hover:opacity-100 transition-opacity underline underline-offset-2"
           >
             <span v-if="isAdmin" class="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium no-underline" style="text-decoration: none;">관리자</span>
-            {{ displayName }}
+            <!-- '로그인 중' 을 붙인다. 이름만 있으면 지금 로그인 상태인지
+                 확인하러 눌러 보게 된다. -->
+            {{ displayName }}님, 로그인 중
           </RouterLink>
           <button
             v-if="isLoggedIn"
@@ -199,7 +201,7 @@
             <template v-if="isLoggedIn">
               <RouterLink :to="ROUTE_PATHS.PROFILE" class="px-3 py-2 text-sm text-muted-foreground flex items-center gap-2 rounded-lg hover:bg-muted transition-colors">
                 <span v-if="isAdmin" class="bg-primary/10 text-primary text-xs px-1.5 py-0.5 rounded-full font-medium">관리자</span>
-                {{ displayName }}
+                {{ displayName }}님, 로그인 중
               </RouterLink>
               <RouterLink
                 v-if="accessLevel >= 2"
