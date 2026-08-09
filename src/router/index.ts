@@ -56,7 +56,8 @@ const router = createRouter({
     // 관리자(2등급) 전용. 아래 /admin/:rest 리디렉트보다 위에 둔다 — 정적
     // 구간이 매개변수보다 우선이라 순서와 무관하게 매칭되지만, 읽는 사람이
     // 헷갈리지 않게 앞에 놓는다.
-    // (T6 회원 승인, T8 접속 기록 화면이 여기에 붙는다)
+    { path: ROUTE_PATHS.ADMIN_MEMBERS, component: () => import('@/pages/admin/MemberApprovalPage.vue'), meta: { access: 2, title: '회원 승인', noindex: true } },
+    // (T8 접속 기록 화면이 여기에 붙는다)
 
     // 예전 /admin/* 주소를 /community/* 로 넘긴다. 회원들이 저장해 둔 링크와
     // 카톡 등에 뿌려진 주소가 깨지지 않게. 404 규칙보다 위에 있어야 한다.

@@ -13,6 +13,14 @@
           2026년 표어: 주안에 뿌리내리고 함께 자라나 열매 맺는 성도의 교회 (요 15:5)
         </div>
         <div class="flex items-center gap-3">
+          <!-- 관리자 전용 입구. 2등급이 아니면 메뉴 자체를 보여주지 않는다. -->
+          <RouterLink
+            v-if="accessLevel >= 2"
+            :to="ROUTE_PATHS.ADMIN_MEMBERS"
+            class="text-xs opacity-80 hover:opacity-100 transition-opacity underline underline-offset-2"
+          >
+            회원 승인
+          </RouterLink>
           <RouterLink
             v-if="isLoggedIn"
             :to="ROUTE_PATHS.PROFILE"
@@ -193,6 +201,13 @@
                 <span v-if="isAdmin" class="bg-primary/10 text-primary text-xs px-1.5 py-0.5 rounded-full font-medium">관리자</span>
                 {{ displayName }}
               </RouterLink>
+              <RouterLink
+                v-if="accessLevel >= 2"
+                :to="ROUTE_PATHS.ADMIN_MEMBERS"
+                class="block px-3 py-2.5 text-sm rounded-lg hover:bg-muted transition-colors font-medium text-primary"
+              >
+                회원 승인
+              </RouterLink>
               <button class="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-muted transition-colors text-red-500" @click="handleLogout">로그아웃</button>
             </template>
             <template v-else>
@@ -232,7 +247,7 @@ const mobileOpenMenu = ref<string | null>(null)
 const headerRef = ref<HTMLDivElement | null>(null)
 
 const { scrolled } = useScrolled(10)
-const { isLoggedIn, isAdmin, displayName, logout } = useAuth()
+const { isLoggedIn, isAdmin, displayName, accessLevel, logout } = useAuth()
 const router = useRouter()
 
 async function handleLogout() {
