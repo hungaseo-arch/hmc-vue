@@ -15,6 +15,17 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
   - storage          : 자동 로그인 켜짐/꺼짐에 따라 저장 위치를 고른다.
                        authStorage 설명 참고.
 */
+/*
+  카카오에서 돌아왔는지 여부. 세션 교환이 끝나면 supabase-js 가 주소에서
+  ?code= 를 스스로 지우기 때문에, App.vue 가 확인할 때는 이미 늦을 수 있다.
+  클라이언트를 만들기 전에 — 즉 교환이 시작되기 전에 — 먼저 찍어 둔다.
+*/
+export const oauthReturn = (() => {
+  if (typeof window === 'undefined') return { pending: false, failed: false }
+  const q = new URLSearchParams(window.location.search)
+  return { pending: q.has('code') || q.has('error'), failed: q.has('error') }
+})()
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     flowType: 'pkce',

@@ -32,6 +32,12 @@ export const ROUTE_PATHS = {
   LOGIN: '/login',
   SIGNUP: '/signup',
   PROFILE: '/profile',
+  // 인증 안내 — 메뉴에는 넣지 않는다. 라우터 가드가 보낼 때만 쓰는 곳이다.
+  PENDING: '/pending',
+  NO_ACCESS: '/no-access',
+  // 관리자 전용
+  ADMIN_MEMBERS: '/admin/members',
+  ADMIN_AUDIT_LOG: '/admin/audit-log',
 } as const
 
 export interface NavSubItem {

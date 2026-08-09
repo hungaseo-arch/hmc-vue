@@ -35,6 +35,27 @@ const PROFILE_COLUMNS =
 /** 카카오로 떠나기 전에 보던 경로. 돌아온 뒤 여기로 되돌린다. */
 export const RETURN_TO_KEY = 'returnTo'
 
+const NOTICE_KEY = 'hmc:auth-notice'
+
+/**
+ * 로그인 화면에 한 번만 띄울 안내 문구를 맡겨 둔다. 주소에 붙이지 않는 이유는
+ * 새로고침이나 링크 공유로 옛 오류 문구가 되살아나지 않게 하기 위해서다.
+ */
+export function setAuthNotice(message: string) {
+  try { sessionStorage.setItem(NOTICE_KEY, message) } catch { /* 무시 */ }
+}
+
+/** 맡겨 둔 문구를 꺼내면서 지운다. 없으면 빈 문자열. */
+export function takeAuthNotice(): string {
+  try {
+    const m = sessionStorage.getItem(NOTICE_KEY)
+    if (m) sessionStorage.removeItem(NOTICE_KEY)
+    return m ?? ''
+  } catch {
+    return ''
+  }
+}
+
 const user = ref<User | null>(null)
 const profile = ref<Profile | null>(null)
 const loading = ref(true)
