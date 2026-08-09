@@ -63,13 +63,44 @@ const loading = ref(true)
 let resolveReady!: () => void
 export const authReady = new Promise<void>(r => { resolveReady = r })
 
-async function fetchProfile(uid: string) {
-  const { data } = await supabase
-    .from('profiles')
-    .select(PROFILE_COLUMNS)
-    .eq('id', uid)
-    .single()
-  profile.value = (data as Profile | null) ?? null
+/** 지금 profile 이 누구 것인지, 그리고 아직 오는 중인지. */
+let profileUid: string | null = null
+let profileInFlight: Promise<void> | null = null
+
+function fetchProfile(uid: string): Promise<void> {
+  profileUid = uid
+  const p = (async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select(PROFILE_COLUMNS)
+      .eq('id', uid)
+      .single()
+    // 그 사이 다른 사람으로 바뀌었다면 늦게 도착한 응답은 버린다.
+    // 앞사람의 등급이 뒷사람에게 붙는 사고를 막는다.
+    if (profileUid !== uid) return
+    profile.value = (data as Profile | null) ?? null
+  })()
+  profileInFlight = p
+  return p
+}
+
+/**
+ * 라우터 가드용. 등급을 판단하기 전에 프로필이 확실히 도착해 있게 한다.
+ * 로그인 직후에는 onAuthStateChange 가 프로필을 기다리지 않고 부르기 때문에,
+ * 이걸 거치지 않으면 방금 로그인한 사람이 잠깐 '등급 0' 으로 보인다.
+ */
+export async function ensureProfile(): Promise<void> {
+  const uid = user.value?.id
+  if (!uid) {
+    profile.value = null
+    profileUid = null
+    return
+  }
+  if (profileUid === uid) {
+    if (profileInFlight) await profileInFlight
+    return
+  }
+  await fetchProfile(uid)
 }
 
 /**
@@ -163,25 +194,38 @@ export function init(): Promise<void> {
   return authReady
 }
 
+/*
+  아래 파생값은 모듈 수준에 둔다. 라우터 가드는 컴포넌트 밖에서 돌기 때문에
+  useAuth() 를 부를 수 없고, 같은 판단을 두 벌로 유지하면 반드시 어긋난다.
+*/
+const isLoggedIn = computed(() => !!user.value)
+const isAdmin = computed(() => profile.value?.role === 'admin')
+const displayName = computed(() => profile.value?.name ?? user.value?.email ?? '')
+
+const memberStatus = computed<MemberStatus | null>(() => profile.value?.member_status ?? null)
+const isApproved = computed(() => memberStatus.value === 'active')
+
+/*
+  role='admin' 도 함께 본다. DB 의 current_access_level() 과 같은 규칙이라야
+  화면에서는 관리자인데 데이터는 못 읽는 어긋남이 생기지 않는다.
+*/
+const accessLevel = computed<AccessLevel>(() => {
+  if (!isApproved.value) return 0
+  const fromRole: AccessLevel = profile.value?.role === 'admin' ? 2 : 0
+  const fromColumn = (profile.value?.access_level ?? 0) as AccessLevel
+  return Math.max(fromRole, fromColumn) as AccessLevel
+})
+
+/** 가드용 읽기 전용 스냅숏. ensureProfile() 뒤에 불러야 정확하다. */
+export function authSnapshot() {
+  return {
+    loggedIn: isLoggedIn.value,
+    status: memberStatus.value,
+    level: accessLevel.value,
+  }
+}
+
 export function useAuth() {
-  const isLoggedIn = computed(() => !!user.value)
-  const isAdmin = computed(() => profile.value?.role === 'admin')
-  const displayName = computed(() => profile.value?.name ?? user.value?.email ?? '')
-
-  const memberStatus = computed<MemberStatus | null>(() => profile.value?.member_status ?? null)
-  const isApproved = computed(() => memberStatus.value === 'active')
-
-  /*
-    role='admin' 도 함께 본다. DB 의 current_access_level() 과 같은 규칙이라야
-    화면에서는 관리자인데 데이터는 못 읽는 어긋남이 생기지 않는다.
-  */
-  const accessLevel = computed<AccessLevel>(() => {
-    if (!isApproved.value) return 0
-    const fromRole: AccessLevel = profile.value?.role === 'admin' ? 2 : 0
-    const fromColumn = (profile.value?.access_level ?? 0) as AccessLevel
-    return Math.max(fromRole, fromColumn) as AccessLevel
-  })
-
   /**
    * 카카오 로그인 시작. 돌아올 곳은 반드시 해시 없는 루트여야 한다.
    * 지금은 히스토리 모드라 상관없지만, 해시 모드로 되돌아가면
