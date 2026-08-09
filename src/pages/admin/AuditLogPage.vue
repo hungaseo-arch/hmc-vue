@@ -227,6 +227,10 @@ const EVENT_LABEL: Record<string, string> = {
   access_denied: '접근 거부',
   member_approved: '회원 승인',
   member_rejected: '회원 반려',
+  member_level_changed: '등급 변경',
+  member_status_changed: '상태 변경',
+  member_edited: '명부 수정',
+  member_deleted: '계정 삭제',
 }
 
 const EVENT_STYLE: Record<string, string> = {
@@ -236,6 +240,10 @@ const EVENT_STYLE: Record<string, string> = {
   access_denied: 'bg-red-50 text-red-700',
   member_approved: 'bg-green-50 text-green-800',
   member_rejected: 'bg-amber-100 text-amber-800',
+  member_level_changed: 'bg-primary/10 text-primary',
+  member_status_changed: 'bg-amber-100 text-amber-800',
+  member_edited: 'bg-secondary text-secondary-foreground',
+  member_deleted: 'bg-red-50 text-red-700',
 }
 
 const PRESETS = [

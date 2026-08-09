@@ -16,6 +16,28 @@
 -- ============================================================================
 
 -- ─────────────────────────────────────────────────────────────────────────
+-- 0. 감사 로그 유형 확장
+--
+--    T1 이 event_type 에 CHECK 제약을 걸어 뒀다. 아래 함수들이 남기는 네
+--    가지 유형이 그 목록에 없어서, 제약을 먼저 넓히지 않으면 회원 관리가
+--    통째로 23514 로 실패한다.
+--
+--    log_event() 쪽은 건드리지 않는다. 클라이언트가 부를 수 있는 유형은
+--    여전히 login/logout/view_sensitive/access_denied 넷뿐이고, 아래
+--    유형들은 security definer 함수만 직접 insert 로 남긴다.
+-- ─────────────────────────────────────────────────────────────────────────
+alter table public.access_audit_log
+  drop constraint if exists access_audit_log_event_type_check;
+
+alter table public.access_audit_log
+  add constraint access_audit_log_event_type_check
+  check (event_type in (
+    'login', 'logout', 'view_sensitive', 'access_denied',
+    'member_approved', 'member_rejected', 'member_suspended',
+    'member_level_changed', 'member_status_changed',
+    'member_edited', 'member_deleted'));
+
+-- ─────────────────────────────────────────────────────────────────────────
 -- 1. 등급 변경
 --
 --    role 컬럼도 함께 맞춘다. 예전 정책과 화면 곳곳이 role='admin' 을 보고
