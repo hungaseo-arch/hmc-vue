@@ -11,7 +11,7 @@
           <button
             v-if="isAdmin"
             class="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition"
-            @click="showModal = true"
+            @click="openCreateModal"
           >
             <Plus class="w-4 h-4" />
             새 칼럼 작성
@@ -200,7 +200,17 @@ function cleanExcerpt(excerpt: string | null): string {
 const showModal = ref(false)
 const saving = ref(false)
 const errorMsg = ref('')
-const form = ref({ title: '', date: '', content: '' })
+// 칼럼 제목은 사실상 항상 이 하나다. 매번 손으로 치지 않도록 미리 채워 둔다.
+// 다른 제목을 쓰고 싶으면 그냥 지우고 쓰면 된다.
+const DEFAULT_TITLE = '고목사의 짧은 단상'
+
+const form = ref({ title: DEFAULT_TITLE, date: '', content: '' })
+
+function openCreateModal() {
+  form.value = { title: DEFAULT_TITLE, date: '', content: '' }
+  errorMsg.value = ''
+  showModal.value = true
+}
 
 const showEditModal = ref(false)
 const editSaving = ref(false)
@@ -259,7 +269,7 @@ async function handleSubmit() {
     currentPage.value = 1
     await invalidate(1)
     showModal.value = false
-    form.value = { title: '', date: '', content: '' }
+    form.value = { title: DEFAULT_TITLE, date: '', content: '' }
   } catch (e: unknown) {
     errorMsg.value = errorMessage(e)
   } finally {

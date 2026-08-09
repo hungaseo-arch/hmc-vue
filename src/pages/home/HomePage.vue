@@ -317,12 +317,6 @@
                 </div>
               </div>
             </div>
-            <RouterLink
-              :to="ROUTE_PATHS.DIRECTIONS"
-              class="mt-4 inline-flex items-center gap-2 bg-white text-primary font-semibold px-6 py-3 rounded-xl hover:bg-white/90 transition-colors text-sm"
-            >
-              지도로 보기 →
-            </RouterLink>
           </div>
           <div class="rounded-2xl overflow-hidden shadow-2xl h-64">
             <iframe
