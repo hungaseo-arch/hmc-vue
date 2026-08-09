@@ -156,8 +156,11 @@ const router = useRouter()
 const { signUp } = useAuth()
 
 /**
- * Supabase Auth 쪽 최소 길이와 맞춰야 한다.
- * 대시보드 → Authentication → Policies → Minimum password length.
+ * Supabase Auth 쪽 최소 길이와 맞춰야 한다. 여기서만 막으면 화면만 막히고
+ * API 를 직접 부르면 통과한다.
+ * 대시보드 → Authentication → Sign In / Providers → Email 펼치기
+ *   → Minimum password length
+ * (Policies 는 RLS 정책 화면이라 여기에 없다)
  */
 const MIN_PASSWORD = 8
 
