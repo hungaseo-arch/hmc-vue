@@ -209,7 +209,7 @@
                   v-for="lv in LEVELS"
                   :key="lv.value"
                   type="button"
-                  :disabled="busyId === openMember.id || (openMember.id === myId && lv.value < 2)"
+                  :disabled="busyId === openMember.id || openMember.member_status !== 'active' || (openMember.id === myId && lv.value < 2)"
                   class="py-2.5 flex-1 min-w-35 rounded-xl text-sm font-semibold transition disabled:opacity-40"
                   :class="levelOf(openMember) === lv.value ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:brightness-95'"
                   @click="onLevel(openMember, lv.value)"
@@ -217,7 +217,10 @@
                   {{ lv.label }}
                 </button>
               </div>
-              <p v-if="openMember.id === myId" class="mt-2 text-xs text-muted-foreground">
+              <p v-if="openMember.member_status !== 'active'" class="mt-2 text-xs text-muted-foreground">
+                승인된 교인에게만 등급을 줄 수 있습니다. 먼저 [접근 허용]으로 승인해 주세요.
+              </p>
+              <p v-else-if="openMember.id === myId" class="mt-2 text-xs text-muted-foreground">
                 자기 자신의 관리자 권한은 내릴 수 없습니다. 아무도 못 들어가는 상태를 막기 위해서입니다.
               </p>
             </div>
@@ -283,7 +286,7 @@ import { ChevronRight } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/composables/useAuth'
+import { useAuth, logEvent } from '@/composables/useAuth'
 import { useEscapeToClose } from '@/composables/useEscapeToClose'
 import type { MemberStatus } from '@/composables/useAuth'
 import { ROUTE_PATHS } from '@/lib/index'
@@ -354,6 +357,8 @@ function levelOf(m: MemberRow): number {
   return Math.max(m.access_level ?? 0, m.role === 'admin' ? 2 : 0)
 }
 
+const STATUS_ORDER: Record<MemberStatus, number> = { pending: 0, active: 1, suspended: 2, rejected: 3 }
+
 const pendingCount = computed(() => members.value.filter(m => m.member_status === 'pending').length)
 
 const visible = computed(() => {
@@ -368,18 +373,22 @@ const visible = computed(() => {
 async function load() {
   loading.value = true
   errorMsg.value = ''
-  // 대기 중을 맨 위로. 그다음 최근 신청 순.
   const { data, error } = await supabase
     .from('profiles')
     .select('id, name, phone, position, role, member_status, access_level, provider, created_at')
-    .order('member_status', { ascending: true })
     .order('created_at', { ascending: false, nullsFirst: false })
 
   if (error) {
     console.warn('[회원 관리] 목록 조회 실패:', error.message)
     errorMsg.value = '회원 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
   } else {
-    members.value = (data ?? []) as MemberRow[]
+    // 대기 중을 맨 위로, 그다음 최근 신청 순. 문자열 정렬로는 'active' 가
+    // 'pending' 앞에 오므로 여기서 상태별 순서를 따로 매긴다.
+    const rows = (data ?? []) as MemberRow[]
+    members.value = rows
+      .map((m, i) => ({ m, i }))
+      .sort((a, b) => (STATUS_ORDER[a.m.member_status] - STATUS_ORDER[b.m.member_status]) || (a.i - b.i))
+      .map(x => x.m)
   }
   loading.value = false
 }
@@ -444,6 +453,10 @@ async function onReject(m: MemberRow) {
 
 async function onLevel(m: MemberRow, level: number) {
   if (levelOf(m) === level) return
+  if (m.member_status !== 'active') {
+    errorMsg.value = '승인된 교인에게만 등급을 줄 수 있습니다.'
+    return
+  }
   const label = LEVELS.find(l => l.value === level)?.label ?? ''
   if (!confirm(`${nameOf(m)}님의 등급을 '${label}'(으)로 바꿀까요?`)) return
   await call('set_member_level', { p_target: m.id, p_level: level }, m, `'${label}' 등급으로 변경`)
@@ -496,6 +509,8 @@ function exportCsv() {
     ]),
   )
   downloadCsv(`members_${todayCompact()}.csv`, csv)
+  // 명부가 통째로 파일로 나가는 순간이다. 화면 열람과 별도로 남긴다.
+  void logEvent('view_sensitive', `${ROUTE_PATHS.ADMIN_MEMBERS}/export`, { rows: visible.value.length })
 }
 
 onMounted(load)

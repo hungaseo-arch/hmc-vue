@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { resetAllCaches } from '@/lib/cacheRegistry'
 import { mustAffectRows } from '@/lib/db'
-import type { User } from '@supabase/supabase-js'
+import type { AuthError, User } from '@supabase/supabase-js'
 
 /** 승인 절차. pending 은 가입 신청만 된 상태로 교인 자료를 보지 못한다. */
 export type MemberStatus = 'pending' | 'active' | 'suspended' | 'rejected'
@@ -58,7 +58,13 @@ export function takeAuthNotice(): string {
 
 const user = ref<User | null>(null)
 const profile = ref<Profile | null>(null)
-const loading = ref(true)
+
+/**
+ * 마지막 프로필 조회가 통신 오류로 끝났는지. 라우터 가드가 이 값을 보고
+ * '승인 전' 과 '아직 모름' 을 가른다 — 승인된 교인을 회선 문제로 승인 대기
+ * 화면에 보내지 않기 위해서다.
+ */
+const profileError = ref(false)
 
 let resolveReady!: () => void
 export const authReady = new Promise<void>(r => { resolveReady = r })
@@ -93,8 +99,10 @@ function fetchProfile(uid: string): Promise<void> {
     */
     if (error) {
       console.warn('[프로필] 조회 실패:', error.message)
+      profileError.value = true
       return
     }
+    profileError.value = false
     profile.value = (data as Profile | null) ?? null
   })()
   profileInFlight = p
@@ -106,16 +114,19 @@ function fetchProfile(uid: string): Promise<void> {
  * 로그인 직후에는 onAuthStateChange 가 프로필을 기다리지 않고 부르기 때문에,
  * 이걸 거치지 않으면 방금 로그인한 사람이 잠깐 '등급 0' 으로 보인다.
  */
-export async function ensureProfile(): Promise<void> {
+export async function ensureProfile(opts: { retryOnError?: boolean } = {}): Promise<void> {
   const uid = user.value?.id
   if (!uid) {
     profile.value = null
     profileUid = null
+    profileError.value = false
     return
   }
   if (profileUid === uid) {
     if (profileInFlight) await profileInFlight
-    return
+    // 앞선 조회가 통신 오류였다면 한 번 더 시도한다. 가드가 판정을 내리기
+    // 직전이라, 여기서 성공하면 사용자는 아무것도 눈치채지 못한다.
+    if (!(opts.retryOnError && profileError.value && !profile.value)) return
   }
   await fetchProfile(uid)
 }
@@ -155,6 +166,7 @@ export async function logEvent(
 async function clearBrokenSession() {
   user.value = null
   profile.value = null
+  profileError.value = false
   resetAllCaches()
   try {
     await supabase.auth.signOut({ scope: 'local' })
@@ -170,11 +182,9 @@ supabase.auth.getSession().then(async ({ data, error }) => {
     user.value = data.session?.user ?? null
     if (user.value) await fetchProfile(user.value.id)
   }
-  loading.value = false
   resolveReady()
 }).catch(async () => {
   await clearBrokenSession()
-  loading.value = false
   resolveReady()
 })
 
@@ -189,16 +199,20 @@ supabase.auth.onAuthStateChange((event, session) => {
 
   if (!nextUser) {
     profile.value = null
+    profileError.value = false
     // 멤버 전용 데이터와 아직 유효한 서명 URL 이 남지 않도록
     resetAllCaches()
     return
   }
+  // 이 콜백 안에서는 await 하지 않는다 — auth 클라이언트가 잠긴다.
   if (changedUser) void fetchProfile(nextUser.id)
 
-  // 새로고침으로 세션이 복원될 때는 INITIAL_SESSION 이 온다. 그때까지
-  // 로그인으로 세면 하루에도 수십 건이 쌓여 기록이 무의미해진다.
-  // 이 콜백 안에서는 await 하지 않는다 — auth 클라이언트가 잠긴다.
-  if (event === 'SIGNED_IN' && changedUser) void logEvent('login')
+  /*
+    'login' 기록은 여기서 남기지 않는다. SIGNED_IN 은 탭을 다시 볼 때마다
+    같은 사용자로 재발신될 수 있어(supabase-js 의 visibilitychange 처리)
+    한 사람이 하루에 여러 번 로그인한 것처럼 쌓인다. 실제로 자격을 낸
+    자리(login(), App.vue 의 카카오 복귀)에서 한 번만 남긴다.
+  */
 })
 
 /**
@@ -216,7 +230,6 @@ export function init(): Promise<void> {
   useAuth() 를 부를 수 없고, 같은 판단을 두 벌로 유지하면 반드시 어긋난다.
 */
 const isLoggedIn = computed(() => !!user.value)
-const isAdmin = computed(() => profile.value?.role === 'admin')
 const displayName = computed(() => profile.value?.name ?? user.value?.email ?? '')
 
 const memberStatus = computed<MemberStatus | null>(() => profile.value?.member_status ?? null)
@@ -233,13 +246,45 @@ const accessLevel = computed<AccessLevel>(() => {
   return Math.max(fromRole, fromColumn) as AccessLevel
 })
 
+/** 화면의 '관리자' 판정. DB 의 is_admin() 과 같은 규칙(등급 2 이상)이다. */
+const isAdmin = computed(() => accessLevel.value >= 2)
+
+/** 프로필을 아직 못 받았고, 그 이유가 통신 오류인 경우 true. 승인 대기 화면이 본다. */
+const profileUnknown = computed(() => profileError.value && !profile.value)
+
 /** 가드용 읽기 전용 스냅숏. ensureProfile() 뒤에 불러야 정확하다. */
 export function authSnapshot() {
   return {
     loggedIn: isLoggedIn.value,
     status: memberStatus.value,
     level: accessLevel.value,
+    profileUnknown: profileUnknown.value,
   }
+}
+
+/**
+ * 인증 오류를 노년 사용자가 읽을 수 있는 한국어로 바꾼다. 원문은 콘솔에만
+ * 남긴다. 알 수 없는 오류는 뭉뚱그려 안내한다 — 자세한 원문은 다음 행동을
+ * 알려주지 못하고 겁만 준다.
+ */
+function signUpErrorMessage(e: AuthError): string {
+  switch (e.code) {
+    case 'user_already_exists':
+    case 'email_exists':
+      return '이미 가입된 이메일입니다. 로그인해 주세요.'
+    case 'weak_password':
+      return '비밀번호가 너무 단순합니다. 다른 비밀번호로 정해 주세요.'
+    case 'email_address_invalid':
+    case 'validation_failed':
+      return '이메일 주소를 다시 확인해 주세요.'
+    case 'over_email_send_rate_limit':
+    case 'over_request_rate_limit':
+      return '요청이 너무 잦습니다. 잠시 후 다시 시도해 주세요.'
+    case 'signup_disabled':
+      return '지금은 회원가입을 받지 않습니다. 교회 사무실로 문의해 주세요.'
+  }
+  console.warn('[회원가입] 실패:', e.code ?? e.name, e.message)
+  return '회원가입에 실패했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
 export function useAuth() {
@@ -274,7 +319,9 @@ export function useAuth() {
     if (error) throw error
     if (data.user) {
       user.value = data.user
-      await fetchProfile(data.user.id)
+      // onAuthStateChange 가 이미 조회를 시작했으면 그것을 기다린다(중복 요청 없음).
+      await ensureProfile()
+      void logEvent('login')
     }
   }
 
@@ -283,9 +330,21 @@ export function useAuth() {
     // 나면 auth.uid() 가 null 이라 log_event 가 아무것도 쓰지 않는다.
     await logEvent('logout')
 
-    await supabase.auth.signOut()
+    /*
+      서버 쪽 세션 폐기가 실패하면(회선 끊김 등) 로컬 토큰만이라도 지운다.
+      그냥 두면 교회 공용 컴퓨터에 다음 사람이 앉았을 때 앞사람으로 로그인된
+      채 남는다. 화면은 어느 쪽이든 로그아웃 상태가 된다.
+    */
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+    } catch (e) {
+      console.warn('[로그아웃] 서버 세션 종료 실패, 로컬만 지웁니다:', e)
+      try { await supabase.auth.signOut({ scope: 'local' }) } catch { /* 이미 없음 */ }
+    }
     user.value = null
     profile.value = null
+    profileError.value = false
     try {
       sessionStorage.removeItem(RETURN_TO_KEY)
     } catch {
@@ -295,25 +354,33 @@ export function useAuth() {
     resetAllCaches()
   }
 
-  async function signUp(email: string, password: string, fields: { name: string; gender: '남' | '여'; phone: string }) {
-    const { data, error } = await supabase.auth.signUp({ email, password })
-    if (error) throw error
-    if (data.user) {
-      /*
-        insert 가 아니라 upsert 다. 이제 auth.users 트리거(handle_new_user)가
-        가입 즉시 프로필 행을 먼저 만들기 때문에, insert 로 보내면 기본키
-        충돌(23505)로 회원가입이 통째로 실패한다.
-        role·member_status·access_level 은 보내지 않는다 — 컬럼 권한이 없어
-        보내도 거부되고, 보낼 수 있다면 스스로 관리자가 될 수 있다는 뜻이다.
-      */
-      const { error: upsertError } = await supabase.from('profiles').upsert({
-        id: data.user.id,
-        ...fields,
-      })
-      if (upsertError) throw upsertError
-      user.value = data.user
-      await fetchProfile(data.user.id)
-    }
+  /**
+   * 이메일 회원가입. 이름·연락처·성별은 사용자 메타데이터로 보내고, 프로필
+   * 행은 auth.users 트리거(handle_new_user, T14)가 그 값으로 만든다.
+   * 클라이언트가 profiles 에 직접 쓰지 않으므로 이메일 확인이 켜져 있어
+   * 세션이 바로 생기지 않는 경우에도 프로필이 온전하다.
+   *
+   * @returns needsEmailConfirm — 확인 메일을 눌러야 로그인되는 경우 true.
+   *   (이미 가입된 이메일로 다시 신청해도 서버는 같은 모양으로 답한다 —
+   *   가입 여부를 남이 알아내지 못하게 하는 조치라 그대로 둔다.)
+   */
+  async function signUp(
+    email: string,
+    password: string,
+    fields: { name: string; gender: '남' | '여'; phone: string },
+  ): Promise<{ needsEmailConfirm: boolean }> {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name: fields.name, phone: fields.phone, gender: fields.gender } },
+    })
+    if (error) throw new Error(signUpErrorMessage(error))
+    if (!data.session || !data.user) return { needsEmailConfirm: true }
+
+    user.value = data.user
+    await ensureProfile()
+    void logEvent('login')
+    return { needsEmailConfirm: false }
   }
 
   async function updateProfile(fields: Partial<Omit<Profile, 'role' | 'member_status' | 'access_level' | 'provider' | 'created_at'>>) {
@@ -335,9 +402,9 @@ export function useAuth() {
   }
 
   return {
-    user, profile, loading,
+    user, profile,
     isLoggedIn, isAdmin, displayName,
-    memberStatus, isApproved, accessLevel,
+    memberStatus, isApproved, accessLevel, profileUnknown,
     login, logout, signUp, signInWithKakao, updateProfile, refreshProfile,
     logEvent,
   }

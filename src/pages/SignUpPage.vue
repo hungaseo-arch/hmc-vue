@@ -149,7 +149,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
+import { useAuth, setAuthNotice } from '@/composables/useAuth'
 import { ROUTE_PATHS } from '@/lib/index'
 
 const router = useRouter()
@@ -199,14 +199,21 @@ async function handleSignUp() {
 
   submitting.value = true
   try {
-    await signUp(form.value.email, form.value.password, {
+    const { needsEmailConfirm } = await signUp(form.value.email, form.value.password, {
       name: form.value.name,
       gender: form.value.gender as '남' | '여',
       phone: form.value.phone,
     })
-    router.push(ROUTE_PATHS.HOME)
+    if (needsEmailConfirm) {
+      // 대시보드에서 이메일 확인이 켜져 있으면 세션이 바로 생기지 않는다.
+      // 로그인 화면에 한 번만 띄울 안내를 맡기고 보낸다.
+      setAuthNotice('가입 확인 메일을 보냈습니다. 메일에 있는 링크를 누른 뒤 로그인해 주세요.')
+      await router.push(ROUTE_PATHS.LOGIN)
+      return
+    }
+    await router.push(ROUTE_PATHS.HOME)
   } catch (e: unknown) {
-    errorMsg.value = e instanceof Error ? e.message : '회원가입에 실패했습니다.'
+    errorMsg.value = e instanceof Error ? e.message : '회원가입에 실패했습니다. 잠시 후 다시 시도해 주세요.'
   } finally {
     submitting.value = false
   }

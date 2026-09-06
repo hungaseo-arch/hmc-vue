@@ -89,8 +89,8 @@ router.beforeEach(async (to) => {
   if (!needsLogin && to.path !== ROUTE_PATHS.LOGIN) return
 
   await init()
-  await ensureProfile()
-  const { loggedIn, status, level } = authSnapshot()
+  await ensureProfile({ retryOnError: true })
+  const { loggedIn, status, level, profileUnknown } = authSnapshot()
 
   if (to.path === ROUTE_PATHS.LOGIN) return loggedIn ? ROUTE_PATHS.HOME : undefined
 
@@ -102,7 +102,9 @@ router.beforeEach(async (to) => {
   // 로그인은 했지만 아직 승인 전. '권한 없음' 이 아니라 '기다리는 중' 이므로
   // 안내를 달리해야 한다. 노년 사용자가 실패로 오해하고 재가입하지 않도록.
   if (need >= 1 && status !== 'active') {
-    void logEvent('access_denied', to.fullPath, { reason: status ?? 'unknown' })
+    // 통신 오류로 프로필을 못 받은 것은 '승인 전' 이 아니다. 거부로 세지 않고
+    // 승인 대기 화면이 '다시 확인' 을 안내한다(PendingPage 의 profileUnknown).
+    if (!profileUnknown) void logEvent('access_denied', to.fullPath, { reason: status ?? 'unknown' })
     return ROUTE_PATHS.PENDING
   }
 

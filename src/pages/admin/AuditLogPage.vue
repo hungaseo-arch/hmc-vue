@@ -209,6 +209,8 @@ import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
 import { toCsv, downloadCsv } from '@/lib/csv'
+import { logEvent } from '@/composables/useAuth'
+import { ROUTE_PATHS } from '@/lib/index'
 /*
   날짜는 모두 자카르타 기준이다. 날짜 칸에 적은 '8월 9일' 은 자카르타의
   8월 9일이어야 한다 — 브라우저 시간대로 해석하면 한국에서 볼 때 두 시간이
@@ -404,6 +406,7 @@ async function exportCsv() {
     ]),
   )
   downloadCsv(`audit_log_${todayCompact()}.csv`, csv)
+  void logEvent('view_sensitive', `${ROUTE_PATHS.ADMIN_AUDIT_LOG}/export`, { rows: list.length })
 
   if (list.length === CSV_LIMIT) {
     errorMsg.value = `최대 ${CSV_LIMIT.toLocaleString('ko-KR')}건까지만 내려받았습니다. 기간을 나누어 다시 내려받아 주세요.`
@@ -413,10 +416,13 @@ async function exportCsv() {
 
 /** 사용자 선택 목록. 관리자만 전체 프로필을 볼 수 있다(RLS). */
 async function loadPeople() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .select('id, name')
     .order('name', { ascending: true, nullsFirst: false })
+  // 사람 목록은 거르기용이라 실패해도 기록 자체는 볼 수 있다. 조용히
+  // 빈 목록이 되면 왜 선택지가 없는지 알 수 없으니 콘솔에는 남긴다.
+  if (error) console.warn('[접속 기록] 사용자 목록 조회 실패:', error.message)
   people.value = data ?? []
 }
 

@@ -62,7 +62,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { oauthReturn, supabase } from '@/lib/supabase'
-import { init, RETURN_TO_KEY, setAuthNotice } from '@/composables/useAuth'
+import { init, logEvent, RETURN_TO_KEY, setAuthNotice } from '@/composables/useAuth'
 import { ROUTE_PATHS } from '@/lib/index'
 import { useIdleLogout } from '@/composables/useIdleLogout'
 
@@ -121,6 +121,9 @@ onMounted(async () => {
     setAuthNotice('카카오 로그인이 완료되지 않았습니다. 다시 한 번 [카카오로 시작하기]를 눌러 주세요.')
     await router.replace(ROUTE_PATHS.LOGIN)
   } else {
+    // 'login' 기록은 여기서 남긴다. onAuthStateChange 의 SIGNED_IN 은 탭을
+    // 다시 볼 때마다 재발신될 수 있어 거기서 세면 중복된다(useAuth 참고).
+    void logEvent('login')
     await router.replace(takeReturnTo())
   }
 

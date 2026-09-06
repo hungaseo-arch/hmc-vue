@@ -22,7 +22,15 @@ const IDLE_MS = 30 * 60 * 1000
 /** 끝나기 얼마 전부터 알릴지. 영상 보는 중처럼 조작 없이 머무는 때를 위한 것. */
 const WARN_MS = 60 * 1000
 
-const LAST_ACTIVITY_KEY = 'hmc:last-activity'
+/*
+  사용자 id 를 키에 붙인다. 공용 컴퓨터에서 A 가 로그아웃하고 B 가 바로
+  로그인했을 때, A 가 남긴 마지막 활동 시각을 B 의 것으로 읽지 않기 위해서다.
+*/
+function activityKey(uid: string | undefined) {
+  return `hmc:last-activity:${uid ?? 'anon'}`
+}
+
+let currentKey = activityKey(undefined)
 
 /*
   mousemove 는 넣지 않는다. 이 사이트에는 떠오르는 애니메이션이 많아서, 커서가
@@ -36,7 +44,7 @@ let fallbackAt = Date.now()
 
 function readActivity(): number {
   try {
-    const n = Number(localStorage.getItem(LAST_ACTIVITY_KEY))
+    const n = Number(localStorage.getItem(currentKey))
     if (Number.isFinite(n) && n > 0) return n
   } catch {
     // 아래 fallbackAt 으로 넘어간다.
@@ -47,7 +55,7 @@ function readActivity(): number {
 function writeActivity(at: number) {
   fallbackAt = at
   try {
-    localStorage.setItem(LAST_ACTIVITY_KEY, String(at))
+    localStorage.setItem(currentKey, String(at))
   } catch {
     // 이 탭에서만 시간을 세게 된다. 로그아웃 자체는 그대로 동작한다.
   }
@@ -58,7 +66,7 @@ function writeActivity(at: number) {
  * 반환값은 남은 시간을 알리는 창(App.vue)이 쓴다.
  */
 export function useIdleLogout() {
-  const { isLoggedIn, logout } = useAuth()
+  const { isLoggedIn, logout, user } = useAuth()
   const router = useRouter()
   const route = useRoute()
 
@@ -101,6 +109,7 @@ export function useIdleLogout() {
 
   function start() {
     if (ticker) return
+    currentKey = activityKey(user.value?.id)
     markActivity()
     for (const e of ACTIVITY_EVENTS) {
       window.addEventListener(e, markActivity, { passive: true })
