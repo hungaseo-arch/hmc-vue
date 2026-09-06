@@ -2,6 +2,7 @@
 export const ROUTE_PATHS = {
   HOME: '/',
   // 교회소개
+  WELCOME: '/introduction/welcome',
   GREETING: '/introduction/greeting',
   HISTORY: '/introduction/history',
   STAFF: '/introduction/staff',
@@ -12,7 +13,6 @@ export const ROUTE_PATHS = {
   SUNDAY_SERMON_DETAIL: '/worship/sunday-sermon/:id',
   PASTORAL_COLUMN: '/worship/pastoral-column',
   PASTORAL_COLUMN_DETAIL: '/worship/pastoral-column/:id',
-  CHOIR: '/worship/choir',
   CHURCH_VIDEO: '/worship/church-video',
   // 교육과양육
   J_ANGELS: '/education/j-angels',
@@ -20,7 +20,7 @@ export const ROUTE_PATHS = {
   JA_YU: '/education/ja-yu',
   YOUTH: '/education/youth',
   ADULT_EDU: '/education/adult',
-  // 행정과관리 — 관리자 도구가 아니라 교인용 콘텐츠라 /admin 이 아닌 /community 를 쓴다.
+  // 소식과나눔 — 관리자 도구가 아니라 교인용 콘텐츠라 /admin 이 아닌 /community 를 쓴다.
   // 예전 /admin/* 주소는 router 에서 리디렉트로 받는다.
   CHURCH_NEWS: '/community/news',
   CHURCH_NEWS_DETAIL: '/community/news/:id',
@@ -54,6 +54,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     label: '교회소개',
     children: [
+      { label: '처음 오신 분', path: ROUTE_PATHS.WELCOME },
       { label: '인사말', path: ROUTE_PATHS.GREETING },
       { label: '연혁', path: ROUTE_PATHS.HISTORY },
       { label: '섬기는 사람들', path: ROUTE_PATHS.STAFF },
@@ -66,7 +67,6 @@ export const NAV_ITEMS: NavItem[] = [
     children: [
       { label: '주일설교', path: ROUTE_PATHS.SUNDAY_SERMON },
       { label: '목회칼럼', path: ROUTE_PATHS.PASTORAL_COLUMN },
-      { label: '찬양대찬양', path: ROUTE_PATHS.CHOIR },
       { label: '교회영상', path: ROUTE_PATHS.CHURCH_VIDEO },
     ],
   },
@@ -81,7 +81,9 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
-    label: '행정과관리',
+    // 안에 든 것이 교회소식·선교소식·포토앨범·주보라 '행정과관리' 로는 무엇이
+    // 들어 있는지 짐작할 수 없었다. 주소(/community)와도 어긋났다.
+    label: '소식과나눔',
     children: [
       { label: '교회소식', path: ROUTE_PATHS.CHURCH_NEWS },
       { label: '선교소식', path: ROUTE_PATHS.MISSION_NEWS },

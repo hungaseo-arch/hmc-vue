@@ -23,6 +23,7 @@ const router = createRouter({
     { path: ROUTE_PATHS.NO_ACCESS, component: () => import('@/pages/NoAccessPage.vue'), meta: { requiresAuth: true, title: '열람 권한 없음', noindex: true } },
 
     // 교회소개
+    { path: ROUTE_PATHS.WELCOME, component: () => import('@/pages/introduction/WelcomePage.vue'), meta: { title: '처음 오신 분', description: '자카르타 한마음교회를 처음 찾으시는 분들을 위한 예배 시간, 오시는 길, 자주 묻는 질문 안내입니다.' } },
     { path: ROUTE_PATHS.GREETING, component: () => import('@/pages/introduction/GreetingPage.vue'), meta: { title: '인사말', description: '자카르타 한마음교회 담임목사 인사말입니다.' } },
     { path: ROUTE_PATHS.HISTORY, component: () => import('@/pages/introduction/HistoryPage.vue'), meta: { title: '연혁', description: '2002년 설립 이후 자카르타 한마음교회가 걸어온 길입니다.' } },
     { path: ROUTE_PATHS.STAFF, component: () => import('@/pages/introduction/StaffPage.vue'), meta: { title: '섬기는 사람들', description: '자카르타 한마음교회를 섬기는 목회자와 사역자를 소개합니다.' } },
@@ -34,7 +35,6 @@ const router = createRouter({
     { path: ROUTE_PATHS.SUNDAY_SERMON_DETAIL, component: () => import('@/pages/detailPage/SundaySermonDetailPage.vue'), meta: { title: '주일설교' } },
     { path: ROUTE_PATHS.PASTORAL_COLUMN, component: () => import('@/pages/worship/PastoralColumnPage.vue'), meta: { title: '목회칼럼', description: '고목사의 짧은 단상 — 자카르타 한마음교회 목회칼럼입니다.' } },
     { path: ROUTE_PATHS.PASTORAL_COLUMN_DETAIL, component: () => import('@/pages/detailPage/PastoralColumnDetailPage.vue'), meta: { title: '목회칼럼' } },
-    { path: ROUTE_PATHS.CHOIR, component: () => import('@/pages/worship/ChoirPage.vue'), meta: { title: '찬양대찬양', description: '자카르타 한마음교회 찬양대의 찬양입니다.' } },
     { path: ROUTE_PATHS.CHURCH_VIDEO, component: () => import('@/pages/worship/ChurchVideoPage.vue'), meta: { title: '교회영상', description: '자카르타 한마음교회 예배와 행사 영상입니다.' } },
 
     // 교육과양육
@@ -44,7 +44,7 @@ const router = createRouter({
     { path: ROUTE_PATHS.YOUTH, component: () => import('@/pages/education/YouthPage.vue'), meta: { title: '청년부', description: '자카르타 한마음교회 대학·직장 청년부를 소개합니다.' } },
     { path: ROUTE_PATHS.ADULT_EDU, component: () => import('@/pages/education/AdultEduPage.vue'), meta: { title: '성인교육', description: '자카르타 한마음교회 장년 양육 과정을 소개합니다.' } },
 
-    // 행정과관리 — 승인 교인(1등급) 전용. 색인에서 뺀다.
+    // 소식과나눔 — 승인 교인(1등급) 전용. 색인에서 뺀다.
     { path: ROUTE_PATHS.CHURCH_NEWS, component: () => import('@/pages/admin/ChurchNewsPage.vue'), meta: { access: 1, title: '교회소식', noindex: true } },
     { path: ROUTE_PATHS.CHURCH_NEWS_DETAIL, component: () => import('@/pages/detailPage/ChurchNewsDetailPage.vue'), meta: { access: 1, title: '교회소식', noindex: true } },
     { path: ROUTE_PATHS.PHOTO_ALBUM, component: () => import('@/pages/admin/PhotoAlbumPage.vue'), meta: { access: 1, title: '사진앨범', noindex: true } },

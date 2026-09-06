@@ -12,39 +12,87 @@
         <div class="text-xs opacity-80">
           2026년 표어: 주안에 뿌리내리고 함께 자라나 열매 맺는 성도의 교회 (요 15:5)
         </div>
-        <div class="flex items-center gap-3">
-          <!-- 관리자 전용 입구. 2등급이 아니면 메뉴 자체를 보여주지 않는다. -->
-          <RouterLink
-            v-if="accessLevel >= 2"
-            :to="ROUTE_PATHS.ADMIN_MEMBERS"
-            class="text-xs opacity-80 hover:opacity-100 transition-opacity underline underline-offset-2"
-          >
-            회원 승인
-          </RouterLink>
-          <RouterLink
-            v-if="accessLevel >= 2"
-            :to="ROUTE_PATHS.ADMIN_AUDIT_LOG"
-            class="text-xs opacity-80 hover:opacity-100 transition-opacity underline underline-offset-2"
-          >
-            접속 기록
-          </RouterLink>
-          <RouterLink
-            v-if="isLoggedIn"
-            :to="ROUTE_PATHS.PROFILE"
-            class="flex items-center gap-1.5 text-xs opacity-80 hover:opacity-100 transition-opacity underline underline-offset-2"
-          >
-            <span v-if="isAdmin" class="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium no-underline" style="text-decoration: none;">관리자</span>
-            <!-- '로그인 중' 을 붙인다. 이름만 있으면 지금 로그인 상태인지
-                 확인하러 눌러 보게 된다. -->
-            {{ displayName }}님, 로그인 중
-          </RouterLink>
-          <button
-            v-if="isLoggedIn"
-            class="text-xs opacity-80 hover:opacity-100 transition-opacity underline underline-offset-2 cursor-pointer"
-            @click="handleLogout"
-          >
-            로그아웃
-          </button>
+        <div class="flex items-center">
+          <!--
+            예전에는 [회원 승인][접속 기록][관리자][이름 · 내 정보][로그아웃] 이
+            다섯 개가 나란히 걸려 있어, 정작 왼쪽의 표어보다 눈에 먼저 들어왔다.
+            매일 누르는 것도 아닌데 늘 펼쳐 둘 이유가 없다. 이름 하나만 남기고
+            나머지는 그 안에 접는다.
+          -->
+          <div v-if="isLoggedIn" class="relative" @focusout="onUserMenuFocusOut">
+            <button
+              id="userbtn"
+              type="button"
+              class="flex items-center gap-1.5 text-xs opacity-80 hover:opacity-100 transition-opacity cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              :aria-expanded="userMenuOpen"
+              aria-haspopup="true"
+              aria-controls="usermenu"
+              @click="userMenuOpen = !userMenuOpen"
+              @keydown.escape="userMenuOpen = false"
+            >
+              <span v-if="isAdmin" class="bg-white/20 text-xs px-1.5 py-0.5 rounded-full font-medium">관리자</span>
+              {{ displayName }}님
+              <ChevronDown
+                aria-hidden="true"
+                :class="['w-3 h-3 transition-transform duration-200', userMenuOpen ? 'rotate-180' : '']"
+              />
+            </button>
+
+            <Transition name="dropdown">
+              <!--
+                담는 상자일 뿐이라 role 을 주지 않는다. 안의 링크에 포커스가
+                있을 때도 ESC 로 닫히도록 여기서 keydown 을 받는다.
+
+                z-50 이 필요하다. 이 메뉴는 위쪽 띠 안에 있는데 아래 대메뉴가
+                문서 순서상 뒤에 오고 그쪽 항목도 position:relative 라, 쌓임
+                순서를 정해 주지 않으면 '소식과나눔' 글자가 이 흰 판 위로
+                올라와 겹쳐 보인다.
+              -->
+              <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
+              <div
+                v-if="userMenuOpen"
+                id="usermenu"
+                aria-labelledby="userbtn"
+                class="absolute top-full right-0 z-50 mt-1.5 bg-white text-foreground rounded-xl shadow-xl border border-border/50 py-1.5 min-w-36 overflow-hidden"
+                @keydown.escape="userMenuOpen = false"
+              >
+                <RouterLink
+                  :to="ROUTE_PATHS.PROFILE"
+                  class="block px-4 py-2 text-xs hover:bg-muted hover:text-primary transition-colors"
+                  active-class="bg-primary/10 !text-primary font-medium"
+                >
+                  내 정보
+                </RouterLink>
+                <!-- 관리자 전용 입구. 2등급이 아니면 메뉴 자체를 보여주지 않는다. -->
+                <template v-if="accessLevel >= 2">
+                  <div class="my-1 border-t border-border/60" />
+                  <RouterLink
+                    :to="ROUTE_PATHS.ADMIN_MEMBERS"
+                    class="block px-4 py-2 text-xs hover:bg-muted hover:text-primary transition-colors"
+                    active-class="bg-primary/10 !text-primary font-medium"
+                  >
+                    회원 승인
+                  </RouterLink>
+                  <RouterLink
+                    :to="ROUTE_PATHS.ADMIN_AUDIT_LOG"
+                    class="block px-4 py-2 text-xs hover:bg-muted hover:text-primary transition-colors"
+                    active-class="bg-primary/10 !text-primary font-medium"
+                  >
+                    접속 기록
+                  </RouterLink>
+                </template>
+                <div class="my-1 border-t border-border/60" />
+                <button
+                  type="button"
+                  class="w-full text-left px-4 py-2 text-xs text-red-500 hover:bg-muted transition-colors cursor-pointer"
+                  @click="handleLogout"
+                >
+                  로그아웃
+                </button>
+              </div>
+            </Transition>
+          </div>
+
           <RouterLink
             v-else
             :to="ROUTE_PATHS.LOGIN"
@@ -208,7 +256,7 @@
             <template v-if="isLoggedIn">
               <RouterLink :to="ROUTE_PATHS.PROFILE" class="px-3 py-2 text-sm text-muted-foreground flex items-center gap-2 rounded-lg hover:bg-muted transition-colors">
                 <span v-if="isAdmin" class="bg-primary/10 text-primary text-xs px-1.5 py-0.5 rounded-full font-medium">관리자</span>
-                {{ displayName }}님, 로그인 중
+                {{ displayName }}님 · 내 정보
               </RouterLink>
               <RouterLink
                 v-if="accessLevel >= 2"
@@ -247,6 +295,7 @@ import { useAuth } from '@/composables/useAuth'
 
 const isMenuOpen = ref(false)
 const activeDropdown = ref<string | null>(null)
+const userMenuOpen = ref(false)
 
 /*
   focusout 은 같은 메뉴 안에서 버튼 → 하위 링크로 옮겨갈 때도 터진다.
@@ -259,6 +308,14 @@ function onDropdownFocusOut(e: FocusEvent, label: string) {
   if (wrap && next && wrap.contains(next)) return
   if (activeDropdown.value === label) activeDropdown.value = null
 }
+/** 위 메뉴와 같은 이유로 relatedTarget 을 본다 — onDropdownFocusOut 설명 참고. */
+function onUserMenuFocusOut(e: FocusEvent) {
+  const wrap = e.currentTarget as HTMLElement | null
+  const next = e.relatedTarget as Node | null
+  if (wrap && next && wrap.contains(next)) return
+  userMenuOpen.value = false
+}
+
 const mobileOpenMenu = ref<string | null>(null)
 const headerRef = ref<HTMLDivElement | null>(null)
 
@@ -280,6 +337,7 @@ watch(route, () => {
   isMenuOpen.value = false
   activeDropdown.value = null
   mobileOpenMenu.value = null
+  userMenuOpen.value = false
 })
 
 function toggleMobileMenu(label: string) {
@@ -287,9 +345,10 @@ function toggleMobileMenu(label: string) {
 }
 
 function handleClickOutside(e: MouseEvent) {
-  if (!activeDropdown.value) return
+  if (!activeDropdown.value && !userMenuOpen.value) return
   if (headerRef.value && !headerRef.value.contains(e.target as Node)) {
     activeDropdown.value = null
+    userMenuOpen.value = false
   }
 }
 
