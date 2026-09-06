@@ -39,7 +39,9 @@
           </button>
         </div>
 
-        <p v-if="errorMsg" role="alert" class="mb-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm leading-relaxed text-red-700">
+        <!-- 모달이 떠 있으면 그 안에서 같은 안내를 보여준다. 두 곳에서 함께
+             띄우면 화면 낭독기가 같은 말을 두 번 읽는다. -->
+        <p v-if="errorMsg && !openMember" role="alert" class="mb-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm leading-relaxed text-red-700">
           {{ errorMsg }}
         </p>
         <p v-if="okMsg" role="status" class="mb-6 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm leading-relaxed text-green-800">
@@ -78,8 +80,23 @@
           <li
             v-for="m in visible"
             :key="m.id"
-            class="bg-white rounded-2xl shadow-sm border border-border p-5 sm:p-6"
+            class="relative bg-white rounded-2xl shadow-sm border border-border p-5 sm:p-6"
+            :class="tab === 'all' ? 'transition hover:shadow-md' : ''"
           >
+            <!--
+              '관리' 버튼을 따로 두지 않는다. 명부에서는 카드 전체가 누르는
+              자리고, 실제 조작은 모달 안에서만 일어난다. 카드를 덮는 이
+              버튼은 z-10 이라 그 위에 놓인 승인·반려 버튼은 그대로 눌린다.
+              (버튼 안에 버튼을 넣을 수 없어 덮개 방식을 쓴다.)
+            -->
+            <button
+              v-if="tab === 'all'"
+              type="button"
+              class="absolute inset-0 z-10 rounded-2xl cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
+              :aria-label="`${nameOf(m)} 관리`"
+              @click="openManage(m)"
+            />
+
             <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
               <h2 class="text-base font-bold text-foreground">{{ m.name || '이름 미설정' }}</h2>
               <span class="px-2.5 py-1 rounded-full text-xs font-medium" :class="STATUS_STYLE[m.member_status]">
@@ -91,6 +108,8 @@
               <span v-if="m.id === myId" class="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
                 나
               </span>
+              <!-- 카드를 누를 수 있다는 표시. 읽어 줄 내용은 덮개 버튼에 있다. -->
+              <ChevronRight v-if="tab === 'all'" class="ml-auto w-4 h-4 shrink-0 text-muted-foreground" aria-hidden="true" />
             </div>
 
             <dl class="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm leading-relaxed">
@@ -108,8 +127,9 @@
               </template>
             </dl>
 
-            <!-- 대기 중인 분에게는 승인/반려만 크게 보여준다. -->
-            <div v-if="m.member_status === 'pending'" class="mt-5 flex flex-wrap gap-3">
+            <!-- 대기 중인 분에게는 승인/반려만 크게 보여준다.
+                 z-20 이라 명부 탭에서도 덮개보다 위에 있다. -->
+            <div v-if="m.member_status === 'pending'" class="relative z-20 mt-5 flex flex-wrap gap-3">
               <button
                 type="button"
                 :disabled="busyId === m.id"
@@ -128,120 +148,143 @@
               </button>
             </div>
 
-            <!-- 그 밖의 관리 기능은 접어 둔다. 자주 쓰는 일이 아니고,
-                 늘 펼쳐 두면 실수로 누를 위험만 커진다. -->
-            <div v-if="tab === 'all'" class="mt-5">
-              <button
-                type="button"
-                class="py-2.5 w-full rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:brightness-95 transition"
-                :aria-expanded="openId === m.id"
-                @click="toggleManage(m)"
-              >
-                {{ openId === m.id ? '관리 닫기' : '관리' }}
-              </button>
-
-              <div v-if="openId === m.id" class="mt-4 space-y-5 border-t border-border pt-5">
-                <!-- 정보 수정 -->
-                <div class="space-y-3">
-                  <h3 class="text-sm font-semibold text-foreground">명부 정보</h3>
-                  <div>
-                    <label :for="`n-${m.id}`" class="block text-sm text-muted-foreground mb-1.5">이름</label>
-                    <input :id="`n-${m.id}`" v-model="edit.name" type="text" class="w-full py-2.5 border border-border rounded-xl px-4 text-sm" />
-                  </div>
-                  <div>
-                    <label :for="`p-${m.id}`" class="block text-sm text-muted-foreground mb-1.5">연락처</label>
-                    <input :id="`p-${m.id}`" v-model="edit.phone" type="tel" class="w-full py-2.5 border border-border rounded-xl px-4 text-sm" />
-                  </div>
-                  <div>
-                    <label :for="`o-${m.id}`" class="block text-sm text-muted-foreground mb-1.5">직분</label>
-                    <input :id="`o-${m.id}`" v-model="edit.position" type="text" class="w-full py-2.5 border border-border rounded-xl px-4 text-sm" />
-                  </div>
-                  <button
-                    type="button"
-                    :disabled="busyId === m.id"
-                    class="py-2.5 w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-50"
-                    @click="onSaveInfo(m)"
-                  >
-                    정보 저장
-                  </button>
-                </div>
-
-                <!-- 등급 -->
-                <div>
-                  <h3 class="text-sm font-semibold text-foreground mb-3">등급</h3>
-                  <div class="flex flex-wrap gap-2">
-                    <button
-                      v-for="lv in LEVELS"
-                      :key="lv.value"
-                      type="button"
-                      :disabled="busyId === m.id || (m.id === myId && lv.value < 2)"
-                      class="py-2.5 flex-1 min-w-35 rounded-xl text-sm font-semibold transition disabled:opacity-40"
-                      :class="levelOf(m) === lv.value ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:brightness-95'"
-                      @click="onLevel(m, lv.value)"
-                    >
-                      {{ lv.label }}
-                    </button>
-                  </div>
-                  <p v-if="m.id === myId" class="mt-2 text-xs text-muted-foreground">
-                    자기 자신의 관리자 권한은 내릴 수 없습니다. 아무도 못 들어가는 상태를 막기 위해서입니다.
-                  </p>
-                </div>
-
-                <!-- 접근 정지 / 해제 -->
-                <div>
-                  <h3 class="text-sm font-semibold text-foreground mb-3">접근</h3>
-                  <button
-                    v-if="m.member_status === 'active'"
-                    type="button"
-                    :disabled="busyId === m.id || m.id === myId"
-                    class="py-2.5 w-full rounded-xl bg-amber-100 text-amber-900 text-sm font-semibold hover:brightness-95 transition disabled:opacity-40"
-                    @click="onStatus(m, 'suspended', '정지')"
-                  >
-                    접근 정지 (되돌릴 수 있습니다)
-                  </button>
-                  <button
-                    v-else
-                    type="button"
-                    :disabled="busyId === m.id"
-                    class="py-2.5 w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-50"
-                    @click="onStatus(m, 'active', '승인')"
-                  >
-                    접근 허용
-                  </button>
-                </div>
-
-                <!-- 삭제 -->
-                <div>
-                  <h3 class="text-sm font-semibold text-red-700 mb-2">계정 삭제</h3>
-                  <p class="text-xs leading-relaxed text-muted-foreground mb-3">
-                    계정과 프로필이 완전히 사라지며 되돌릴 수 없습니다.
-                    잠시 막는 것이 목적이라면 위의 [접근 정지]를 써 주세요.
-                    접속 기록은 삭제 후에도 남습니다.
-                  </p>
-                  <button
-                    type="button"
-                    :disabled="busyId === m.id || m.id === myId"
-                    class="py-2.5 w-full rounded-xl border-2 border-red-300 bg-red-50 text-red-700 text-sm font-semibold hover:brightness-95 transition disabled:opacity-40"
-                    @click="onDelete(m)"
-                  >
-                    계정 삭제
-                  </button>
-                </div>
-              </div>
-            </div>
           </li>
         </ul>
       </div>
     </section>
+
+    <!--
+      관리 기능은 모달에서만 연다. 카드 안에 펼치면 목록이 밀려 내려가
+      지금 누른 분이 어디 있었는지 놓치고, 삭제·정지 버튼이 다른 분의
+      카드 옆에 늘 펼쳐져 있어 잘못 누를 위험도 커진다.
+    -->
+    <Teleport to="body">
+      <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
+      <div
+        v-if="openMember"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="manage-title"
+        @click.self="closeManage"
+      >
+        <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+          <h3 id="manage-title" class="text-lg font-bold mb-6">{{ nameOf(openMember) }} 관리</h3>
+
+          <p v-if="errorMsg" role="alert" class="mb-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm leading-relaxed text-red-700">
+            {{ errorMsg }}
+          </p>
+
+          <div class="space-y-5">
+            <!-- 정보 수정 -->
+            <div class="space-y-3">
+              <h4 class="text-sm font-semibold text-foreground">명부 정보</h4>
+              <div>
+                <label for="m-name" class="block text-sm text-muted-foreground mb-1.5">이름</label>
+                <input id="m-name" v-model="edit.name" type="text" class="w-full py-2.5 border border-border rounded-xl px-4 text-sm" />
+              </div>
+              <div>
+                <label for="m-phone" class="block text-sm text-muted-foreground mb-1.5">연락처</label>
+                <input id="m-phone" v-model="edit.phone" type="tel" class="w-full py-2.5 border border-border rounded-xl px-4 text-sm" />
+              </div>
+              <div>
+                <label for="m-position" class="block text-sm text-muted-foreground mb-1.5">직분</label>
+                <input id="m-position" v-model="edit.position" type="text" class="w-full py-2.5 border border-border rounded-xl px-4 text-sm" />
+              </div>
+              <button
+                type="button"
+                :disabled="busyId === openMember.id"
+                class="py-2.5 w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-50"
+                @click="onSaveInfo(openMember)"
+              >
+                정보 저장
+              </button>
+            </div>
+
+            <!-- 등급 -->
+            <div>
+              <h4 class="text-sm font-semibold text-foreground mb-3">등급</h4>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="lv in LEVELS"
+                  :key="lv.value"
+                  type="button"
+                  :disabled="busyId === openMember.id || (openMember.id === myId && lv.value < 2)"
+                  class="py-2.5 flex-1 min-w-35 rounded-xl text-sm font-semibold transition disabled:opacity-40"
+                  :class="levelOf(openMember) === lv.value ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:brightness-95'"
+                  @click="onLevel(openMember, lv.value)"
+                >
+                  {{ lv.label }}
+                </button>
+              </div>
+              <p v-if="openMember.id === myId" class="mt-2 text-xs text-muted-foreground">
+                자기 자신의 관리자 권한은 내릴 수 없습니다. 아무도 못 들어가는 상태를 막기 위해서입니다.
+              </p>
+            </div>
+
+            <!-- 접근 정지 / 해제 -->
+            <div>
+              <h4 class="text-sm font-semibold text-foreground mb-3">접근</h4>
+              <button
+                v-if="openMember.member_status === 'active'"
+                type="button"
+                :disabled="busyId === openMember.id || openMember.id === myId"
+                class="py-2.5 w-full rounded-xl bg-amber-100 text-amber-900 text-sm font-semibold hover:brightness-95 transition disabled:opacity-40"
+                @click="onStatus(openMember, 'suspended', '정지')"
+              >
+                접근 정지 (되돌릴 수 있습니다)
+              </button>
+              <button
+                v-else
+                type="button"
+                :disabled="busyId === openMember.id"
+                class="py-2.5 w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-50"
+                @click="onStatus(openMember, 'active', '승인')"
+              >
+                접근 허용
+              </button>
+            </div>
+
+            <!-- 삭제 -->
+            <div>
+              <h4 class="text-sm font-semibold text-red-700 mb-2">계정 삭제</h4>
+              <p class="text-xs leading-relaxed text-muted-foreground mb-3">
+                계정과 프로필이 완전히 사라지며 되돌릴 수 없습니다.
+                잠시 막는 것이 목적이라면 위의 [접근 정지]를 써 주세요.
+                접속 기록은 삭제 후에도 남습니다.
+              </p>
+              <button
+                type="button"
+                :disabled="busyId === openMember.id || openMember.id === myId"
+                class="py-2.5 w-full rounded-xl border-2 border-red-300 bg-red-50 text-red-700 text-sm font-semibold hover:brightness-95 transition disabled:opacity-40"
+                @click="onDelete(openMember)"
+              >
+                계정 삭제
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="mt-6 py-2.5 w-full rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:brightness-95 transition"
+            @click="closeManage"
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    </Teleport>
   </TheLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { ChevronRight } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/composables/useAuth'
+import { useEscapeToClose } from '@/composables/useEscapeToClose'
 import type { MemberStatus } from '@/composables/useAuth'
 import { ROUTE_PATHS } from '@/lib/index'
 import { toCsv, downloadCsv } from '@/lib/csv'
@@ -341,16 +384,24 @@ async function load() {
   loading.value = false
 }
 
-function toggleManage(m: MemberRow) {
-  if (openId.value === m.id) {
-    openId.value = null
-    return
-  }
+/*
+  모달은 id 만 들고 있고 내용은 목록에서 다시 찾는다. 처리 뒤 load() 로
+  목록을 새로 받으면 모달에 보이는 등급·상태도 같이 최신이 된다.
+*/
+const openMember = computed(() => members.value.find(m => m.id === openId.value) ?? null)
+
+function openManage(m: MemberRow) {
   openId.value = m.id
   edit.name = m.name ?? ''
   edit.phone = m.phone ?? ''
   edit.position = m.position ?? ''
 }
+
+function closeManage() {
+  openId.value = null
+}
+
+useEscapeToClose([{ isOpen: () => openId.value !== null, close: closeManage }])
 
 /*
   모든 변경은 RPC 로만 한다. 화면에서 profiles 를 직접 UPDATE 하지 않는
@@ -371,6 +422,9 @@ async function call(fn: string, args: Record<string, unknown>, target: MemberRow
       : '처리하지 못했습니다. 권한을 확인하시고 다시 시도해 주세요.'
   } else {
     okMsg.value = `${target.name || '이름 미설정'}님을 ${done}했습니다.`
+    // 끝났으면 모달을 닫는다. 열어 둔 채로는 뒤에 뜬 안내가 가려 보이지 않고,
+    // 실패했을 때만 열려 있어야 무엇을 다시 해야 하는지 그 자리에서 보인다.
+    closeManage()
     await load()
   }
   busyId.value = null
@@ -413,7 +467,8 @@ async function onDelete(m: MemberRow) {
   // 두 번 묻는다. 되돌릴 수 없는 유일한 기능이라서다.
   if (!confirm(`${nameOf(m)}님의 계정을 완전히 삭제할까요? 되돌릴 수 없습니다.`)) return
   if (!confirm('정말 삭제합니다. 계정과 프로필이 사라집니다.')) return
-  openId.value = null
+  // 사라질 사람의 모달은 요청을 보내기 전에 닫는다.
+  closeManage()
   await call('delete_member', { p_target: m.id }, m, '삭제')
 }
 
