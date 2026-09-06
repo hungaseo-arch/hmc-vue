@@ -8,7 +8,7 @@
  */
 
 // vite.config.ts 가 빌드 시 주입한다. 커스텀 도메인을 붙이면 거기만 고치면 된다.
-export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://hmc.hunga-seo.workers.dev').replace(/\/$/, '')
+export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://www.hanmaumch.id').replace(/\/$/, '')
 export const SITE_NAME = '자카르타 한마음교회'
 export const DEFAULT_DESCRIPTION =
   '인도네시아 자카르타 한마음교회 공식 홈페이지 - 삼위일체 하나님을 예배하고, 기도하며, 말씀을 배우고 행하는 공동체'

@@ -6,3 +6,11 @@ directory = "./dist"
 # 히스토리 모드 SPA. /worship/sunday-sermon 같은 딥링크로 직접 들어와도
 # index.html 을 돌려줘야 라우터가 받는다. 이게 없으면 404 가 뜬다.
 not_found_handling = "single-page-application"
+
+# 정식 도메인 연결. Cloudflare 에 hanmaumch.id 존이 등록된 뒤 주석을 풀고
+# `npm run deploy` 하면 Worker 가 이 도메인으로 바로 열린다.
+# apex(hanmaumch.id) → www 로 넘기는 규칙은 Cloudflare 대시보드의
+# Bulk Redirects 나 Redirect Rules 에서 따로 잡는다.
+# [[routes]]
+# pattern = "www.hanmaumch.id"
+# custom_domain = true
