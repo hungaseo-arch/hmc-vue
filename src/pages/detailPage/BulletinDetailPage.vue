@@ -1,6 +1,6 @@
 <template>
   <TheLayout>
-    <PageHeader title="주보보기" subtitle="이번 주 주보를 확인하세요" />
+    <PageHeader as="p" title="주보보기" subtitle="이번 주 주보를 확인하세요" />
     <section class="py-16">
       <div class="container mx-auto px-4 max-w-3xl">
 
@@ -30,20 +30,26 @@
           </div>
 
           <div class="flex flex-col gap-4">
-            <!-- 사진이 도착하기 전에 자리를 잡는다. useImageRatio 설명 참고. -->
+            <!--
+              사진이 도착하기 전에는 추정 비율로 자리를 잡아 밀림을 줄인다(useImageRatio 참고).
+              다만 주보는 실제 비율이 추정과 꽤 어긋나는 경우가 많아(펼침 스캔마다 여백이 달라),
+              도착하면 상자를 실제 비율에 맞게 다시 잡는다 — 페이지 수가 적어 이 한 번의
+              밀림은 갤러리처럼 계속 흔들리는 문제가 되지 않는다.
+            -->
             <div
               v-for="(url, i) in pages"
               :key="url"
               class="rounded-2xl overflow-hidden shadow-sm border border-border bg-muted"
-              :style="boxStyle(url)"
+              :style="loadedUrls.has(url) ? undefined : boxStyle(url, fallbackRatio)"
             >
               <img
                 :src="url"
                 :alt="`${dateLabel} ${i + 1}페이지`"
-                class="w-full h-full object-contain"
+                class="w-full block"
+                :class="loadedUrls.has(url) ? 'h-auto' : 'h-full object-contain'"
                 loading="lazy"
                 decoding="async"
-                @load="remember(url, $event)"
+                @load="onLoad(url, $event)"
               />
             </div>
           </div>
@@ -64,8 +70,18 @@ import { supabase } from '@/lib/supabase'
 import { signPaths } from '@/lib/storage'
 import { useImageRatio } from '@/composables/useImageRatio'
 
-// 주보는 A4 를 스캔한 세로 문서라 거의 전부 1:√2 다.
+// 주보는 A4 를 스캔한 세로 문서라 거의 전부 1:√2 다. 다만 최근에는 앞뒤 면을
+// 펼쳐서 한 장(가로)으로 스캔해 올리는 경우가 많아, 페이지가 1장뿐이면
+// 가로(√2:1)로 추정한다 — 실제 비율은 로드 후 remember() 가 다음 방문용으로 적어 둔다.
 const { boxStyle, remember } = useImageRatio(1 / 1.414)
+const fallbackRatio = computed(() => (pages.value.length === 1 ? 1.414 : 1 / 1.414))
+const loadedUrls = ref<Set<string>>(new Set())
+
+function onLoad(url: string, e: Event) {
+  remember(url, e)
+  loadedUrls.value.add(url)
+  loadedUrls.value = new Set(loadedUrls.value)
+}
 
 const router = useRouter()
 const route = useRoute()

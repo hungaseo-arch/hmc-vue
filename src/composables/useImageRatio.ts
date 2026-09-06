@@ -46,9 +46,9 @@ export function useImageRatio(fallback: number) {
   // 이 화면이 사는 동안 고정할 값. 반응형이 아니라서 도중에 안 흔들린다.
   const fixed: Record<string, number> = { ...store }
 
-  /** 자리를 잡을 바깥 상자에 건다. */
-  function boxStyle(src: string) {
-    return { aspectRatio: String(fixed[keyOf(src)] ?? fallback) }
+  /** 자리를 잡을 바깥 상자에 건다. 사진마다 추정 비율이 다르면 override 로 넘긴다. */
+  function boxStyle(src: string, override?: number) {
+    return { aspectRatio: String(fixed[keyOf(src)] ?? override ?? fallback) }
   }
 
   /** <img @load> 에 건다. 다음 방문에 쓸 비율을 적어 둔다. */

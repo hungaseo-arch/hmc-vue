@@ -1,6 +1,6 @@
 <template>
   <TheLayout>
-    <PageHeader title="주일설교" subtitle="말씀으로 양육 받는 한마음교회 성도들" />
+    <PageHeader as="p" title="주일설교" subtitle="말씀으로 양육 받는 한마음교회 성도들" />
     <section class="py-16">
       <div class="container mx-auto px-4 max-w-3xl">
 
@@ -80,8 +80,13 @@
                   :key="verse.key"
                   class="text-sm leading-relaxed"
                 >
-                  <span class="text-xs font-semibold text-primary mr-2">{{ verse.key }}</span>
-                  <span class="text-foreground/80">{{ verse.text }}</span>
+                  <!--
+                    절 번호와 본문 사이의 공백은 여백(margin)이 아니라 진짜
+                    공백 문자여야 한다. 여백만 주면 눈에는 떨어져 보여도
+                    복사하거나 화면낭독기로 들으면 '행13:2주를' 로 붙는다.
+                    Vue 는 줄바꿈만 있는 공백을 지우므로 {{ ' ' }} 로 남긴다.
+                  -->
+                  <span class="text-xs font-semibold text-primary mr-1">{{ verse.key }}</span>{{ ' ' }}<span class="text-foreground/80">{{ verse.text }}</span>
                 </p>
               </div>
             </div>
@@ -108,6 +113,7 @@ import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
 import { resolveScripture, loadBook } from '@/lib/bible'
 import { setMeta } from '@/lib/seo'
+import { formatPreacher } from '@/lib/index'
 import type { SermonItem } from '@/lib/index'
 
 const router = useRouter()
@@ -127,13 +133,15 @@ onMounted(async () => {
     loading.value = false
     return
   }
-  sermon.value = data
+  // 목록과 같은 규칙으로 설교자 표기를 맞춘다.
+  const normalized: SermonItem = { ...data, preacher: formatPreacher(data.preacher) }
+  sermon.value = normalized
   loading.value = false
 
   // 라우터가 깔아둔 '주일설교' 를 실제 설교 제목으로 바꾼다.
   setMeta({
     title: data.title,
-    description: [data.scripture, data.preacher, data.date].filter(Boolean).join(' · '),
+    description: [data.scripture, normalized.preacher, data.date].filter(Boolean).join(' · '),
     type: 'article',
   })
 

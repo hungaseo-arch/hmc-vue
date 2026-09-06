@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { formatPreacher } from '@/lib/index'
 import type { SermonItem } from '@/lib/index'
 
 // 홈·목록·등록 후 새로고침이 각각 따로 요청해서 한 세션에 같은 목록을 세 번 받았다.
@@ -23,7 +24,8 @@ async function load() {
       .select('id, title, scripture, preacher, date, link')
       .order('id', { ascending: false })
     if (err) throw err
-    items.value = data ?? []
+    // 표기는 받는 쪽에서 한 번만 맞춘다. 카드·표·상세가 각자 다듬으면 어긋난다.
+    items.value = (data ?? []).map(s => ({ ...s, preacher: formatPreacher(s.preacher) }))
     fetched = true
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : '설교 목록을 불러오지 못했습니다.'

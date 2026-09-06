@@ -3,11 +3,26 @@
     <PageHeader title="주보보기" subtitle="이번 주 주보를 확인하세요" />
     <section class="py-16">
       <div class="container mx-auto px-4 max-w-4xl">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-xl font-bold">주보 목록</h2>
+        <div class="flex items-center justify-between gap-4 flex-wrap mb-6">
+          <h2 class="text-xl font-bold shrink-0">주보 목록</h2>
+          <!-- 연도 선택. 자료가 몇 년 치씩 쌓이면 한 화면에 다 보이는 게 오히려 찾기 어렵다. -->
+          <div v-if="years.length > 1" class="flex gap-2 overflow-x-auto" role="tablist" aria-label="주보 연도 선택">
+            <button
+              v-for="y in years"
+              :key="y"
+              type="button"
+              role="tab"
+              :aria-selected="selectedYear === y"
+              class="shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              :class="selectedYear === y ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:brightness-95'"
+              @click="selectedYear = y"
+            >
+              {{ y }}년
+            </button>
+          </div>
           <button
             v-if="isAdmin"
-            class="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition"
+            class="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition shrink-0"
             @click="showModal = true"
           >
             <Plus class="w-4 h-4" />
@@ -25,49 +40,51 @@
           description="주보가 곧 업로드될 예정입니다."
         />
 
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div
-            v-for="(group, i) in bulletinGroups"
-            :key="group.date"
-            class="relative bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md transition-all hover:-translate-y-1 group animate-fade-in-up"
-            :style="{ animationDelay: `${i * 0.08}s` }"
-          >
+        <div v-else>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div
-              class="relative h-48 overflow-hidden flex items-center justify-center transition-all duration-300"
-              :style="{ background: getThumbnailBg(group.date) }"
+              v-for="(group, i) in visibleGroups"
+              :key="group.date"
+              class="relative bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md transition-all hover:-translate-y-1 group animate-fade-in-up"
+              :style="{ animationDelay: `${i * 0.08}s` }"
             >
-              <span class="text-lg font-semibold text-slate-500 group-hover:text-slate-700 transition-colors duration-300">주보 보기</span>
-            </div>
-            <div class="p-5 flex items-center gap-3">
-              <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <FileText class="w-4 h-4 text-primary" />
-              </div>
-              <!-- before 로 카드 전체를 덮는 진짜 링크. 새 탭 열기·주소 복사가 된다. -->
-              <div class="min-w-0">
-                <h3 class="font-semibold text-sm truncate">
-                  <RouterLink
-                    :to="`/community/bulletin/${group.date}`"
-                    class="before:absolute before:inset-0 before:content-[''] before:rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                  >{{ group.label }}</RouterLink>
-                </h3>
-                <p class="text-xs text-muted-foreground mt-0.5">{{ group.pageCount }}페이지</p>
-              </div>
-            </div>
-            <div v-if="isAdmin" class="absolute top-2 right-2 z-10 flex gap-1" @click.stop>
-              <button
-                class="p-1.5 bg-white/90 rounded-lg shadow hover:bg-white transition"
-                :aria-label="`${group.label} 주보 교체`"
-                @click="openReplaceModal(group)"
+              <div
+                class="relative h-48 overflow-hidden flex items-center justify-center transition-all duration-300"
+                :style="{ background: getThumbnailBg(group.date) }"
               >
-                <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
-              </button>
-              <button
-                class="p-1.5 bg-white/90 rounded-lg shadow hover:bg-red-50 transition"
-                :aria-label="`${group.label} 주보 삭제`"
-                @click="handleDelete(group.date)"
-              >
-                <Trash2 class="w-3.5 h-3.5 text-red-400" />
-              </button>
+                <span class="text-lg font-semibold text-slate-500 group-hover:text-slate-700 transition-colors duration-300">주보 보기</span>
+              </div>
+              <div class="p-5 flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <FileText class="w-4 h-4 text-primary" />
+                </div>
+                <!-- before 로 카드 전체를 덮는 진짜 링크. 새 탭 열기·주소 복사가 된다. -->
+                <div class="min-w-0">
+                  <h3 class="font-semibold text-sm truncate">
+                    <RouterLink
+                      :to="`/community/bulletin/${group.date}`"
+                      class="before:absolute before:inset-0 before:content-[''] before:rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    >{{ group.label }}</RouterLink>
+                  </h3>
+                  <p class="text-xs text-muted-foreground mt-0.5">{{ group.pageCount }}페이지</p>
+                </div>
+              </div>
+              <div v-if="isAdmin" class="absolute top-2 right-2 z-10 flex gap-1" @click.stop>
+                <button
+                  class="p-1.5 bg-white/90 rounded-lg shadow hover:bg-white transition"
+                  :aria-label="`${group.label} 주보 교체`"
+                  @click="openReplaceModal(group)"
+                >
+                  <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
+                </button>
+                <button
+                  class="p-1.5 bg-white/90 rounded-lg shadow hover:bg-red-50 transition"
+                  :aria-label="`${group.label} 주보 삭제`"
+                  @click="handleDelete(group.date)"
+                >
+                  <Trash2 class="w-3.5 h-3.5 text-red-400" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -152,7 +169,7 @@
 
 <script setup lang="ts">
 import { errorMessage } from '@/lib/errors'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { FileText, Plus, Pencil, Trash2 } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -174,6 +191,10 @@ const bulletinGroups = ref<BulletinGroup[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const BUCKET = 'weeklyBulletin'
+
+const years = computed(() => [...new Set(bulletinGroups.value.map(g => g.date.slice(0, 4)))])
+const selectedYear = ref('')
+const visibleGroups = computed(() => bulletinGroups.value.filter(g => g.date.slice(0, 4) === selectedYear.value))
 
 function formatDateLabel(date: string): string {
   const year = date.slice(0, 4)
@@ -210,6 +231,10 @@ async function fetchBulletins() {
       label: formatDateLabel(date),
       pageCount: fileNames.length,
     }))
+
+  if (!selectedYear.value || !years.value.includes(selectedYear.value)) {
+    selectedYear.value = years.value[0] ?? ''
+  }
 
   loading.value = false
 }

@@ -93,6 +93,26 @@ export const NAV_ITEMS: NavItem[] = [
   },
 ]
 
+/*
+  설교 등록 화면의 '설교자' 는 자유 입력이라 '고형돈 목사' 와 '고형돈목사' 가
+  섞여 들어온다. 같은 사람이 목록에서는 붙어 있고 상세에서는 떨어져 보이면
+  다른 사람처럼 읽힌다. 긴 직함부터 봐야 '담임목사' 가 '목사' 에 먼저 걸리지
+  않는다.
+*/
+const CLERGY_TITLES = ['담임목사', '부목사', '강도사', '전도사', '선교사', '목사', '장로', '권사', '집사', '사모']
+
+/** '고형돈목사' → '고형돈 목사'. 이미 띄어져 있거나 직함이 없으면 그대로. */
+export function formatPreacher(name: string | null | undefined): string {
+  const text = name?.trim().replace(/\s+/g, ' ') ?? ''
+  if (!text) return ''
+  for (const title of CLERGY_TITLES) {
+    if (text.length > title.length && text.endsWith(title) && !text.endsWith(` ${title}`)) {
+      return `${text.slice(0, -title.length).trim()} ${title}`
+    }
+  }
+  return text
+}
+
 // Types
 export interface SermonItem {
   id: number
