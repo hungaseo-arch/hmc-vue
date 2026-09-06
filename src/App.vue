@@ -15,8 +15,8 @@
         class="mx-auto mb-6 h-14 w-14 rounded-full border-4 border-border border-t-primary motion-safe:animate-spin"
         aria-hidden="true"
       />
-      <p class="text-[20px] font-semibold text-foreground">로그인하는 중입니다</p>
-      <p class="mt-3 text-[18px] leading-relaxed text-muted-foreground">
+      <p class="text-lg font-semibold text-foreground">로그인하는 중입니다</p>
+      <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
         잠시만 기다려 주세요.<br />
         이 화면에서 뒤로가기를 누르지 마세요.
       </p>
@@ -24,6 +24,38 @@
   </div>
 
   <RouterView v-else />
+
+  <!--
+    자동 로그아웃 1분 전 알림. 예배 영상을 보거나 주보를 오래 읽는 동안에는
+    아무 조작도 하지 않으므로, 예고 없이 로그아웃되면 갑자기 화면이 바뀐 것처럼
+    보인다. 남은 시간을 보여 주고 이어서 볼 기회를 준다.
+    role="alertdialog" 라서 화면낭독기가 하던 말을 멈추고 이 내용을 읽는다.
+  -->
+  <div
+    v-if="warning"
+    class="fixed inset-0 z-100 bg-black/40 flex items-center justify-center px-6"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="idle-title"
+  >
+    <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full px-7 py-7 text-center">
+      <h2 id="idle-title" class="text-lg font-semibold text-foreground">
+        잠시 후 로그아웃됩니다
+      </h2>
+      <p class="mt-3 text-sm leading-relaxed text-muted-foreground" aria-live="polite">
+        30분 동안 사용하지 않아
+        <strong class="text-primary font-semibold">{{ secondsLeft }}초</strong> 뒤에
+        자동으로 로그아웃됩니다.
+      </p>
+      <button
+        type="button"
+        class="mt-6 w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold py-2.5 hover:opacity-90 transition-opacity cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        @click="stay"
+      >
+        계속 이용하기
+      </button>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -32,8 +64,12 @@ import { useRouter } from 'vue-router'
 import { oauthReturn, supabase } from '@/lib/supabase'
 import { init, RETURN_TO_KEY, setAuthNotice } from '@/composables/useAuth'
 import { ROUTE_PATHS } from '@/lib/index'
+import { useIdleLogout } from '@/composables/useIdleLogout'
 
 const router = useRouter()
+
+// 공용 컴퓨터에 로그인된 채로 남지 않게 한다 — useIdleLogout 설명 참고.
+const { warning, secondsLeft, stay } = useIdleLogout()
 
 // oauthReturn 은 supabase 클라이언트를 만들기 전에 찍어 둔 값이다.
 // 여기서 window.location 을 다시 읽으면 이미 ?code= 가 지워졌을 수 있다.

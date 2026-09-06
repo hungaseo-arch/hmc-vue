@@ -12,7 +12,7 @@
             type="button"
             role="tab"
             :aria-selected="tab === t.key"
-            class="min-h-14 flex-1 rounded-xl text-[18px] font-semibold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
+            class="py-2.5 flex-1 rounded-xl text-sm font-semibold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
             :class="tab === t.key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:brightness-95'"
             @click="tab = t.key"
           >
@@ -28,21 +28,21 @@
             v-model="keyword"
             type="search"
             placeholder="이름, 연락처, 직분으로 찾기"
-            class="flex-1 min-w-60 min-h-14 border border-border rounded-xl px-4 text-[18px] bg-white outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+            class="flex-1 min-w-60 py-2.5 border border-border rounded-xl px-4 text-sm bg-white outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
           />
           <button
             type="button"
-            class="min-h-14 px-5 rounded-xl bg-secondary text-secondary-foreground text-[18px] font-semibold hover:brightness-95 transition"
+            class="px-4 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:brightness-95 transition"
             @click="exportCsv"
           >
             명부 CSV
           </button>
         </div>
 
-        <p v-if="errorMsg" role="alert" class="mb-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-[18px] leading-relaxed text-red-700">
+        <p v-if="errorMsg" role="alert" class="mb-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm leading-relaxed text-red-700">
           {{ errorMsg }}
         </p>
-        <p v-if="okMsg" role="status" class="mb-6 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-[18px] leading-relaxed text-green-800">
+        <p v-if="okMsg" role="status" class="mb-6 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm leading-relaxed text-green-800">
           {{ okMsg }}
         </p>
 
@@ -53,14 +53,14 @@
           계정을 만들려면 RLS 를 통째로 우회하는 열쇠가 필요한데, 그 열쇠는
           이 사이트에 두지 않는다.
         -->
-        <div v-if="tab === 'all'" class="mb-6 rounded-2xl bg-secondary px-5 py-4 text-[18px] leading-relaxed text-secondary-foreground">
+        <div v-if="tab === 'all'" class="mb-6 rounded-2xl bg-secondary px-5 py-4 text-sm leading-relaxed text-secondary-foreground">
           <p class="font-semibold mb-2">새 교인을 등록하시려면</p>
           <p>아래 주소를 알려 드리고 직접 가입하시게 한 뒤, [승인 대기] 탭에서 승인해 주세요.</p>
           <div class="mt-3 flex flex-wrap items-center gap-3">
-            <code class="text-[17px] break-all">{{ signupUrl }}</code>
+            <code class="text-sm break-all">{{ signupUrl }}</code>
             <button
               type="button"
-              class="min-h-14 px-5 rounded-xl bg-white border border-border text-[18px] font-semibold hover:brightness-95 transition"
+              class="px-4 py-2.5 rounded-xl bg-white border border-border text-sm font-semibold hover:brightness-95 transition"
               @click="copySignupUrl"
             >
               주소 복사
@@ -68,9 +68,9 @@
           </div>
         </div>
 
-        <p v-if="loading" class="py-16 text-center text-[18px] text-muted-foreground">불러오는 중...</p>
+        <p v-if="loading" class="py-16 text-center text-sm text-muted-foreground">불러오는 중...</p>
 
-        <p v-else-if="!visible.length" class="py-16 text-center text-[18px] text-muted-foreground">
+        <p v-else-if="!visible.length" class="py-16 text-center text-sm text-muted-foreground">
           {{ tab === 'pending' ? '승인을 기다리는 분이 없습니다.' : '해당하는 회원이 없습니다.' }}
         </p>
 
@@ -81,23 +81,23 @@
             class="bg-white rounded-2xl shadow-sm border border-border p-5 sm:p-6"
           >
             <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <h2 class="text-[20px] font-bold text-foreground">{{ m.name || '이름 미설정' }}</h2>
-              <span class="px-2.5 py-1 rounded-full text-[14px] font-medium" :class="STATUS_STYLE[m.member_status]">
+              <h2 class="text-base font-bold text-foreground">{{ m.name || '이름 미설정' }}</h2>
+              <span class="px-2.5 py-1 rounded-full text-xs font-medium" :class="STATUS_STYLE[m.member_status]">
                 {{ STATUS_LABEL[m.member_status] }}
               </span>
-              <span v-if="levelOf(m) >= 2" class="px-2.5 py-1 rounded-full text-[14px] font-medium bg-primary/10 text-primary">
+              <span v-if="levelOf(m) >= 2" class="px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
                 관리자
               </span>
-              <span v-if="m.id === myId" class="px-2.5 py-1 rounded-full text-[14px] font-medium bg-amber-100 text-amber-800">
+              <span v-if="m.id === myId" class="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
                 나
               </span>
             </div>
 
-            <dl class="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[18px] leading-relaxed">
+            <dl class="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm leading-relaxed">
               <dt class="text-muted-foreground">가입 방법</dt>
               <dd class="text-foreground">{{ PROVIDER_LABEL[m.provider ?? 'email'] ?? m.provider }}</dd>
               <dt class="text-muted-foreground">신청일</dt>
-              <dd class="text-foreground">{{ formatDate(m.created_at) }}</dd>
+              <dd class="text-foreground">{{ longDateTime(m.created_at) }}</dd>
               <template v-if="m.phone">
                 <dt class="text-muted-foreground">연락처</dt>
                 <dd class="text-foreground">{{ m.phone }}</dd>
@@ -113,7 +113,7 @@
               <button
                 type="button"
                 :disabled="busyId === m.id"
-                class="min-h-14 flex-1 min-w-35 rounded-xl bg-primary text-primary-foreground text-[18px] font-semibold hover:bg-primary/90 transition disabled:opacity-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
+                class="py-2.5 flex-1 min-w-35 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
                 @click="onApprove(m)"
               >
                 {{ busyId === m.id ? '처리 중...' : '승인' }}
@@ -121,7 +121,7 @@
               <button
                 type="button"
                 :disabled="busyId === m.id"
-                class="min-h-14 flex-1 min-w-35 rounded-xl bg-secondary text-secondary-foreground text-[18px] font-semibold hover:brightness-95 transition disabled:opacity-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
+                class="py-2.5 flex-1 min-w-35 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:brightness-95 transition disabled:opacity-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
                 @click="onReject(m)"
               >
                 반려
@@ -133,7 +133,7 @@
             <div v-if="tab === 'all'" class="mt-5">
               <button
                 type="button"
-                class="min-h-14 w-full rounded-xl bg-secondary text-secondary-foreground text-[18px] font-semibold hover:brightness-95 transition"
+                class="py-2.5 w-full rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:brightness-95 transition"
                 :aria-expanded="openId === m.id"
                 @click="toggleManage(m)"
               >
@@ -143,23 +143,23 @@
               <div v-if="openId === m.id" class="mt-4 space-y-5 border-t border-border pt-5">
                 <!-- 정보 수정 -->
                 <div class="space-y-3">
-                  <h3 class="text-[18px] font-semibold text-foreground">명부 정보</h3>
+                  <h3 class="text-sm font-semibold text-foreground">명부 정보</h3>
                   <div>
-                    <label :for="`n-${m.id}`" class="block text-[17px] text-muted-foreground mb-1.5">이름</label>
-                    <input :id="`n-${m.id}`" v-model="edit.name" type="text" class="w-full min-h-14 border border-border rounded-xl px-4 text-[18px]" />
+                    <label :for="`n-${m.id}`" class="block text-sm text-muted-foreground mb-1.5">이름</label>
+                    <input :id="`n-${m.id}`" v-model="edit.name" type="text" class="w-full py-2.5 border border-border rounded-xl px-4 text-sm" />
                   </div>
                   <div>
-                    <label :for="`p-${m.id}`" class="block text-[17px] text-muted-foreground mb-1.5">연락처</label>
-                    <input :id="`p-${m.id}`" v-model="edit.phone" type="tel" class="w-full min-h-14 border border-border rounded-xl px-4 text-[18px]" />
+                    <label :for="`p-${m.id}`" class="block text-sm text-muted-foreground mb-1.5">연락처</label>
+                    <input :id="`p-${m.id}`" v-model="edit.phone" type="tel" class="w-full py-2.5 border border-border rounded-xl px-4 text-sm" />
                   </div>
                   <div>
-                    <label :for="`o-${m.id}`" class="block text-[17px] text-muted-foreground mb-1.5">직분</label>
-                    <input :id="`o-${m.id}`" v-model="edit.position" type="text" class="w-full min-h-14 border border-border rounded-xl px-4 text-[18px]" />
+                    <label :for="`o-${m.id}`" class="block text-sm text-muted-foreground mb-1.5">직분</label>
+                    <input :id="`o-${m.id}`" v-model="edit.position" type="text" class="w-full py-2.5 border border-border rounded-xl px-4 text-sm" />
                   </div>
                   <button
                     type="button"
                     :disabled="busyId === m.id"
-                    class="min-h-14 w-full rounded-xl bg-primary text-primary-foreground text-[18px] font-semibold hover:bg-primary/90 transition disabled:opacity-50"
+                    class="py-2.5 w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-50"
                     @click="onSaveInfo(m)"
                   >
                     정보 저장
@@ -168,33 +168,33 @@
 
                 <!-- 등급 -->
                 <div>
-                  <h3 class="text-[18px] font-semibold text-foreground mb-3">등급</h3>
+                  <h3 class="text-sm font-semibold text-foreground mb-3">등급</h3>
                   <div class="flex flex-wrap gap-2">
                     <button
                       v-for="lv in LEVELS"
                       :key="lv.value"
                       type="button"
                       :disabled="busyId === m.id || (m.id === myId && lv.value < 2)"
-                      class="min-h-14 flex-1 min-w-35 rounded-xl text-[18px] font-semibold transition disabled:opacity-40"
+                      class="py-2.5 flex-1 min-w-35 rounded-xl text-sm font-semibold transition disabled:opacity-40"
                       :class="levelOf(m) === lv.value ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:brightness-95'"
                       @click="onLevel(m, lv.value)"
                     >
                       {{ lv.label }}
                     </button>
                   </div>
-                  <p v-if="m.id === myId" class="mt-2 text-[17px] text-muted-foreground">
+                  <p v-if="m.id === myId" class="mt-2 text-xs text-muted-foreground">
                     자기 자신의 관리자 권한은 내릴 수 없습니다. 아무도 못 들어가는 상태를 막기 위해서입니다.
                   </p>
                 </div>
 
                 <!-- 접근 정지 / 해제 -->
                 <div>
-                  <h3 class="text-[18px] font-semibold text-foreground mb-3">접근</h3>
+                  <h3 class="text-sm font-semibold text-foreground mb-3">접근</h3>
                   <button
                     v-if="m.member_status === 'active'"
                     type="button"
                     :disabled="busyId === m.id || m.id === myId"
-                    class="min-h-14 w-full rounded-xl bg-amber-100 text-amber-900 text-[18px] font-semibold hover:brightness-95 transition disabled:opacity-40"
+                    class="py-2.5 w-full rounded-xl bg-amber-100 text-amber-900 text-sm font-semibold hover:brightness-95 transition disabled:opacity-40"
                     @click="onStatus(m, 'suspended', '정지')"
                   >
                     접근 정지 (되돌릴 수 있습니다)
@@ -203,7 +203,7 @@
                     v-else
                     type="button"
                     :disabled="busyId === m.id"
-                    class="min-h-14 w-full rounded-xl bg-primary text-primary-foreground text-[18px] font-semibold hover:bg-primary/90 transition disabled:opacity-50"
+                    class="py-2.5 w-full rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-50"
                     @click="onStatus(m, 'active', '승인')"
                   >
                     접근 허용
@@ -212,8 +212,8 @@
 
                 <!-- 삭제 -->
                 <div>
-                  <h3 class="text-[18px] font-semibold text-red-700 mb-2">계정 삭제</h3>
-                  <p class="text-[17px] leading-relaxed text-muted-foreground mb-3">
+                  <h3 class="text-sm font-semibold text-red-700 mb-2">계정 삭제</h3>
+                  <p class="text-xs leading-relaxed text-muted-foreground mb-3">
                     계정과 프로필이 완전히 사라지며 되돌릴 수 없습니다.
                     잠시 막는 것이 목적이라면 위의 [접근 정지]를 써 주세요.
                     접속 기록은 삭제 후에도 남습니다.
@@ -221,7 +221,7 @@
                   <button
                     type="button"
                     :disabled="busyId === m.id || m.id === myId"
-                    class="min-h-14 w-full rounded-xl border-2 border-red-300 bg-red-50 text-red-700 text-[18px] font-semibold hover:brightness-95 transition disabled:opacity-40"
+                    class="py-2.5 w-full rounded-xl border-2 border-red-300 bg-red-50 text-red-700 text-sm font-semibold hover:brightness-95 transition disabled:opacity-40"
                     @click="onDelete(m)"
                   >
                     계정 삭제
@@ -244,6 +244,9 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/composables/useAuth'
 import type { MemberStatus } from '@/composables/useAuth'
 import { ROUTE_PATHS } from '@/lib/index'
+import { toCsv, downloadCsv } from '@/lib/csv'
+// 신청일은 자카르타 기준으로 읽는다. 교회가 거기 있고 관리자도 거기서 본다.
+import { longDateTime, todayCompact } from '@/lib/jakarta'
 
 interface MemberRow {
   id: string
@@ -318,16 +321,6 @@ const visible = computed(() => {
     [m.name, m.phone, m.position].some(v => (v ?? '').toLowerCase().includes(k)),
   )
 })
-
-/** 자카르타 기준으로 읽는다. 교회가 거기 있고 관리자도 거기서 본다. */
-function formatDate(iso: string | null): string {
-  if (!iso) return '-'
-  return new Date(iso).toLocaleString('ko-KR', {
-    timeZone: 'Asia/Jakarta',
-    year: 'numeric', month: 'long', day: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
-}
 
 async function load() {
   loading.value = true
@@ -433,38 +426,21 @@ async function copySignupUrl() {
   }
 }
 
-/*
-  명부 CSV. 엑셀에서 열리므로 BOM 을 붙이고, '=' '+' '-' '@' 로 시작하는
-  칸은 앞에 작은따옴표를 붙여 수식으로 실행되지 않게 한다.
-*/
-function csvCell(v: unknown): string {
-  let s = v === null || v === undefined ? '' : String(v)
-  if (/^[=+\-@]/.test(s)) s = `'${s}`
-  return `"${s.replace(/"/g, '""')}"`
-}
-
+/** 지금 화면에 보이는 만큼만 내보낸다 — 검색어를 걸었으면 그 결과가 나간다. */
 function exportCsv() {
-  const header = ['이름', '연락처', '직분', '상태', '등급', '가입 방법', '신청일']
-  const lines = [
-    header.map(csvCell).join(','),
-    ...visible.value.map(m => [
+  const csv = toCsv(
+    ['이름', '연락처', '직분', '상태', '등급', '가입 방법', '신청일'],
+    visible.value.map(m => [
       m.name ?? '',
       m.phone ?? '',
       m.position ?? '',
       STATUS_LABEL[m.member_status],
       LEVELS.find(l => l.value === levelOf(m))?.label ?? '',
       PROVIDER_LABEL[m.provider ?? 'email'] ?? m.provider ?? '',
-      formatDate(m.created_at),
-    ].map(csvCell).join(',')),
-  ]
-  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date())
-  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `members_${today.replace(/-/g, '')}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
+      longDateTime(m.created_at),
+    ]),
+  )
+  downloadCsv(`members_${todayCompact()}.csv`, csv)
 }
 
 onMounted(load)
