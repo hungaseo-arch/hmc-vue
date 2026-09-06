@@ -15,7 +15,7 @@ npm run dev
 | --- | --- |
 | `VITE_SUPABASE_URL` | Supabase 프로젝트 URL |
 | `VITE_SUPABASE_ANON_KEY` | anon/publishable 키. **service_role 키는 절대 넣지 않는다** |
-| `VITE_SITE_URL` | 정식 주소(`https://www.hanmaumch.id`). canonical·OG·sitemap 에 쓰이며 빌드에 필수 |
+| `VITE_SITE_URL` | 배포 주소. 지금은 `https://hmc.hunga-seo.workers.dev`. canonical·OG·sitemap 에 쓰이며 빌드에 필수 |
 
 ## 명령
 
@@ -63,8 +63,15 @@ docs/history/   이전 작업 문서
 
 ## 배포 체크리스트
 
-- [ ] 배포 환경(Cloudflare 빌드 설정 또는 로컬 `.env`)에 `VITE_SITE_URL=https://www.hanmaumch.id` 가 있다.
-- [ ] Supabase → Authentication → URL Configuration: Site URL 을 `https://www.hanmaumch.id`, Redirect URLs 에 `https://www.hanmaumch.id/**` 를 넣었다.
+- [ ] 배포 환경(Cloudflare 빌드 설정 또는 로컬 `.env`)에 `VITE_SITE_URL` 이 배포 주소와 같다.
+- [ ] Supabase → Authentication → URL Configuration 의 Site URL·Redirect URLs 가 배포 주소와 같다.
 - [ ] 카카오 개발자 콘솔 Redirect URI 에 Supabase 콜백 주소가 등록돼 있다.
-- [ ] `wrangler.toml` 의 `[[routes]]` 주석을 풀고 도메인을 연결했다. apex → www 리다이렉트는 Cloudflare 규칙으로 잡는다.
+
+### 도메인 이전(www.hanmaumch.id)이 확정되면
+
+1. `.env`(및 배포 환경)의 `VITE_SITE_URL` 을 새 주소로 바꾼다.
+2. `src/lib/seo.ts`·`scripts/gen-sitemap.mjs` 의 기본값도 새 주소로 바꾼다.
+3. Supabase Auth 의 Site URL·Redirect URLs, 카카오 Redirect URI 를 새 주소로 바꾼다.
+4. `wrangler.toml` 의 `[[routes]]` 주석을 풀고 배포한다. apex → www 리다이렉트는 Cloudflare 규칙으로 잡는다.
+5. 옛 주소(workers.dev)에서 새 주소로 301 리다이렉트를 걸어 검색 순위를 넘긴다.
 - [ ] `public/_headers` 의 CSP 는 Report-Only 다. 콘솔에 위반이 없으면 `Content-Security-Policy` 로 바꿔 강제한다.

@@ -26,7 +26,7 @@ function readEnv() {
 }
 
 const env = { ...readEnv(), ...process.env }
-const SITE_URL = (env.VITE_SITE_URL || 'https://www.hanmaumch.id').replace(/\/$/, '')
+const SITE_URL = (env.VITE_SITE_URL || 'https://hmc.hunga-seo.workers.dev').replace(/\/$/, '')
 const SUPABASE_URL = env.VITE_SUPABASE_URL
 const ANON_KEY = env.VITE_SUPABASE_ANON_KEY
 

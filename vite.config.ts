@@ -17,7 +17,7 @@ export default defineConfig(({ command, mode }) => {
   // index.html 의 og/canonical, src/lib/seo.ts, sitemap 이 함께 따라간다.
   const siteUrl = env.VITE_SITE_URL
   if (command === 'build' && !siteUrl) {
-    throw new Error('VITE_SITE_URL 이 설정되지 않았습니다. .env 에 VITE_SITE_URL=https://www.hanmaumch.id 를 추가해 주세요.')
+    throw new Error('VITE_SITE_URL 이 설정되지 않았습니다. .env 에 배포 주소(예: VITE_SITE_URL=https://hmc.hunga-seo.workers.dev)를 추가해 주세요.')
   }
   const SITE_URL = (siteUrl || 'http://localhost:5173').replace(/\/$/, '')
 
