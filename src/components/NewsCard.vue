@@ -5,6 +5,7 @@
     class="block bg-white border border-border rounded-2xl overflow-hidden hover:shadow-md transition-all hover:-translate-y-1"
   >
     <img
+      v-if="item.thumbnail"
       :src="item.thumbnail"
       :alt="item.title"
       width="640"
@@ -13,6 +14,9 @@
       decoding="async"
       class="w-full h-48 object-cover"
     />
+    <div v-else class="w-full h-48 flex items-center justify-center bg-muted">
+      <Newspaper class="w-8 h-8 text-muted-foreground" />
+    </div>
     <div class="p-5">
       <div class="flex items-center gap-2 mb-2">
         <span class="text-xs text-muted-foreground">{{ item.date }}</span>
@@ -26,6 +30,7 @@
 </template>
 
 <script setup lang="ts">
+import { Newspaper } from 'lucide-vue-next'
 import type { ChurchNewsItem } from '@/lib/index'
 
 defineProps<{

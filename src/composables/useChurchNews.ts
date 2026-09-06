@@ -60,7 +60,7 @@ async function load() {
   try {
     const [storageResult, contentResult] = await Promise.all([
       supabase.storage.from(BUCKET).list('', { limit: 200, sortBy: { column: 'name', order: 'asc' } }),
-      supabase.from('church_news_content').select('id, title, content'),
+      supabase.from('church_news_content').select('id, title, content, date'),
     ])
 
     if (storageResult.error) throw storageResult.error
@@ -79,23 +79,29 @@ async function load() {
     for (const base of Object.keys(groups)) {
       groups[base].sort()
     }
-    const contentMap: Record<string, { title?: string; content?: string }> = {}
-    for (const row of contentRows ?? []) contentMap[row.id] = { title: row.title, content: row.content }
+    const contentMap: Record<string, { title?: string; content?: string; date?: string }> = {}
+    for (const row of contentRows ?? []) contentMap[row.id] = { title: row.title, content: row.content, date: row.date }
+
+    // 이미지 없이 등록된 소식은 storage 에 파일이 없어 groups 에 안 잡힌다.
+    // DB 행의 id 도 함께 훑어야 목록에서 빠지지 않는다.
+    const ids = new Set([...Object.keys(groups), ...Object.keys(contentMap)])
 
     const result: ChurchNewsItem[] = []
-    for (const [base, files] of Object.entries(groups)) {
-      const match = base.match(/^(\d{4}-\d{2}-\d{2})_(.+)$/)
-      if (!match) continue
-      const [, date, titleSlug] = match
+    for (const id of ids) {
+      const files = groups[id] ?? []
+      const row = contentMap[id]
+      const match = id.match(/^(\d{4}-\d{2}-\d{2})_(.+)$/)
+      // DB 행도 없고 파일명도 형식을 모르면 무슨 항목인지 알 수 없어 건너뛴다.
+      if (!row && !match) continue
 
       result.push({
-        id: base,
-        title: contentMap[base]?.title ?? slugToTitle(titleSlug),
-        date,
+        id,
+        title: row?.title ?? (match ? slugToTitle(match[2]) : '제목 없음'),
+        date: row?.date ?? match?.[1] ?? '',
         files,
         thumbnail: '',
         images: [],
-        content: contentMap[base]?.content ?? null,
+        content: row?.content ?? null,
       })
     }
 

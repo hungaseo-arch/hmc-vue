@@ -23,22 +23,50 @@
           title="등록된 소식이 없습니다"
           description="새로운 교회 소식이 올라오면 이곳에 표시됩니다."
         />
-        <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div v-for="(item, i) in items" :key="item.id" class="relative">
-            <!-- NewsCard 자체가 RouterLink 다. 여기서 또 push 하면 같은 곳으로 두 번 간다. -->
-            <NewsCard
-              :item="item"
-              class="animate-fade-in-up"
-              :style="{ animationDelay: `${i * 0.07}s` }"
+        <!-- 게시판 형태의 목록. 포토앨범(그리드)과 달리 사진보다 글이 중심이라 한 줄씩 훑어보기 좋게. -->
+        <div v-else class="space-y-4">
+          <div
+            v-for="item in items"
+            :key="item.id"
+            class="relative flex items-center gap-4 bg-white rounded-2xl shadow-sm border border-border px-6 py-5 hover:shadow-md hover:border-primary/30 transition-all"
+          >
+            <img
+              v-if="item.thumbnail"
+              :src="item.thumbnail"
+              :alt="item.title"
+              width="64"
+              height="64"
+              loading="lazy"
+              decoding="async"
+              class="w-16 h-16 rounded-xl object-cover shrink-0"
             />
-            <button
-              v-if="isAdmin"
-              class="absolute top-2 right-2 z-10 p-1.5 bg-white/90 rounded-lg shadow hover:bg-white transition"
-              :aria-label="`${item.title} 수정`"
-              @click.stop="openEditModal(item)"
-            >
-              <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
-            </button>
+            <div v-else class="w-16 h-16 rounded-xl bg-muted flex items-center justify-center shrink-0">
+              <Newspaper class="w-6 h-6 text-muted-foreground" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-semibold truncate">
+                <RouterLink
+                  :to="`/community/news/${item.id}`"
+                  class="before:absolute before:inset-0 before:content-[''] before:rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >{{ item.title }}</RouterLink>
+              </h3>
+              <p v-if="item.content" class="text-sm text-muted-foreground line-clamp-1 leading-relaxed mt-1">{{ item.content }}</p>
+            </div>
+            <div class="flex flex-col items-end gap-2 shrink-0">
+              <span class="text-xs text-muted-foreground">{{ item.date }}</span>
+              <div class="flex items-center gap-1">
+                <!-- relative z-10: 카드를 덮는 링크(before) 위로 올려야 눌린다. -->
+                <button
+                  v-if="isAdmin"
+                  class="relative z-10 p-1.5 rounded-lg hover:bg-muted transition"
+                  :aria-label="`${item.title} 수정`"
+                  @click.stop="openEditModal(item)"
+                >
+                  <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
+                </button>
+                <ChevronRight class="w-4 h-4 text-muted-foreground" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -139,8 +167,8 @@
               <textarea id="churchnewspage-form-content" v-model="form.content" rows="5" placeholder="소식 내용을 입력하세요..." class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none" />
             </div>
             <div>
-              <label for="churchnewspage-field-2" class="block text-sm font-medium mb-1.5">이미지 파일</label>
-              <input id="churchnewspage-field-2" ref="fileInput" required type="file" multiple accept="image/*" class="w-full border border-border rounded-xl px-4 py-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition" />
+              <label for="churchnewspage-field-2" class="block text-sm font-medium mb-1.5">이미지 파일 (선택)</label>
+              <input id="churchnewspage-field-2" ref="fileInput" type="file" multiple accept="image/*" class="w-full border border-border rounded-xl px-4 py-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition" />
             </div>
             <p v-if="uploadProgress" class="text-sm text-muted-foreground">{{ uploadProgress }}</p>
             <p v-if="errorMsg" class="text-sm text-red-500">{{ errorMsg }}</p>
@@ -160,11 +188,10 @@
 <script setup lang="ts">
 import { errorMessage } from '@/lib/errors'
 import { ref } from 'vue'
-import { Plus, Pencil, Newspaper } from 'lucide-vue-next'
+import { Plus, Pencil, Newspaper, ChevronRight } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import EmptyState from '@/components/EmptyState.vue'
-import NewsCard from '@/components/NewsCard.vue'
 import { useChurchNews } from '@/composables/useChurchNews'
 import { useAuth } from '@/composables/useAuth'
 import { useEscapeToClose } from '@/composables/useEscapeToClose'
@@ -271,27 +298,29 @@ function closeModal() {
 
 async function handleSubmit() {
   const files = fileInput.value?.files
-  if (!files || files.length === 0) { errorMsg.value = '파일을 선택해주세요.'; return }
 
   saving.value = true
   errorMsg.value = ''
   try {
     const base = `${form.value.date}_${Date.now()}`
-    // 올리기 전에 브라우저에서 300 KB 아래로 줄인다. imageCompress 설명 참고.
-    const ready = await compressImages(files, (d, t) => {
-      uploadProgress.value = `이미지 줄이는 중... (${d}/${t})`
-    })
-    const summary = sizeSummary(files, ready)
-    for (let i = 0; i < ready.length; i++) {
-      const ext = ready[i].name.split('.').pop()
-      const p = String(i + 1).padStart(2, '0')
-      uploadProgress.value = `업로드 중... (${i + 1}/${ready.length})${summary}`
-      const { error: err } = await supabase.storage.from('churchNews').upload(`${base}_p${p}.${ext}`, ready[i], { upsert: true })
-      if (err) throw err
+    if (files && files.length > 0) {
+      // 올리기 전에 브라우저에서 300 KB 아래로 줄인다. imageCompress 설명 참고.
+      const ready = await compressImages(files, (d, t) => {
+        uploadProgress.value = `이미지 줄이는 중... (${d}/${t})`
+      })
+      const summary = sizeSummary(files, ready)
+      for (let i = 0; i < ready.length; i++) {
+        const ext = ready[i].name.split('.').pop()
+        const p = String(i + 1).padStart(2, '0')
+        uploadProgress.value = `업로드 중... (${i + 1}/${ready.length})${summary}`
+        const { error: err } = await supabase.storage.from('churchNews').upload(`${base}_p${p}.${ext}`, ready[i], { upsert: true })
+        if (err) throw err
+      }
     }
     await mustAffectRows('소식 등록',
       supabase.from('church_news_content').upsert({
         id: base,
+        date: form.value.date,
         title: form.value.title.trim(),
         content: form.value.content.trim() || null,
       }).select('id'))
