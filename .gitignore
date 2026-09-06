@@ -4,3 +4,6 @@ dist/
 .env.local
 .env.*.local
 .DS_Store
+
+# 동기화 도구(아이클라우드 등)가 충돌 시 만드는 사본
+package-lock [0-9]*.json
