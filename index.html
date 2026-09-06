@@ -19,13 +19,13 @@
     <meta property="og:site_name" content="자카르타 한마음교회" />
     <meta property="og:locale" content="ko_KR" />
     <meta property="og:title" content="자카르타 한마음교회 (Jakarta Hanmaeum Church)" />
-    <meta property="og:description" content="인도네시아 자카르타에서 삼위일체 하나님을 예배하는 공동체" />
+    <meta property="og:description" content="인도네시아 자카르타 한마음교회 공식 홈페이지 - 삼위일체 하나님을 예배하고, 기도하며, 말씀을 배우고 행하는 공동체" />
     <meta property="og:url" content="%SITE_URL%/" />
     <meta property="og:image" content="%SITE_URL%/logo_hmc.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="자카르타 한마음교회 (Jakarta Hanmaeum Church)" />
-    <meta name="twitter:description" content="인도네시아 자카르타에서 삼위일체 하나님을 예배하는 공동체" />
+    <meta name="twitter:description" content="인도네시아 자카르타 한마음교회 공식 홈페이지 - 삼위일체 하나님을 예배하고, 기도하며, 말씀을 배우고 행하는 공동체" />
     <meta name="twitter:image" content="%SITE_URL%/logo_hmc.png" />
 
     <script type="application/ld+json">
@@ -51,7 +51,10 @@
     </script>
 
     <!--
-      Google Fonts. 이 <link> 는 렌더를 막으므로 크기가 그대로 첫 화면 지연이 된다.
+      Google Fonts. media="print" 로 받아 렌더를 막지 않고, 다 받으면 onload 로
+      all 로 바꿔 적용한다. 그 사이엔 --font-sans 의 시스템 글꼴이 보인다.
+      JS 가 꺼진 환경은 아래 noscript 가 받는다.
+      스타일시트 크기는 그대로 다운로드 시간이므로 여전히 작게 유지한다.
       한글 폰트는 유니코드 구간별로 쪼개져 있어 굵기 하나가 곧 @font-face 124개다.
       그래서 굵기를 낱개(400;500;600;700)로 받지 않고 가변축(400..700)으로 받는다.
       구간당 파일 하나로 400~700 전 굵기가 해결된다.
@@ -66,7 +69,15 @@
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400..700&family=Noto+Serif+KR:wght@600..700&display=swap"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400..700&family=Noto+Serif+KR:wght@600..700&display=swap"
+      />
+    </noscript>
   </head>
   <body>
     <div id="app"></div>

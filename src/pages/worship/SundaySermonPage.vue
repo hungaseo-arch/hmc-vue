@@ -215,6 +215,7 @@ import { mustAffectRows } from '@/lib/db'
 import { useAuth } from '@/composables/useAuth'
 import { useEscapeToClose } from '@/composables/useEscapeToClose'
 import { useSermons } from '@/composables/useSermons'
+import { usePageQuery } from '@/composables/usePageQuery'
 import type { SermonItem } from '@/lib/index'
 
 const router = useRouter()
@@ -240,7 +241,7 @@ const sortedSermons = computed(() =>
 
 // 페이지네이션 (전체가 gzip 6.7KB 라 한 번 받아 클라이언트에서 나눈다)
 const pageSize = 10
-const currentPage = ref(1)
+const currentPage = usePageQuery()
 const totalPages = computed(() => Math.max(1, Math.ceil(sortedSermons.value.length / pageSize)))
 const pagedSermons = computed(() =>
   sortedSermons.value.slice((currentPage.value - 1) * pageSize, currentPage.value * pageSize)

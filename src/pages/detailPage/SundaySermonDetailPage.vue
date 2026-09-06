@@ -7,7 +7,7 @@
         <!-- 뒤로가기 -->
         <button
           class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
-          @click="router.back()"
+          @click="goBack()"
         >
           <ChevronLeft class="w-4 h-4" />
           설교 목록으로
@@ -54,6 +54,8 @@
                 <iframe
                   :src="embedUrl"
                   class="absolute inset-0 w-full h-full rounded-xl"
+                  loading="lazy"
+                  referrerpolicy="strict-origin-when-cross-origin"
                   frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowfullscreen
@@ -106,17 +108,18 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
+import { useBackTo } from '@/composables/useBackTo'
 import { ChevronLeft, BookOpen, User, BookMarked, Calendar, PlayCircle } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { supabase } from '@/lib/supabase'
 import { resolveScripture, loadBook } from '@/lib/bible'
 import { setMeta } from '@/lib/seo'
-import { formatPreacher } from '@/lib/index'
+import { ROUTE_PATHS, formatPreacher } from '@/lib/index'
 import type { SermonItem } from '@/lib/index'
 
-const router = useRouter()
+const goBack = useBackTo(ROUTE_PATHS.SUNDAY_SERMON)
 const route = useRoute()
 
 const sermon = ref<SermonItem | null>(null)
@@ -170,7 +173,7 @@ const embedUrl = computed(() => {
     return null
   }
 
-  return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+  return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}` : null
 })
 
 // scripture 파싱 → 구절 배열 반환

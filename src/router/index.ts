@@ -68,10 +68,14 @@ const router = createRouter({
     // 404
     { path: '/:pathMatch(.*)*', component: () => import('@/pages/NotFoundPage.vue'), meta: { title: '페이지를 찾을 수 없습니다', noindex: true } },
   ],
-  scrollBehavior() {
+  scrollBehavior(to, _from, savedPosition) {
+    // 뒤로/앞으로 가기는 보던 자리로 돌려준다.
+    if (savedPosition) return savedPosition
     // 움직임 최소화를 켠 사용자에게는 부드러운 스크롤도 끈다.
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    return { top: 0, behavior: reduce ? 'auto' : 'smooth' }
+    const behavior = reduce ? 'auto' : 'smooth'
+    if (to.hash) return { el: to.hash, behavior }
+    return { top: 0, behavior }
   },
 })
 

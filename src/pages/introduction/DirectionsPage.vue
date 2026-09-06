@@ -44,19 +44,19 @@
 import { MapPin, Phone } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import { CHURCH } from '@/data/church'
 
 const locationInfo = [
   {
     icon: MapPin,
     label: '주소',
-    // <br/> 와 &amp; 대신 줄바꿈과 & 를 그대로 쓴다. 화면에서는
-    // whitespace-pre-line 이 줄을 나눠 준다. v-html 을 쓸 이유가 없어진다.
-    content: 'Pengelola Darmawangsa Square - The City Walk Lt. 1 Lot. 1 Area A\nJl. Darmawangsa VI & IX Jakarta 12160, Indonesia',
+    // 화면에서는 whitespace-pre-line 이 줄을 나눠 준다.
+    content: CHURCH.addressLines.join('\n'),
   },
   {
     icon: Phone,
     label: '전화',
-    content: '021-739-5035',
+    content: CHURCH.phone,
   },
 ]
 </script>

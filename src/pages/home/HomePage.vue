@@ -168,8 +168,7 @@
                 <MapPin class="w-5 h-5 mt-0.5 text-primary-foreground shrink-0" />
                 <div>
                   <p class="font-medium text-primary-foreground">주소</p>
-                  <p class="text-sm mt-1">Pengelola Darmawangsa Square - The City Walk Lt. 1 Lot. 1 Area A</p>
-                  <p class="text-sm">Jl. Darmawangsa VI &amp; IX Jakarta 12160, Indonesia</p>
+                  <p v-for="line in CHURCH.addressLines" :key="line" class="text-sm first:mt-1">{{ line }}</p>
                 </div>
               </div>
             </div>
@@ -217,24 +216,26 @@
             전체 보기 →
           </RouterLink>
         </div>
-        <div v-if="isLoggedIn" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div v-if="isApproved" class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <NewsCard
             v-for="item in newsItems"
             :key="item.id"
             :item="item"
           />
         </div>
-        <!-- 교회소식은 성도 전용이다. 비로그인 상태에서는 아예 요청하지 않는다. -->
+        <!-- 교회소식은 승인된 성도 전용이다. 그 전에는 아예 요청하지 않는다. -->
         <div
           v-else
           class="rounded-2xl border border-dashed border-border bg-muted/30 px-8 py-14 text-center"
         >
-          <p class="text-muted-foreground mb-4">교회소식은 성도님께만 공개됩니다.</p>
+          <p class="text-muted-foreground mb-4">
+            {{ isLoggedIn ? '교회소식은 승인이 끝난 뒤 볼 수 있습니다.' : '교회소식은 성도님께만 공개됩니다.' }}
+          </p>
           <RouterLink
-            :to="ROUTE_PATHS.LOGIN"
+            :to="isLoggedIn ? ROUTE_PATHS.PENDING : ROUTE_PATHS.LOGIN"
             class="inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            로그인하고 보기
+            {{ isLoggedIn ? '승인 상태 확인' : '로그인하고 보기' }}
           </RouterLink>
         </div>
       </div>
@@ -276,6 +277,7 @@ import SermonCard from '@/components/SermonCard.vue'
 import NewsCard from '@/components/NewsCard.vue'
 import { ROUTE_PATHS } from '@/lib/index'
 import { worshipSchedules } from '@/data/index'
+import { CHURCH } from '@/data/church'
 import { useChurchNews } from '@/composables/useChurchNews'
 import { useSermons } from '@/composables/useSermons'
 import { useAuth } from '@/composables/useAuth'
@@ -350,15 +352,15 @@ function startAuto() {
 function pauseAuto() { clearInterval(timer) }
 function resumeAuto() { startAuto() }
 
-const { isLoggedIn } = useAuth()
+const { isLoggedIn, isApproved } = useAuth()
 // 설교 목록 페이지와 같은 캐시. 어느 쪽을 먼저 열든 요청은 한 번이다.
 const { recent: recentSermons, fetchSermons } = useSermons()
 const thisWeekSermon = computed(() => recentSermons.value[0] ?? null)
 const { items: newsAll, fetchNews } = useChurchNews()
 const newsItems = computed(() => newsAll.value.slice(0, 3))
 
-// 로그인 상태에서만 요청한다. 홈에 머문 채 로그인한 경우도 곧바로 채워진다.
-watch(isLoggedIn, v => { if (v) fetchNews() }, { immediate: true })
+// 승인된 상태에서만 요청한다. 홈에 머문 채 로그인한 경우도 곧바로 채워진다.
+watch(isApproved, v => { if (v) fetchNews() }, { immediate: true })
 
 onMounted(() => {
   startAuto()

@@ -7,7 +7,7 @@
         <!-- 뒤로가기 -->
         <button
           class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
-          @click="router.back()"
+          @click="goBack()"
         >
           <ChevronLeft class="w-4 h-4" />
           칼럼 목록으로
@@ -60,7 +60,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
+import { useBackTo } from '@/composables/useBackTo'
+import { ROUTE_PATHS } from '@/lib/index'
 import { ChevronLeft, BookOpen, Calendar } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -68,7 +70,7 @@ import { supabase } from '@/lib/supabase'
 import { setMeta } from '@/lib/seo'
 import type { PastoralColumnItem } from '@/lib/index'
 
-const router = useRouter()
+const goBack = useBackTo(ROUTE_PATHS.PASTORAL_COLUMN)
 const route = useRoute()
 
 const column = ref<PastoralColumnItem | null>(null)

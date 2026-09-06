@@ -42,7 +42,7 @@
           </div>
           <p class="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{{ address }}</p>
           <p class="text-sm text-muted-foreground mt-2">
-            <a href="tel:+62217395035" class="hover:text-primary transition-colors">021-739-5035</a>
+            <a :href="`tel:${CHURCH.phoneTel}`" class="hover:text-primary transition-colors">{{ CHURCH.phone }}</a>
           </p>
         </div>
 
@@ -90,10 +90,11 @@ import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { ROUTE_PATHS } from '@/lib/index'
 import { worshipSchedules } from '@/data/index'
+import { CHURCH } from '@/data/church'
 
 const mainSchedules = computed(() => worshipSchedules.slice(0, 4))
 
-const address = 'Pengelola Darmawangsa Square - The City Walk Lt. 1 Lot. 1 Area A\nJl. Darmawangsa VI & IX Jakarta 12160, Indonesia'
+const address = CHURCH.addressLines.join('\n')
 
 const faqs = [
   { q: '주차는 가능한가요?', a: 'Darmawangsa Square 건물 내 주차장을 이용하실 수 있습니다. 예배 시간에는 안내 인원이 배치되어 있으니 어려움이 있으시면 문의해 주세요.' },

@@ -6,7 +6,7 @@
 
         <button
           class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
-          @click="router.back()"
+          @click="goBack()"
         >
           <ChevronLeft class="w-4 h-4" />
           앨범 목록으로
@@ -61,7 +61,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
+import { useBackTo } from '@/composables/useBackTo'
+import { ROUTE_PATHS } from '@/lib/index'
 import { ChevronLeft, Calendar, Image as ImageIcon } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -71,7 +73,7 @@ import { useImageRatio } from '@/composables/useImageRatio'
 // 행사 사진은 가로가 많다. 세로 사진은 첫 방문에만 좌우 여백이 생긴다.
 const { boxStyle, remember } = useImageRatio(4 / 3)
 
-const router = useRouter()
+const goBack = useBackTo(ROUTE_PATHS.PHOTO_ALBUM)
 const route = useRoute()
 const { items, loading, fetchAlbums } = usePhotoAlbum()
 

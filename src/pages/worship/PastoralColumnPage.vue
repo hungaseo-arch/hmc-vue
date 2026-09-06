@@ -169,6 +169,7 @@ import { mustAffectRows } from '@/lib/db'
 import { useAuth } from '@/composables/useAuth'
 import { useEscapeToClose } from '@/composables/useEscapeToClose'
 import { usePastoralColumns, PAGE_SIZE } from '@/composables/usePastoralColumns'
+import { usePageQuery } from '@/composables/usePageQuery'
 import type { PastoralColumnListItem } from '@/lib/index'
 
 const { isAdmin } = useAuth()
@@ -178,7 +179,7 @@ const {
   fetchPage, invalidate, fetchContent,
 } = usePastoralColumns()
 
-const currentPage = ref(1)
+const currentPage = usePageQuery()
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
 
 watch(currentPage, page => { void fetchPage(page) }, { immediate: true })

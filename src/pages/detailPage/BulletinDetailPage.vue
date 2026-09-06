@@ -6,7 +6,7 @@
 
         <button
           class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
-          @click="router.back()"
+          @click="goBack()"
         >
           <ChevronLeft class="w-4 h-4" />
           주보 목록으로
@@ -62,7 +62,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
+import { useBackTo } from '@/composables/useBackTo'
+import { ROUTE_PATHS } from '@/lib/index'
 import { ChevronLeft, FileText } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -83,7 +85,7 @@ function onLoad(url: string, e: Event) {
   loadedUrls.value = new Set(loadedUrls.value)
 }
 
-const router = useRouter()
+const goBack = useBackTo(ROUTE_PATHS.BULLETIN)
 const route = useRoute()
 
 const pages = ref<string[]>([])
