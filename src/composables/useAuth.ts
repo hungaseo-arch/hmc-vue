@@ -68,16 +68,33 @@ let profileUid: string | null = null
 let profileInFlight: Promise<void> | null = null
 
 function fetchProfile(uid: string): Promise<void> {
+  // 다른 사람으로 바뀌는 중이면 앞사람 정보를 먼저 지운다. 아래에서 조회가
+  // 실패해도 앞사람의 등급이 남아 있지 않게.
+  if (profileUid !== uid) profile.value = null
   profileUid = uid
   const p = (async () => {
-    const { data } = await supabase
+    // maybeSingle: 행이 없으면 오류가 아니라 data=null 로 온다. single() 은
+    // 그 경우도 오류(PGRST116)로 돌려주기 때문에 아래에서 '통신 실패' 와
+    // '가입 직후라 아직 행이 없음' 을 구분할 수 없다.
+    const { data, error } = await supabase
       .from('profiles')
       .select(PROFILE_COLUMNS)
       .eq('id', uid)
-      .single()
+      .maybeSingle()
     // 그 사이 다른 사람으로 바뀌었다면 늦게 도착한 응답은 버린다.
     // 앞사람의 등급이 뒷사람에게 붙는 사고를 막는다.
     if (profileUid !== uid) return
+    /*
+      조회 자체가 실패한 것과 '행이 없다'는 것은 다르다. 통신이 잠깐 끊겼을 때
+      null 로 덮어쓰면 등급이 0 으로 떨어지고, 승인된 교인이 승인 대기 화면으로
+      밀려난다. 인도네시아 모바일 회선에서 실제로 일어날 수 있는 일이다.
+      그래서 실패는 기록만 하고 마지막으로 알던 값을 그대로 둔다 — 화면만
+      유지될 뿐, 실제 데이터는 RLS 가 막으므로 등급을 부풀리지 못한다.
+    */
+    if (error) {
+      console.warn('[프로필] 조회 실패:', error.message)
+      return
+    }
     profile.value = (data as Profile | null) ?? null
   })()
   profileInFlight = p
