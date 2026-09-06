@@ -1,6 +1,6 @@
 <template>
   <TheLayout>
-    <PageHeader title="교회소식" subtitle="한마음교회의 새로운 소식을 전합니다" />
+    <PageHeader as="p" title="교회소식" subtitle="한마음교회의 새로운 소식을 전합니다" />
     <section class="py-16">
       <div class="container mx-auto px-4 max-w-3xl">
 

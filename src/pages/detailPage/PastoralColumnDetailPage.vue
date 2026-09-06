@@ -1,6 +1,6 @@
 <template>
   <TheLayout>
-    <PageHeader title="목회칼럼" subtitle="담임목사의 목회칼럼을 나눕니다" />
+    <PageHeader as="p" title="목회칼럼" subtitle="담임목사의 목회칼럼을 나눕니다" />
     <section class="py-16">
       <div class="container mx-auto px-4 max-w-3xl">
 

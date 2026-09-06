@@ -6,15 +6,20 @@
         <div class="grid md:grid-cols-2 gap-10 items-start mb-10">
           <!-- Left column -->
           <div class="animate-fade-in-up">
+            <!--
+              사진 주소가 죽으면 깨진 이미지 자리만 남는다. 그럴 바에는
+              자리를 통째로 접는 편이 낫다 — 아래 소개 글이 그대로 올라온다.
+            -->
             <img
-              v-if="image"
+              v-if="image && !imageFailed"
               :src="image"
-              :alt="name"
+              :alt="`한마음교회 ${name}`"
               class="w-full h-56 object-cover rounded-2xl shadow-sm mb-6"
               loading="lazy"
+              @error="imageFailed = true"
             />
             <div class="bg-white rounded-2xl border border-border p-6 shadow-sm">
-              <h3 class="font-bold text-lg mb-4">안녕하세요? 한마음교회 {{ name }}입니다.</h3>
+              <h2 class="font-bold text-lg mb-4">안녕하세요? 한마음교회 {{ name }}입니다.</h2>
               <p class="text-muted-foreground leading-loose text-sm">{{ description }}</p>
               <div v-if="verse" class="mt-5 p-4 rounded-xl bg-muted/50 border-l-4 border-primary">
                 <p class="text-sm font-medium leading-relaxed">{{ verse }}</p>
@@ -30,10 +35,10 @@
                 :key="i"
                 class="bg-white rounded-2xl border border-border p-6 shadow-sm"
               >
-                <h3 class="font-bold mb-3 flex items-center gap-2">
+                <h2 class="font-bold mb-3 flex items-center gap-2">
                   <span :class="['w-2 h-2 rounded-full', accentColor ?? 'bg-primary']" />
                   {{ section.label }}
-                </h3>
+                </h2>
                 <ul class="space-y-2 px-2.5">
                   <li
                     v-for="(item, j) in section.items"
@@ -54,8 +59,11 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
+
+const imageFailed = ref(false)
 
 withDefaults(defineProps<{
   name: string

@@ -1,6 +1,6 @@
 <template>
   <TheLayout>
-    <PageHeader title="포토앨범" subtitle="한마음교회의 소중한 순간들을 담았습니다" />
+    <PageHeader as="p" title="포토앨범" subtitle="한마음교회의 소중한 순간들을 담았습니다" />
     <section class="py-16">
       <div class="container mx-auto px-4 max-w-4xl">
 
@@ -17,7 +17,8 @@
 
         <div v-else>
           <div class="bg-white rounded-2xl shadow-sm border border-border px-8 py-7 mb-6">
-            <h1 v-if="album.title" class="text-xl font-semibold text-foreground mb-3">{{ album.title }}</h1>
+            <!-- 제목이 비어 있는 앨범도 있다. 그때는 날짜가 이 페이지의 제목이다. -->
+            <h1 class="text-xl font-semibold text-foreground mb-3">{{ album.title || `${album.date} 사진` }}</h1>
             <div class="flex items-center gap-3 text-sm text-muted-foreground">
               <span class="flex items-center gap-1">
                 <Calendar class="w-4 h-4" />
