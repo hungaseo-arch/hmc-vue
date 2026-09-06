@@ -59,11 +59,12 @@ async function load() {
   error.value = null
   try {
     const [storageResult, contentResult] = await Promise.all([
-      supabase.storage.from(BUCKET).list('', { limit: 200, sortBy: { column: 'name', order: 'asc' } }),
+      supabase.storage.from(BUCKET).list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } }),
       supabase.from('church_news_content').select('id, title, content, date'),
     ])
 
     if (storageResult.error) throw storageResult.error
+    if (contentResult.error) throw contentResult.error
     const data = storageResult.data
     const contentRows = contentResult.data
 

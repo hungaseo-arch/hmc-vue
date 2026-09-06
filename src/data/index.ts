@@ -1,4 +1,4 @@
-import type { HistoryItem, WorshipSchedule, WorshipVideo, MissionNews, NewsItem, PhotoAlbum } from '@/lib/index'
+import type { HistoryItem, WorshipSchedule, WorshipVideo, MissionNews } from '@/lib/index'
 
 export const historyData: HistoryItem[] = [
   { year: 2018, events: ['01.07 백광호 목사 부임'] },
@@ -120,40 +120,4 @@ export const missionNewsList: MissionNews[] = [
       '한국에 있는 아이들(소망, 요새)을 주님이 잘 양육해 주시고, 막내 산성이도 이곳에서 언어와 환경에 잘 적응하도록',
     ],
   },
-]
-
-export const newsItems: NewsItem[] = [
-  {
-    id: 1,
-    title: '2026년 부활절 연합예배 안내',
-    category: '예배',
-    date: '2026-03-20',
-    summary: '오는 4월 5일 부활절을 맞이하여 자카르타 한인교회들과 연합예배를 드립니다.',
-    image: 'https://images.unsplash.com/photo-1769755410067-a1ea14b0602a?w=800&q=80',
-  },
-  {
-    id: 2,
-    title: '새가족 성경공부 모집 안내',
-    category: '교육',
-    date: '2026-03-15',
-    summary: '4월부터 시작되는 새가족 성경공부 참가자를 모집합니다. 4주 과정입니다.',
-    image: 'https://images.unsplash.com/photo-1702905709201-0950a1a3190f?w=800&q=80',
-  },
-  {
-    id: 3,
-    title: '청년부 인니 진출 세미나',
-    category: '청년부',
-    date: '2026-03-10',
-    summary: '인도네시아 사업 진출을 꿈꾸는 청년들을 위한 실질적인 정보와 네트워킹의 자리입니다.',
-    image: 'https://images.unsplash.com/photo-1547434019-d330eff46f59?w=800&q=80',
-  },
-]
-
-export const photoAlbums: PhotoAlbum[] = [
-  { id: 1, title: '2026년 부활절 예배', date: '2026-04-05', count: 24, thumbnail: 'https://images.unsplash.com/photo-1769755410067-a1ea14b0602a?w=400&q=80' },
-  { id: 2, title: '새가족 환영회', date: '2026-03-01', count: 18, thumbnail: 'https://images.unsplash.com/photo-1547434019-d330eff46f59?w=400&q=80' },
-  { id: 3, title: 'J-Kids 어린이 예배', date: '2026-02-20', count: 32, thumbnail: 'https://images.unsplash.com/photo-1702905709201-0950a1a3190f?w=400&q=80' },
-  { id: 4, title: '청년부 수련회', date: '2026-01-25', count: 45, thumbnail: 'https://images.unsplash.com/photo-1726679402113-beb32b857a59?w=400&q=80' },
-  { id: 5, title: '2025 송년예배', date: '2025-12-28', count: 28, thumbnail: 'https://images.unsplash.com/photo-1759592702518-b0393a8f7eed?w=400&q=80' },
-  { id: 6, title: '한마음 대잔치', date: '2025-11-10', count: 56, thumbnail: 'https://images.unsplash.com/photo-1769755411779-e4c43e7b7742?w=400&q=80' },
 ]

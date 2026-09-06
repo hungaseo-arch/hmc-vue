@@ -17,12 +17,12 @@ const fullFmt = new Intl.DateTimeFormat('ko-KR', {
   timeZone: TZ,
   year: 'numeric', month: '2-digit', day: '2-digit',
   hour: '2-digit', minute: '2-digit', second: '2-digit',
-  hour12: false,
+  hourCycle: 'h23',
 })
 
 /** 8. 10. 14:33 — 곁들이는 정보라 짧게. */
 const shortFmt = new Intl.DateTimeFormat('ko-KR', {
-  timeZone: TZ, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
+  timeZone: TZ, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
 })
 
 /** 2026년 8월 10일 오후 02:33 — 사람이 읽는 명부용. */

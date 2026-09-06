@@ -138,6 +138,7 @@ async function load() {
       ])
 
       if (storageResult.error) throw storageResult.error
+      if (metaResult.error) throw metaResult.error
       const data = storageResult.data
       const metaRows = metaResult.data
 

@@ -320,9 +320,10 @@ async function handleDelete(date: string) {
   if (!group) return
   if (!confirm(`${group.label} 주보를 삭제하시겠습니까?`)) return
   try {
-    const { data: files } = await supabase.storage
+    const { data: files, error: listErr } = await supabase.storage
       .from(BUCKET)
       .list('', { limit: 1000, search: `${date}-` })
+    if (listErr) throw listErr
     const targets = (files ?? []).filter(f => f.name.startsWith(`${date}-`)).map(f => f.name)
     await mustRemoveFiles('주보 삭제', BUCKET, targets)
     // 삭제가 실제로 성공한 뒤에 목록에서 제거한다.
@@ -360,19 +361,21 @@ async function handleReplace() {
   replaceSaving.value = true
   replaceErrorMsg.value = ''
   try {
-    // 기존 파일 삭제 — 실패하면 여기서 멈춘다. 예전에는 조용히 무시하고
-    // 업로드로 넘어가 "이미 존재함" 오류가 나던 자리다.
-    const { data: existing } = await supabase.storage
-      .from(BUCKET)
-      .list('', { limit: 1000, search: `${replacingDate.value}-` })
-    const targets = (existing ?? []).filter(f => f.name.startsWith(`${replacingDate.value}-`)).map(f => f.name)
-    replaceProgress.value = '기존 파일 삭제 중...'
-    await mustRemoveFiles('주보 삭제', BUCKET, targets)
-    // 새 파일 업로드. 올리기 전에 300 KB 아래로 줄인다. PDF 는 그대로 지나간다.
+    // 새 파일을 먼저 준비한다(300 KB 아래로 줄이기, PDF 는 그대로). 여기서
+    // 실패하면 기존 주보는 손대지 않은 채 남는다.
     const ready = await compressImages(files, (d, t) => {
       replaceProgress.value = `파일 줄이는 중... (${d}/${t})`
     })
     const summary = sizeSummary(files, ready)
+    // 기존 파일 삭제 — 실패하면 여기서 멈춘다. 예전에는 조용히 무시하고
+    // 업로드로 넘어가 "이미 존재함" 오류가 나던 자리다.
+    const { data: existing, error: listErr } = await supabase.storage
+      .from(BUCKET)
+      .list('', { limit: 1000, search: `${replacingDate.value}-` })
+    if (listErr) throw listErr
+    const targets = (existing ?? []).filter(f => f.name.startsWith(`${replacingDate.value}-`)).map(f => f.name)
+    replaceProgress.value = '기존 파일 삭제 중...'
+    await mustRemoveFiles('주보 삭제', BUCKET, targets)
     for (let i = 0; i < ready.length; i++) {
       const ext = ready[i].name.split('.').pop()
       const p = String(i + 1).padStart(2, '0')

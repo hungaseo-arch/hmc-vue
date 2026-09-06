@@ -196,6 +196,7 @@ import { useChurchNews } from '@/composables/useChurchNews'
 import { useAuth } from '@/composables/useAuth'
 import { useEscapeToClose } from '@/composables/useEscapeToClose'
 import { supabase } from '@/lib/supabase'
+import { nextPageNo } from '@/lib/index'
 import { mustAffectRows, mustRemoveFiles } from '@/lib/db'
 import { compressImages, sizeSummary } from '@/lib/imageCompress'
 
@@ -254,7 +255,7 @@ async function handleEditSubmit() {
         editProgress.value = `이미지 줄이는 중... (${d}/${t})`
       })
       const summary = sizeSummary(newFiles, ready)
-      const startPage = editImages.value.length + 1
+      const startPage = nextPageNo(editImages.value.map(img => img.path))
       for (let i = 0; i < ready.length; i++) {
         const ext = ready[i].name.split('.').pop()
         const p = String(startPage + i).padStart(2, '0')

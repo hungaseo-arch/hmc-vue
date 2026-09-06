@@ -167,15 +167,6 @@ export interface MissionNews {
   prayers?: string[]
 }
 
-export interface NewsItem {
-  id: number
-  title: string
-  category: string
-  date: string
-  summary: string
-  image: string
-}
-
 export interface ChurchNewsItem {
   id: string        // slug: '2024-09-01_999-prayer-campaign'
   title: string
@@ -196,17 +187,17 @@ export interface PhotoAlbumItem {
   count: number
 }
 
-export interface WeeklyBulletinItem {
-  id: number
-  title: string
-  image_url: string
-  created_at: string
-}
 
-export interface PhotoAlbum {
-  id: number
-  title: string
-  date: string
-  count: number
-  thumbnail: string
+/**
+ * 새 이미지에 줄 다음 페이지 번호. 기존 경로의 _pNN 중 최댓값 + 1.
+ * 개수 + 1 로 하면 중간이 지워진 뒤(예: p01, p02, p04) 새 파일이 p04 를
+ * 덮어쓴다.
+ */
+export function nextPageNo(paths: readonly string[]): number {
+  let max = 0
+  for (const path of paths) {
+    const n = Number(/[_-]p(\d+)\.[^.]+$/.exec(path)?.[1] ?? 0)
+    if (n > max) max = n
+  }
+  return max + 1
 }
