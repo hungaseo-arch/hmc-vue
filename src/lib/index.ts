@@ -125,12 +125,6 @@ export interface HistoryItem {
   events: string[]
 }
 
-export interface StaffMember {
-  name: string
-  role: string
-  image?: string
-}
-
 export interface WorshipSchedule {
   name: string
   time: string

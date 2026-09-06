@@ -1,11 +1,4 @@
-import type { SermonItem, HistoryItem, StaffMember, WorshipSchedule, WorshipVideo, MissionNews, NewsItem, PhotoAlbum } from '@/lib/index'
-
-// HomePage 미리보기용 (최근 3개) — 추후 Supabase로 교체 예정
-export const sermons: SermonItem[] = [
-  { id: 8, title: '하늘에서 듣고 땅을 고치시라', scripture: '역대하 7:14-16', preacher: '고형돈 목사', date: '2026-03-15' },
-  { id: 7, title: '여호와께 바라는 한가지 일', scripture: '시편 27:4-6', preacher: '고형돈 목사', date: '2026-03-08' },
-  { id: 6, title: '주안에 뿌리내리고', scripture: '요한복음 15:1-5', preacher: '고형돈 목사', date: '2026-03-01' },
-]
+import type { HistoryItem, WorshipSchedule, WorshipVideo, MissionNews, NewsItem, PhotoAlbum } from '@/lib/index'
 
 export const historyData: HistoryItem[] = [
   { year: 2018, events: ['01.07 백광호 목사 부임'] },
@@ -27,11 +20,9 @@ export const historyData: HistoryItem[] = [
   { year: 2002, events: ['11.03 선교회 구성', '10.20 교회 연합 결정 및 목사 부임', '06.30 첫 예배'] },
 ]
 
-export const staffMembers: StaffMember[] = [
-  { name: '고형돈', role: '담임목사' },
-  { name: '강준원', role: '부목사' },
-  { name: '현명해', role: '전도사' },
-]
+// 섬기는 사람들(이름·직함·사진·연락처)은 public.staff / staff_contacts 로
+// 옮겼다 — useStaff 참고. 여기 하드코딩해두면 로그인 여부와 무관하게
+// 번들 JS 에 연락처가 그대로 담겨 나간다.
 
 export const worshipSchedules: WorshipSchedule[] = [
   { name: '주일 1부 예배', time: '주일 오전 9:00', location: '예배당' },
