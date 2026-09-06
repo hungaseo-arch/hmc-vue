@@ -3,8 +3,8 @@
     <div class="bg-white rounded-2xl shadow-sm border border-border w-full max-w-md p-6 sm:p-8">
       <div class="text-center mb-8">
         <img src="/logo_hmc.webp" alt="한마음교회" width="320" height="122" class="h-16 w-auto mx-auto mb-5 object-contain" />
-        <h1 class="text-[24px] font-bold text-foreground">로그인</h1>
-        <p class="mt-3 text-[18px] leading-relaxed text-muted-foreground">
+        <h1 class="text-xl font-bold text-foreground">로그인</h1>
+        <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
           교인 전용 자료를 보시려면<br />로그인이 필요합니다.
         </p>
       </div>
@@ -13,7 +13,7 @@
       <p
         v-if="errorMsg"
         role="alert"
-        class="mb-5 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-[18px] leading-relaxed text-red-700"
+        class="mb-5 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm leading-relaxed text-red-700"
       >
         {{ errorMsg }}
       </p>
@@ -36,9 +36,9 @@
         <input
           v-model="rememberMe"
           type="checkbox"
-          class="mt-1 h-6 w-6 shrink-0 rounded border-border accent-primary"
+          class="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-primary"
         />
-        <span class="text-[18px] leading-relaxed text-foreground">
+        <span class="text-sm leading-relaxed text-foreground">
           이 기기는 제 것입니다
           <span class="block text-muted-foreground">
             {{ rememberMe
@@ -51,17 +51,17 @@
       <button
         type="button"
         :disabled="kakaoBusy"
-        class="w-full min-h-16 rounded-xl flex items-center justify-center gap-3 text-[20px] font-semibold transition hover:brightness-95 disabled:opacity-60 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
+        class="w-full py-2.5 rounded-xl flex items-center justify-center gap-3 text-base font-semibold transition hover:brightness-95 disabled:opacity-60 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
         style="background-color: #FEE500; color: rgba(0, 0, 0, 0.85)"
         @click="handleKakao"
       >
-        <svg viewBox="0 0 24 24" class="h-7 w-7 shrink-0" fill="currentColor" aria-hidden="true">
+        <svg viewBox="0 0 24 24" class="h-5 w-5 shrink-0" fill="currentColor" aria-hidden="true">
           <path d="M12 3C6.477 3 2 6.463 2 10.735c0 2.756 1.86 5.174 4.653 6.545-.153.55-.986 3.542-1.016 3.777 0 0-.02.17.09.235.11.065.24.015.24.015.31-.043 3.594-2.35 4.162-2.75.61.086 1.24.131 1.871.131 5.523 0 10-3.463 10-7.735S17.523 3 12 3z" />
         </svg>
         {{ kakaoBusy ? '카카오로 이동 중...' : '카카오로 시작하기' }}
       </button>
 
-      <p class="mt-4 text-[18px] leading-relaxed text-muted-foreground">
+      <p class="mt-4 text-sm leading-relaxed text-muted-foreground">
         카카오톡에 로그인되어 있으면 비밀번호를 넣지 않아도 됩니다.
         처음이시면 카카오 화면에서 [동의하고 계속하기]를 눌러 주세요.
       </p>
@@ -70,7 +70,7 @@
       <div class="mt-8 pt-6 border-t border-border">
         <button
           type="button"
-          class="w-full min-h-14 rounded-xl bg-secondary text-secondary-foreground text-[18px] font-semibold transition hover:brightness-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
+          class="w-full py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold transition hover:brightness-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
           :aria-expanded="showEmail"
           aria-controls="email-login"
           @click="showEmail = !showEmail"
@@ -80,7 +80,7 @@
 
         <form v-show="showEmail" id="email-login" class="mt-5 space-y-4" @submit.prevent="handleLogin">
           <div>
-            <label for="login-email" class="block text-[18px] font-semibold mb-2 text-foreground">이메일</label>
+            <label for="login-email" class="block text-sm font-semibold mb-2 text-foreground">이메일</label>
             <input
               id="login-email"
               v-model="email"
@@ -89,11 +89,11 @@
               autocomplete="email"
               inputmode="email"
               placeholder="이메일 주소"
-              class="w-full min-h-14 border border-border rounded-xl px-4 text-[18px] outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+              class="w-full py-2.5 border border-border rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
             />
           </div>
           <div>
-            <label for="login-password" class="block text-[18px] font-semibold mb-2 text-foreground">비밀번호</label>
+            <label for="login-password" class="block text-sm font-semibold mb-2 text-foreground">비밀번호</label>
             <input
               id="login-password"
               v-model="password"
@@ -101,20 +101,20 @@
               :required="showEmail"
               autocomplete="current-password"
               placeholder="비밀번호"
-              class="w-full min-h-14 border border-border rounded-xl px-4 text-[18px] outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+              class="w-full py-2.5 border border-border rounded-xl px-4 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
             />
           </div>
           <button
             type="submit"
             :disabled="submitting"
-            class="w-full min-h-14 bg-primary text-primary-foreground rounded-xl text-[18px] font-semibold hover:bg-primary/90 transition disabled:opacity-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
+            class="w-full py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
           >
             {{ submitting ? '로그인 중...' : '로그인' }}
           </button>
         </form>
       </div>
 
-      <div class="mt-8 text-center text-[18px] space-y-3">
+      <div class="mt-8 text-center text-sm space-y-3">
         <p class="text-muted-foreground">
           계정이 없으신가요?
           <RouterLink :to="ROUTE_PATHS.SIGNUP" class="text-primary hover:underline font-semibold">회원가입</RouterLink>
