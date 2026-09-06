@@ -1,5 +1,12 @@
 <template>
   <TheLayout>
+    <!--
+      이 페이지의 제목. 화면에는 로고와 슬라이드 문구가 이미 있어 굳이 한 번 더
+      쓰지 않지만, 검색엔진과 화면낭독기에는 h1 이 하나 있어야 한다.
+      (슬라이드 문구는 석 장이라 h1 로 둘 수 없다 — 페이지 제목은 하나다.)
+    -->
+    <h1 class="sr-only">자카르타 한마음교회</h1>
+
     <!-- ── Hero Carousel ─────────────────────────────────────────
       마우스를 올리거나 포커스가 들어오면 자동 넘김을 멈춘다. 글을 읽는 중에
       화면이 바뀌지 않게 하는 것이라 클릭 동작이 아니다. 키보드 사용자를 위해
@@ -51,7 +58,8 @@
             >
               {{ slide.title }}
             </p>
-            <h1
+            <!-- 크기는 그대로 두고 태그만 낮춘다. 석 장 모두 h1 이면 h1 이 셋이 된다. -->
+            <p
               :class="[
                 'text-2xl md:text-4xl lg:text-5xl font-bold mb-4 leading-snug max-w-3xl mx-auto transition-all duration-700 delay-200',
                 i === current ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -59,7 +67,7 @@
               style="font-family: 'Noto Serif KR', serif"
             >
               {{ slide.subtitle }}
-            </h1>
+            </p>
             <p
               :class="[
                 'text-sm md:text-lg text-white/70 transition-all duration-700 delay-300',
@@ -108,150 +116,89 @@
       </div>
     </section>
 
-    <!-- ── Worship schedule bar ────────────────────────────────── -->
-    <section class="bg-primary text-primary-foreground py-6">
-      <div class="container mx-auto px-4">
-        <div class="flex flex-wrap justify-center gap-6 md:gap-10">
-          <div
-            v-for="(ws, i) in mainSchedules"
-            :key="i"
-            class="flex items-center gap-2 text-sm"
-          >
-            <Clock class="w-4 h-4 opacity-80" />
-            <span class="font-medium">{{ ws.name }}</span>
-            <span class="opacity-80">|</span>
-            <span class="opacity-80">{{ ws.time }}</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Greeting ────────────────────────────────────────────── -->
-    <section class="py-20 bg-white">
-      <div class="container mx-auto px-4">
-        <div class="grid md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
-          <div>
-            <div class="w-12 h-1 bg-primary rounded-full mb-4" />
-            <h2
-              class="text-3xl md:text-4xl font-bold mb-6 leading-snug"
-              style="font-family: 'Noto Serif KR', serif"
-            >
-              할렐루야!<br />한마음교회 홈페이지를<br />방문해주셔서 감사드립니다.
-            </h2>
-            <div class="space-y-3 text-muted-foreground leading-relaxed">
-              <p>세계에서 인구가 4번째로 많은 인도네시아, 무슬림들이 85% 이상이 되는 이 땅, 선교지임과 동시에 삶의 터전이기에 이곳에서 예수의 이름을 부르며 2002년도에 한마음 공동체가 세워졌습니다.</p>
-              <p>외롭고 힘든 이 세상 속에서 함께 울고 웃고 기도하고 감격하며 함께 살아계신 주님을 경험하기 원하시는 분들은 언제든지 오시기 바랍니다.</p>
-            </div>
-            <p class="mt-6 font-semibold text-primary">한마음교회 성도 일동</p>
-            <RouterLink
-              :to="ROUTE_PATHS.GREETING"
-              class="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-            >
-              인사말 전문 보기 →
-            </RouterLink>
-          </div>
-          <div class="relative">
-            <img
-              src="https://images.unsplash.com/photo-1583402435141-5fcbce5a18f4?w=800&q=70&fm=webp&fit=crop&auto=format"
-              alt="자카르타 시내 전경"
-              width="800"
-              height="600"
-              loading="lazy"
-              decoding="async"
-              class="rounded-2xl w-full h-64 md:h-80 object-cover shadow-lg"
-            />
-            <div class="absolute -bottom-4 -left-4 bg-primary text-primary-foreground rounded-xl p-4 shadow-lg">
-              <div class="text-2xl font-bold">2002</div>
-              <div class="text-xs opacity-90">설립년도</div>
-            </div>
-            <div class="absolute -top-4 -right-4 bg-accent text-accent-foreground rounded-xl p-4 shadow-lg">
-              <div class="text-2xl font-bold">24+</div>
-              <div class="text-xs opacity-80">년의 역사</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Community values ───────────────────────────────────── -->
-    <section class="py-20 bg-muted/50">
-      <div class="container mx-auto px-4">
-        <div class="text-center mb-12">
-          <div class="inline-flex items-center gap-2 text-primary font-medium text-sm mb-3">
+    <!-- ── 이번 주 설교 (히어로와 한 화면으로 이어지는 요약) ────────── -->
+    <section class="py-12 bg-white border-b border-border">
+      <div class="container mx-auto px-4 max-w-3xl">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="text-lg font-bold flex items-center gap-2">
             <div class="w-8 h-0.5 bg-primary" />
-            우리는 어떤 공동체인가요
-            <div class="w-8 h-0.5 bg-primary" />
-          </div>
-          <h2 class="text-3xl font-bold">한마음교회의 정체성</h2>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-          <div
-            v-for="(val, i) in communityValues"
-            :key="i"
-            ref="valueCards"
-            class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow text-center opacity-0"
-            :style="{ animationDelay: `${i * 0.1}s` }"
-            :data-index="i"
-          >
-            <div :class="['w-12 h-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4', val.color]">
-              <component :is="val.icon" class="w-6 h-6" />
-            </div>
-            <h3 class="font-semibold mb-2">{{ val.label }}</h3>
-            <p class="text-sm text-muted-foreground leading-relaxed">{{ val.desc }}<br />공동체</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Recent sermons ─────────────────────────────────────── -->
-    <section class="py-20 bg-white">
-      <div class="container mx-auto px-4">
-        <div class="flex items-end justify-between mb-10">
-          <div>
-            <div class="w-12 h-1 bg-primary rounded-full mb-3" />
-            <h2 class="text-3xl font-bold">최근 주일설교</h2>
-          </div>
+            이번 주 설교
+          </h2>
           <RouterLink
             :to="ROUTE_PATHS.SUNDAY_SERMON"
-            class="py-2 text-sm text-primary hover:underline font-medium hidden md:block"
+            class="text-sm text-primary hover:underline font-medium"
           >
             전체 보기 →
           </RouterLink>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <SermonCard
-            v-for="(sermon, i) in recentSermons"
-            :key="sermon.id"
-            :sermon="sermon"
-            :style="{ animationDelay: `${i * 0.08}s` }"
-          />
+        <SermonCard v-if="thisWeekSermon" :sermon="thisWeekSermon" />
+      </div>
+    </section>
+
+    <!-- ── 예배시간 + 오시는 길 ─────────────────────────────────── -->
+    <section class="py-20 bg-primary text-primary-foreground">
+      <div class="container mx-auto px-4">
+        <div class="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+          <div>
+            <div class="w-12 h-1 bg-primary-foreground/40 rounded-full mb-4" />
+            <h2 class="text-3xl font-bold mb-6">예배 시간</h2>
+            <ul class="space-y-3">
+              <li
+                v-for="ws in mainSchedules"
+                :key="ws.name"
+                class="flex items-center gap-3 text-sm border-b border-primary-foreground/15 pb-3 last:border-0"
+              >
+                <Clock class="w-4 h-4 text-primary-foreground/70 shrink-0" />
+                <span class="font-medium">{{ ws.name }}</span>
+                <span class="ml-auto text-primary-foreground/80">{{ ws.time }}</span>
+              </li>
+            </ul>
+            <RouterLink
+              :to="ROUTE_PATHS.WORSHIP_GUIDE"
+              class="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary-foreground/90 hover:underline"
+            >
+              전체 예배 시간 보기 →
+            </RouterLink>
+          </div>
+          <div>
+            <div class="w-12 h-1 bg-primary-foreground/40 rounded-full mb-4" />
+            <h2 class="text-3xl font-bold mb-6">오시는 길</h2>
+            <div class="space-y-4 text-primary-foreground/80 mb-6">
+              <div class="flex items-start gap-3">
+                <MapPin class="w-5 h-5 mt-0.5 text-primary-foreground shrink-0" />
+                <div>
+                  <p class="font-medium text-primary-foreground">주소</p>
+                  <p class="text-sm mt-1">Pengelola Darmawangsa Square - The City Walk Lt. 1 Lot. 1 Area A</p>
+                  <p class="text-sm">Jl. Darmawangsa VI &amp; IX Jakarta 12160, Indonesia</p>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-2xl overflow-hidden shadow-2xl h-48">
+              <iframe
+                src="https://maps.google.com/maps?q=Hanmaum%20Church%20Jakarta&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                class="w-full h-full"
+                style="border: 0"
+                allowfullscreen
+                loading="lazy"
+                title="한마음교회 위치"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- ── Education programs ─────────────────────────────────── -->
-    <section class="py-20 bg-muted/50">
-      <div class="container mx-auto px-4">
-        <div class="text-center mb-12">
-          <div class="inline-flex items-center gap-2 text-primary font-medium text-sm mb-3">
-            <div class="w-8 h-0.5 bg-primary" />
-            교육과 양육
-            <div class="w-8 h-0.5 bg-primary" />
-          </div>
-          <h2 class="text-3xl font-bold">모든 세대가 함께하는 교회</h2>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
-          <RouterLink
-            v-for="(edu, i) in educationLinks"
-            :key="i"
-            :to="edu.path"
-            :class="`block bg-linear-to-br ${edu.bg} rounded-2xl p-6 text-white text-center hover:shadow-lg transition-all hover:-translate-y-1`"
-          >
-            <div class="text-3xl mb-3">{{ edu.emoji }}</div>
-            <div class="font-bold text-lg">{{ edu.label }}</div>
-            <div class="text-xs opacity-80 mt-1">{{ edu.sub }}</div>
-          </RouterLink>
-        </div>
+    <!-- ── 처음 오신 분 CTA ─────────────────────────────────────── -->
+    <section class="py-16 bg-muted/50">
+      <div class="container mx-auto px-4 text-center">
+        <h2 class="text-2xl md:text-3xl font-bold mb-3">처음 오셨나요?</h2>
+        <p class="text-muted-foreground mb-6">예배 시간, 오시는 길, 자주 묻는 질문을 미리 안내해 드립니다</p>
+        <RouterLink
+          :to="ROUTE_PATHS.WELCOME"
+          class="inline-block rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          처음 오신 분 안내 보기
+        </RouterLink>
       </div>
     </section>
 
@@ -293,41 +240,28 @@
       </div>
     </section>
 
-    <!-- ── Location ───────────────────────────────────────────── -->
-    <section class="py-20 bg-primary text-primary-foreground">
+    <!-- ── Education programs ─────────────────────────────────── -->
+    <section class="py-20 bg-muted/50">
       <div class="container mx-auto px-4">
-        <div class="grid md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
-          <div>
-            <div class="w-12 h-1 bg-primary-foreground/40 rounded-full mb-4" />
-            <h2 class="text-3xl font-bold mb-6">오시는 길</h2>
-            <div class="space-y-4 text-primary-foreground/80">
-              <div class="flex items-start gap-3">
-                <MapPin class="w-5 h-5 mt-0.5 text-primary-foreground shrink-0" />
-                <div>
-                  <p class="font-medium text-primary-foreground">주소</p>
-                  <p class="text-sm mt-1">Pengelola Darmawangsa Square - The City Walk Lt. 1 Lot. 1 Area A</p>
-                  <p class="text-sm">Jl. Darmawangsa VI &amp; IX Jakarta 12160, Indonesia</p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <Clock class="w-5 h-5 mt-0.5 text-primary-foreground shrink-0" />
-                <div>
-                  <p class="font-medium text-primary-foreground">전화</p>
-                  <p class="text-sm mt-1">021-739-5035</p>
-                </div>
-              </div>
-            </div>
+        <div class="text-center mb-12">
+          <div class="inline-flex items-center gap-2 text-primary font-medium text-sm mb-3">
+            <div class="w-8 h-0.5 bg-primary" />
+            교육과 양육
+            <div class="w-8 h-0.5 bg-primary" />
           </div>
-          <div class="rounded-2xl overflow-hidden shadow-2xl h-64">
-            <iframe
-              src="https://maps.google.com/maps?q=Hanmaum%20Church%20Jakarta&t=&z=15&ie=UTF8&iwloc=&output=embed"
-              class="w-full h-full"
-              style="border: 0"
-              allowfullscreen
-              loading="lazy"
-              title="한마음교회 위치"
-            />
-          </div>
+          <h2 class="text-3xl font-bold">모든 세대가 함께하는 교회</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
+          <RouterLink
+            v-for="(edu, i) in educationLinks"
+            :key="i"
+            :to="edu.path"
+            :class="`block bg-linear-to-br ${edu.bg} rounded-2xl p-6 text-white text-center hover:shadow-lg transition-all hover:-translate-y-1`"
+          >
+            <div class="text-3xl mb-3">{{ edu.emoji }}</div>
+            <div class="font-bold text-lg">{{ edu.label }}</div>
+            <div class="text-xs opacity-80 mt-1">{{ edu.sub }}</div>
+          </RouterLink>
         </div>
       </div>
     </section>
@@ -336,7 +270,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { ChevronLeft, ChevronRight, Clock, MapPin, BookOpen, Users, Heart, Cross } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Clock, MapPin } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import SermonCard from '@/components/SermonCard.vue'
 import NewsCard from '@/components/NewsCard.vue'
@@ -377,13 +311,6 @@ function heroSrcset(bg: string) {
   return [640, 1024, 1600].map(w => `${heroSrc(bg, w)} ${w}w`).join(', ')
 }
 
-const communityValues = [
-  { icon: BookOpen, label: '말씀공동체', desc: '성경을 배우고 훈련하며 행하는', color: 'text-chart-2' },
-  { icon: Heart, label: '사랑공동체', desc: '함께 서로 사랑하는', color: 'text-destructive' },
-  { icon: Users, label: '예배공동체', desc: '삼위일체 하나님을 예배하는', color: 'text-chart-1' },
-  { icon: Cross, label: '선교공동체', desc: '전도와 선교를 쉬지 않는', color: 'text-chart-3' },
-]
-
 const educationLinks = [
   { label: 'J-Angels', sub: '영유아·유치부', path: ROUTE_PATHS.J_ANGELS, bg: 'from-green-400 to-green-600', emoji: '🌱' },
   { label: 'J-Kids', sub: '아동부', path: ROUTE_PATHS.J_KIDS, bg: 'from-blue-400 to-blue-600', emoji: '⭐' },
@@ -396,7 +323,6 @@ const educationLinks = [
 const current = ref(0)
 let timer: ReturnType<typeof setInterval> | undefined
 let preloadTimer: ReturnType<typeof setTimeout> | undefined
-let scrollObserver: IntersectionObserver | null = null
 
 // 화면에 들어온 적 있는 장만 <img> 를 만든다. 세 장을 한꺼번에 걸어두면
 // opacity 0 이어도 브라우저는 전부 받아버려 첫 화면이 3배로 무거워진다.
@@ -427,6 +353,7 @@ function resumeAuto() { startAuto() }
 const { isLoggedIn } = useAuth()
 // 설교 목록 페이지와 같은 캐시. 어느 쪽을 먼저 열든 요청은 한 번이다.
 const { recent: recentSermons, fetchSermons } = useSermons()
+const thisWeekSermon = computed(() => recentSermons.value[0] ?? null)
 const { items: newsAll, fetchNews } = useChurchNews()
 const newsItems = computed(() => newsAll.value.slice(0, 3))
 
@@ -440,26 +367,11 @@ onMounted(() => {
   preloadTimer = setTimeout(() => reveal(0), 2500)
 
   void fetchSermons()
-
-  const cards = document.querySelectorAll('[data-index]')
-  scrollObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          ;(entry.target as HTMLElement).classList.add('animate-fade-in-up')
-          ;(entry.target as HTMLElement).style.opacity = '1'
-        }
-      })
-    },
-    { threshold: 0.1 }
-  )
-  cards.forEach((card) => scrollObserver!.observe(card))
 })
 
 onUnmounted(() => {
   clearInterval(timer)
   clearTimeout(preloadTimer)
-  scrollObserver?.disconnect()
 })
 
 const mainSchedules = computed(() => worshipSchedules.slice(0, 4))
