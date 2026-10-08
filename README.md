@@ -75,7 +75,7 @@ docs/history/   이전 작업 문서
 - `www.hanmaumch.id` — 이 저장소의 Worker `hmc`(교회 계정, `wrangler.toml` 의 custom_domain). 인증서 자동.
 - `hanmaumch.id`(apex) — Cloudflare Redirect Rule 로 `www` 에 301(경로·쿼리 유지). apex 에는 프록시된 더미 A `192.0.2.1` 이 있어야 규칙이 탄다.
 - `hmc.hunga-seo.workers.dev`(옛 임시 주소) — 개인 계정의 `redirect-worker/` 가 `www` 같은 경로로 301. 구 해시 주소(`/#/경로`)도 브라우저가 해시를 유지하므로 라우터가 실경로로 바꾼다.
-- 교회 메일 — Cloudflare DNS 의 Google MX 7개·`calendar`/`docs`/`mail`/`sites` CNAME(DNS only). 지우면 안 된다.
+- 도메인 메일 미사용(2026-10-08). Google MX·CNAME 을 지우고 Null MX(`0 .`)·`v=spf1 -all`·DMARC `p=reject` 를 두었다. 메일이 다시 필요하면 `claude_작업지시서_전환후정리_v2.md` 3절 롤백 참고.
 - Supabase Auth Site URL `https://www.hanmaumch.id`, Redirect URLs `https://www.hanmaumch.id/**`. 옛 `https://hmc.hunga-seo.workers.dev/**` 는 1주 관찰 후 삭제.
 - 카카오 Web 플랫폼 도메인에 새 주소 추가됨. Redirect URI 는 Supabase 콜백이라 그대로.
 

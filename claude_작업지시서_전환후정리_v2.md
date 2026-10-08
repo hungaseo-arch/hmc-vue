@@ -360,9 +360,9 @@ ls | grep -E 'rumahweb_account|cloudflare_account|otp_latest|epp_note' || echo "
 | --- | --- | --- | --- |
 | 0 준비 | 완료 | 2026-10-08 | 브랜치 `chore/post-cutover` 생성(main a7bef24 기준). wrangler 교회 계정 확인. 착수 전 실서비스: CSP Report-Only, HSTS 없음, `/zzz-not-exist` 200. node_modules/.bin 이 비어 있어 `npm ci` 로 복구 |
 | 1 404 Worker | 완료·배포 | 2026-10-08 | `src/worker.ts` + `worker.test.ts`(ROUTE_PATHS 와 대조, 18 테스트 통과), `wrangler.toml` main/binding/run_worker_first. 로컬 wrangler dev: 없는 경로 404, sitemap 314개 전부 200. 실서비스 검증: `/zzz-not-exist` 404, `/worship/sunday-sermon/abc` 404, 옛 `/admin/news` 200. 커밋 813c2c7 |
-| 2 메일 중단 (게이트 답변 포함) | 게이트 통과, 🧑 DNS 변경 대기 | 2026-10-08 | 2-1 답변: 사용자 없음 / 반송 가능 / Workspace 해지 범위 밖 인지. 2-2 레코드 목록 안내 |
-| 3 HSTS | 코드 배포 완료, Cloudflare 설정 완료(사용자) | 2026-10-08 | `strict-transport-security: max-age=86400` 송출. 3-2 완료 후 http → 301 https 확인. includeSubDomains·1년은 2단계 DNS 변경 뒤 |
+| 2 메일 중단 (게이트 답변 포함) | 완료·검증 | 2026-10-08 | 2-1 답변: 사용자 없음 / 반송 가능 / Workspace 해지 범위 밖 인지. 사용자가 MX 7개·CNAME 4개 삭제, SPF `-all`, Null MX, DMARC reject 추가. DoH 검증: MX `0 .`, TXT 2건(spf·site-verification), _dmarc 정상, mail/calendar/docs/sites NXDOMAIN. README 기록 |
+| 3 HSTS | 완료 (🧑 subdomains 토글만 남음) | 2026-10-08 | 코드 `max-age=31536000; includeSubDomains` 배포(버전 947922ba). http → 301 https 확인. 실응답은 Cloudflare 대시보드 HSTS(12개월, subdomains Off)가 우선해 `max-age=31536000` 만 보임 → 🧑 Apply to subdomains On 으로 변경 필요 |
 | 4 CSP 강제·배포 | 완료·배포 (재검증 대기) | 2026-10-08 | 강제 후 설교 상세에서 오류 2건: (1) index.html 글꼴 링크의 인라인 onload 차단 → 글꼴 미적용. 일반 링크로 교체 (2) Cloudflare Web Analytics 비콘 → script-src·connect-src 에 cloudflareinsights 추가. 커밋 383ab4b, 버전 8a673a4e. 🧑 콘솔 재확인 대기 |
 | 5-1 keepalive | 완료 | 2026-10-08 | `hmc-keepalive` 교회 계정 배포, cron `0 3 * * 1`, secret 2개 등록(파이프, 미출력). 수동 실행 `supabase 200`. 커밋 3c01536. 첫 cron 실행 2026-10-12(월) 이후 Logs 확인 |
 | 5-2 갱신 리마인더 | 완료 | 2026-10-08 | hunga.seo 캘린더에 2028-06-15·07-15·08-10 10:00 3건 등록(절차·금액 기재, 하루 전 메일 알림). 교회 계정 캘린더 공유는 사용자 몫 |
-| 6 비밀번호 파일 | 🧑 비밀번호 변경 완료 보고, 삭제 확인 대기 | 2026-10-08 | 6-1 존재 확인(내용 미열람): rumahweb_account_hmcjktsu, cloudflare_account_hmcjktsu, rumahweb_account, epp_note, otp_latest, payment_receipt_5647703. 저장소 내 비밀값 grep 0건. 사용자 '삭제 진행' 대기 |
+| 6 비밀번호 파일 | 완료 | 2026-10-08 | 사용자 비밀번호 변경·'삭제 진행' 확인 후 5개 파일 rm -P 삭제, payment_receipt 만 남김. | 6-1 존재 확인(내용 미열람): rumahweb_account_hmcjktsu, cloudflare_account_hmcjktsu, rumahweb_account, epp_note, otp_latest, payment_receipt_5647703. 저장소 내 비밀값 grep 0건. 사용자 '삭제 진행' 대기 |

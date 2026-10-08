@@ -14,9 +14,8 @@
 
 # 모든 응답 공통 보안 헤더.
 #
-# HSTS: 처음에는 max-age 를 짧게(1일) 두고, 일주일 문제 없으면 31536000(1년)과
-# includeSubDomains 로 올린다. 하위 도메인(mail/calendar 등)은 Google 으로
-# 가는 레코드라 includeSubDomains 는 메일 정리가 끝난 뒤에만 붙인다.
+# HSTS: 1년 + includeSubDomains. 2026-10-08 Google 메일 레코드(mail/calendar 등)를
+# 모두 지워 HTTPS 가 아닌 하위 도메인이 없다. preload 는 되돌리기 어려워 넣지 않는다.
 # Cloudflare 대시보드의 HSTS 설정과 중복되면 더 긴 값이 적용된다.
 #
 # CSP: 2026-10 전환 후 Report-Only 위반이 없어 강제로 바꾼다. cloudflareinsights 는
@@ -27,5 +26,5 @@
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Strict-Transport-Security: max-age=86400
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
   Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://*.supabase.co https://cloudflareinsights.com; frame-src https://www.youtube-nocookie.com https://www.google.com/maps/embed; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
