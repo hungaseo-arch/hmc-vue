@@ -7,7 +7,7 @@
           <!-- Map -->
           <div class="h-96">
             <iframe
-              src="https://maps.google.com/maps?q=Hanmaum%20Church%20Jakarta&t=&z=15&ie=UTF8&iwloc=&output=embed"
+              src="https://www.google.com/maps/embed?origin=mfe&pb=!1m3!2m1!1sHanmaum+Church+Jakarta!6i15"
               class="w-full h-full"
               style="border: 0"
               allowfullscreen
