@@ -275,6 +275,6 @@ curl -sI https://hmc.hunga-seo.workers.dev/introduction/staff | grep -iE '^(HTTP
 | 3 배포 | 완료 | 2026-10-08 | 교회 계정 확인 후 `npm run deploy:prod` 성공(버전 240f3a13). custom domain www.hanmaumch.id 자동 생성. 검증: 루트 200, canonical·og:url 새 도메인, robots Sitemap 새 도메인, sitemap 315 URL, SPA 딥링크 200, 인증서 Let's Encrypt(CN=hanmaumch.id, SAN 포함) |
 | 4 apex 301 | 완료·검증 | 2026-10-08 | 사용자가 Rules → Overview → Redirect Rule 생성(새 대시보드엔 Redirect Rules 메뉴 없음). 검증: `hanmaumch.id/worship/sunday-sermon?x=1` → 301 `https://www.hanmaumch.id/worship/sunday-sermon?x=1`(경로·쿼리 유지), 루트·http 도 301 |
 | 5 Supabase·카카오 | 완료(사용자 보고) | 2026-10-08 | Supabase Site URL·Redirect URLs 에 www.hanmaumch.id 추가, 카카오 Web 플랫폼 도메인 추가. 사용자가 www.hanmaumch.id 에서 카카오 로그인 성공 확인. 기존 workers.dev Redirect URL 은 1주 관찰 후 삭제 예정 |
-| 6 임시사이트 301 | | | |
+| 6 임시사이트 301 | 완료·검증 | 2026-10-08 | 개인 계정(hunga) 로그인 확인 후 `redirect-worker` 배포(버전 f9993238, 기존 2026-05-13 버전 교체). 검증: workers.dev/introduction/staff → 301 www 같은 경로, 쿼리 유지. 해시 주소는 사용자 브라우저 확인 |
 | 7 기본 설정 정리 | | | |
 | 8 전환 후 점검 | | | |
