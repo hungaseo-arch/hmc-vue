@@ -274,7 +274,7 @@ curl -sI https://hmc.hunga-seo.workers.dev/introduction/staff | grep -iE '^(HTTP
 | 2 네임서버 전환 | 완료·Active 확인 | 2026-10-08 | Rumahweb 에서 brodie/demi.ns.cloudflare.com 으로 변경, PANDI RDAP 반영. 10:12 1.1.1.1·8.8.8.8 모두 Cloudflare NS 로 전파. apex 가 Cloudflare 프록시 IP 로 응답하고 HTTPS 인증서 발급됨(server=cloudflare, 더미 원본이라 522 — 4단계 리다이렉트 전까지 정상). wrangler 교회 계정(aa50308c…) 로그인 확인 |
 | 3 배포 | 완료 | 2026-10-08 | 교회 계정 확인 후 `npm run deploy:prod` 성공(버전 240f3a13). custom domain www.hanmaumch.id 자동 생성. 검증: 루트 200, canonical·og:url 새 도메인, robots Sitemap 새 도메인, sitemap 315 URL, SPA 딥링크 200, 인증서 Let's Encrypt(CN=hanmaumch.id, SAN 포함) |
 | 4 apex 301 | 완료·검증 | 2026-10-08 | 사용자가 Rules → Overview → Redirect Rule 생성(새 대시보드엔 Redirect Rules 메뉴 없음). 검증: `hanmaumch.id/worship/sunday-sermon?x=1` → 301 `https://www.hanmaumch.id/worship/sunday-sermon?x=1`(경로·쿼리 유지), 루트·http 도 301 |
-| 5 Supabase·카카오 | | | |
+| 5 Supabase·카카오 | 완료(사용자 보고) | 2026-10-08 | Supabase Site URL·Redirect URLs 에 www.hanmaumch.id 추가, 카카오 Web 플랫폼 도메인 추가. 사용자가 www.hanmaumch.id 에서 카카오 로그인 성공 확인. 기존 workers.dev Redirect URL 은 1주 관찰 후 삭제 예정 |
 | 6 임시사이트 301 | | | |
 | 7 기본 설정 정리 | | | |
 | 8 전환 후 점검 | | | |

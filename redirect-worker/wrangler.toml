@@ -1,0 +1,7 @@
+# 임시 주소(hmc.hunga-seo.workers.dev) 리다이렉트 전용 Worker.
+# 개인 Cloudflare 계정(hunga)의 기존 `hmc` Worker 를 이 코드로 교체한다.
+# 배포: cd redirect-worker && npx wrangler deploy  (개인 계정으로 wrangler login 한 상태에서)
+name = "hmc"
+main = "index.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
