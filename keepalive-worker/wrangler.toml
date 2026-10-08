@@ -1,0 +1,11 @@
+# Supabase 주간 자동접속 Worker (교회 Cloudflare 계정).
+# Free 플랜 프로젝트가 요청 없이 오래 두면 일시정지되는 것을 막는다.
+# 비밀값은 `wrangler secret put SUPABASE_URL` / `SUPABASE_ANON_KEY` 로 넣는다(파일에 두지 않는다).
+# 배포: cd keepalive-worker && npx wrangler deploy
+name = "hmc-keepalive"
+main = "index.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
+
+[triggers]
+crons = ["0 3 * * 1"]   # 매주 월요일 03:00 UTC (자카르타 10:00)
