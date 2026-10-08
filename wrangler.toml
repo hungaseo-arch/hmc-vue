@@ -5,13 +5,18 @@
 # 옛 임시 주소(hmc.hunga-seo.workers.dev)는 redirect-worker/ 가 301 로 넘긴다(개인 계정).
 
 name = "hmc"
+# 없는 경로를 404 로 돌려주는 얇은 Worker. 정적 자산은 ASSETS 바인딩으로 받는다.
+main = "src/worker.ts"
 compatibility_date = "2025-01-01"
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"
 # 히스토리 모드 SPA. /worship/sunday-sermon 같은 딥링크로 직접 들어와도
 # index.html 을 돌려줘야 라우터가 받는다. 이게 없으면 404 가 뜬다.
 not_found_handling = "single-page-application"
+# 모든 요청이 Worker 를 먼저 거친다(위 404 처리를 위해).
+run_worker_first = true
 
 [[routes]]
 pattern = "www.hanmaumch.id"
