@@ -270,8 +270,8 @@ curl -sI https://hmc.hunga-seo.workers.dev/introduction/staff | grep -iE '^(HTTP
 | 단계 | 상태 | 일시 | 결과·특이사항 |
 | --- | --- | --- | --- |
 | 0 사전 점검·커밋 | 완료 | 2026-10-08 | 브랜치 `chore/domain-cutover` 생성, d09d4ac 커밋. git 2.56·node 26. `VITE_SITE_URL=https://www.hanmaumch.id npm run build` 통과(타입·린트·vitest), canonical·og:url 새 도메인, sitemap 315 URL(workers.dev 0건). wrangler 는 토큰 만료로 미로그인 — 3단계에서 교회 계정으로 로그인 예정 |
-| 1 DNS 정리 | 완료(사용자 보고) | 2026-10-08 | 사용자가 대시보드에서 A `@`·`*`·`www`(211.169.73.17) 삭제, google CNAME 4개 DNS only, MX 유지, apex 더미 A `@`→192.0.2.1 Proxied 추가. 존이 Pending 이라 Cloudflare NS 직접 조회는 빈 응답 — dig 검증은 2단계 네임서버 전환 후 재실행 |
-| 2 네임서버 전환 | | | |
+| 1 DNS 정리 | 완료·검증 | 2026-10-08 | 사용자가 대시보드에서 A `@`·`*`·`www`(211.169.73.17) 삭제, google CNAME 4개 DNS only, MX 유지, apex 더미 A `@`→192.0.2.1 Proxied 추가. 존이 Pending 이라 Cloudflare NS 직접 조회는 빈 응답 — dig 검증은 2단계 네임서버 전환 후 재실행. 네임서버 전환 직후 brodie·demi 직접 조회로 검증: MX 7개 Google, mail·calendar CNAME ghs.google.com, www 비어 있음, apex A 192.0.2.1 — 모두 정상 |
+| 2 네임서버 전환 | 진행 중(전파 대기) | 2026-10-08 | Rumahweb 에서 brodie/demi.ns.cloudflare.com 으로 변경 완료, PANDI RDAP 에 반영 확인. 1.1.1.1·8.8.8.8 은 아직 church-love 캐시(TTL 300). Cloudflare 존 "Waiting for registrar" 상태 |
 | 3 배포 | | | |
 | 4 apex 301 | | | |
 | 5 Supabase·카카오 | | | |
