@@ -23,7 +23,7 @@
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="inline-flex items-center gap-1 rounded-lg bg-white/10 hover:bg-white/20 px-3 py-1.5 transition"
+            class="inline-flex items-center gap-1 min-h-11 rounded-lg bg-white/10 hover:bg-white/20 px-3 transition"
             @click="zoomed = !zoomed"
           >
             <component :is="zoomed ? Minimize2 : Maximize2" class="w-4 h-4" aria-hidden="true" />
@@ -32,7 +32,7 @@
           <button
             type="button"
             aria-label="닫기"
-            class="rounded-lg bg-white/10 hover:bg-white/20 p-1.5 transition"
+            class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition"
             @click="close"
           >
             <X class="w-5 h-5" aria-hidden="true" />
@@ -40,8 +40,19 @@
         </div>
       </div>
 
+      <!--
+        좌우로 밀어 넘기기(pointerdown/up). 버튼·화살표 키와 병행하는 추가 동작이다.
+        touch-action 은 세로 스크롤과 두 손가락 확대만 브라우저에 맡기고 가로는 우리가 본다.
+      -->
       <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
-      <div ref="scroller" class="flex-1 overflow-auto overscroll-contain" @click.self="close">
+      <div
+        ref="scroller"
+        class="flex-1 overflow-auto overscroll-contain"
+        :style="{ touchAction: zoomed ? 'auto' : 'pan-y pinch-zoom' }"
+        @click.self="onBackdropClick"
+        @pointerdown="onPointerDown"
+        @pointerup="onPointerUp"
+      >
         <div :class="zoomed ? 'inline-block min-w-full p-4' : 'min-h-full flex items-center justify-center p-4'">
           <button
             type="button"
@@ -54,6 +65,7 @@
               :alt="`${label} ${current + 1}`"
               :class="zoomed ? 'max-w-none w-auto h-auto' : 'max-w-full max-h-[calc(100vh-7rem)] object-contain'"
               decoding="async"
+              draggable="false"
             />
           </button>
         </div>
@@ -63,7 +75,7 @@
         <button
           type="button"
           aria-label="이전"
-          class="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 hover:bg-white/25 p-2 transition"
+          class="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-black/40 sm:bg-white/10 hover:bg-white/25 transition"
           @click="go(-1)"
         >
           <ChevronLeft class="w-6 h-6" aria-hidden="true" />
@@ -71,7 +83,7 @@
         <button
           type="button"
           aria-label="다음"
-          class="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 hover:bg-white/25 p-2 transition"
+          class="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-black/40 sm:bg-white/10 hover:bg-white/25 transition"
           @click="go(1)"
         >
           <ChevronRight class="w-6 h-6" aria-hidden="true" />
@@ -108,6 +120,28 @@ watch(current, (v) => {
   if (scroller.value) scroller.value.scrollTop = 0
   document.body.style.overflow = v === null ? '' : 'hidden'
 })
+
+// 좌우 스와이프. 실제 크기(zoomed)에서는 가로 스크롤이 필요하므로 끈다.
+let startX = 0
+let startY = 0
+function onPointerDown(e: PointerEvent) {
+  startX = e.clientX
+  startY = e.clientY
+}
+let swipedAt = 0
+function onPointerUp(e: PointerEvent) {
+  if (zoomed.value || props.images.length < 2) return
+  const dx = e.clientX - startX
+  const dy = e.clientY - startY
+  if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return
+  swipedAt = Date.now()
+  go(dx < 0 ? 1 : -1)
+}
+// 마우스로 빈 곳을 끌어 넘긴 직후에 따라오는 click 으로 닫히지 않게.
+function onBackdropClick() {
+  if (Date.now() - swipedAt < 300) return
+  close()
+}
 
 function onKeydown(e: KeyboardEvent) {
   if (current.value === null) return

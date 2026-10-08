@@ -2,7 +2,7 @@
   <nav v-if="totalPages > 1" class="flex items-center justify-center gap-1 mt-6" aria-label="페이지 이동">
     <button
       type="button"
-      class="p-2 rounded-lg text-muted-foreground hover:bg-muted transition disabled:opacity-40 disabled:cursor-not-allowed"
+      class="inline-flex h-10 w-10 lg:h-9 lg:w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition disabled:opacity-40 disabled:cursor-not-allowed"
       :disabled="modelValue === 1"
       aria-label="이전 페이지"
       @click="go(modelValue - 1)"
@@ -16,7 +16,7 @@
         v-else
         type="button"
         :class="[
-          'w-9 h-9 rounded-lg text-sm font-medium transition-colors',
+          'h-10 w-10 lg:h-9 lg:w-9 rounded-lg text-sm font-medium transition-colors',
           page === modelValue
             ? 'bg-primary text-primary-foreground'
             : 'text-muted-foreground hover:bg-muted'
@@ -31,7 +31,7 @@
 
     <button
       type="button"
-      class="p-2 rounded-lg text-muted-foreground hover:bg-muted transition disabled:opacity-40 disabled:cursor-not-allowed"
+      class="inline-flex h-10 w-10 lg:h-9 lg:w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition disabled:opacity-40 disabled:cursor-not-allowed"
       :disabled="modelValue === totalPages"
       aria-label="다음 페이지"
       @click="go(modelValue + 1)"

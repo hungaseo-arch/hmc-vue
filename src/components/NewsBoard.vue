@@ -32,7 +32,7 @@
           <div
             v-for="item in items"
             :key="item.id"
-            class="relative flex items-center gap-4 bg-white rounded-2xl shadow-sm border border-border px-6 py-5 hover:shadow-md hover:border-primary/30 transition-all"
+            class="relative flex items-center gap-3 sm:gap-4 bg-white rounded-2xl shadow-sm border border-border px-4 py-4 sm:px-6 sm:py-5 hover:shadow-md hover:border-primary/30 transition-all"
           >
             <img
               v-if="item.thumbnail"
@@ -42,13 +42,13 @@
               height="64"
               loading="lazy"
               decoding="async"
-              class="w-16 h-16 rounded-xl object-cover shrink-0"
+              class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover shrink-0"
             />
-            <div v-else class="w-16 h-16 rounded-xl bg-muted flex items-center justify-center shrink-0">
+            <div v-else class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-muted flex items-center justify-center shrink-0">
               <Newspaper class="w-6 h-6 text-muted-foreground" />
             </div>
             <div class="flex-1 min-w-0">
-              <h3 class="font-semibold truncate">
+              <h3 class="font-semibold line-clamp-2 sm:truncate leading-snug">
                 <RouterLink
                   :to="`${cfg.basePath}/${item.id}`"
                   class="before:absolute before:inset-0 before:content-[''] before:rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
@@ -62,13 +62,13 @@
                 <!-- relative z-10: 카드를 덮는 링크(before) 위로 올려야 눌린다. -->
                 <button
                   v-if="isAdmin"
-                  class="relative z-10 p-1.5 rounded-lg hover:bg-muted transition"
+                  class="icon-btn relative z-10"
                   :aria-label="`${item.title} 수정`"
                   @click.stop="openEditModal(item)"
                 >
-                  <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
+                  <Pencil class="w-4 h-4 text-muted-foreground" />
                 </button>
-                <ChevronRight class="w-4 h-4 text-muted-foreground" />
+                <ChevronRight class="w-4 h-4 text-muted-foreground hidden sm:block" />
               </div>
             </div>
           </div>
@@ -92,7 +92,7 @@
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="showEditModal = false"
       >
-        <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-lg shadow-xl max-h-[90dvh] overflow-y-auto">
           <h3 :id="`${kind}-news-edit-title`" class="text-lg font-bold mb-6">{{ cfg.editTitle }}</h3>
           <form class="space-y-4" @submit.prevent="handleEditSubmit">
             <div>
@@ -155,7 +155,7 @@
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="closeModal"
       >
-        <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-xl max-h-[90dvh] overflow-y-auto">
           <h3 :id="`${kind}-news-new-title`" class="text-lg font-bold mb-6">{{ cfg.newLabel }}</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>

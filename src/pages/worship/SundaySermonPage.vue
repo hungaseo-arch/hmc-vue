@@ -9,6 +9,16 @@
             설교 목록
           </h2>
           <div class="flex gap-2">
+            <!-- 모바일에서는 정렬 버튼 두 개 대신 select 하나. -->
+            <label class="sm:hidden">
+              <span class="sr-only">정렬</span>
+              <select
+                v-model="sortDesc"
+                class="h-10 rounded-lg border border-border bg-white px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option v-for="opt in sortOptions" :key="opt.label" :value="opt.value">{{ opt.label }}</option>
+              </select>
+            </label>
             <button
               v-if="isAdmin"
               class="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition"
@@ -44,15 +54,15 @@
         />
         <div v-else class="bg-white rounded-2xl shadow-sm border border-border overflow-hidden">
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm table-fixed">
               <thead>
                 <tr class="bg-muted/60 border-b border-border">
                   <!-- <th class="py-3 px-4 text-left text-muted-foreground font-semibold w-12 whitespace-nowrap">번호</th> -->
-                  <th class="py-3 px-4 text-left text-muted-foreground font-semibold overflow-hidden">제목</th>
-                  <th class="py-3 px-4 text-left text-muted-foreground font-semibold hidden sm:table-cell">본문</th>
-                  <th class="py-3 px-4 text-left text-muted-foreground font-semibold hidden md:table-cell">설교자</th>
-                  <th class="py-3 px-4 text-right text-muted-foreground font-semibold">날짜</th>
-                  <th v-if="isAdmin" class="py-3 px-4 w-10"></th>
+                  <th class="py-3 px-4 text-left text-muted-foreground font-semibold">제목</th>
+                  <th class="py-3 px-4 w-32 text-left text-muted-foreground font-semibold hidden sm:table-cell">본문</th>
+                  <th class="py-3 px-4 w-28 text-left text-muted-foreground font-semibold hidden md:table-cell">설교자</th>
+                  <th class="py-3 px-4 w-28 text-right text-muted-foreground font-semibold">날짜</th>
+                  <th v-if="isAdmin" class="py-2 px-2 w-12"></th>
                 </tr>
               </thead>
               <tbody>
@@ -71,20 +81,20 @@
                   <td class="py-4 px-4 font-medium truncate">
                     <RouterLink
                       :to="`/worship/sunday-sermon/${sermon.id}`"
-                      class="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      class="block truncate hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       @click.stop
                     >{{ sermon.title }}</RouterLink>
                   </td>
                   <td class="py-4 px-4 text-muted-foreground hidden sm:table-cell">{{ sermon.scripture }}</td>
                   <td class="py-4 px-4 text-muted-foreground hidden md:table-cell">{{ sermon.preacher }}</td>
                   <td class="py-4 px-4 text-muted-foreground text-right text-xs whitespace-nowrap">{{ sermon.date }}</td>
-                  <td v-if="isAdmin" class="py-4 px-4" @click.stop>
+                  <td v-if="isAdmin" class="py-2 px-1" @click.stop>
                     <button
-                      class="p-1.5 rounded-lg hover:bg-muted transition"
+                      class="icon-btn"
                       :aria-label="`${sermon.title} 수정`"
                       @click="openEditModal(sermon)"
                     >
-                      <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
+                      <Pencil class="w-4 h-4 text-muted-foreground" />
                     </button>
                   </td>
                 </tr>
@@ -112,7 +122,7 @@
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="showModal = false"
       >
-        <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-xl max-h-[90dvh] overflow-y-auto">
           <h3 id="sundaysermon-showModal-title" class="text-lg font-bold mb-6">새 설교 등록</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>
@@ -162,7 +172,7 @@
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="showEditModal = false"
       >
-        <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-xl max-h-[90dvh] overflow-y-auto">
           <h3 id="sundaysermon-showEditModal-title" class="text-lg font-bold mb-6">설교 수정</h3>
           <form class="space-y-4" @submit.prevent="handleEditSubmit">
             <div>

@@ -7,8 +7,9 @@
     ]"
   >
     <!-- Top info bar -->
-    <div class="bg-primary text-primary-foreground py-1.5 hidden md:block">
-      <div class="container mx-auto px-4 flex items-center justify-between text-xs">
+    <!-- h-8 로 고정한다. TheLayout 의 md:pt-24(96px) = 이 띠 32px + 아래 h-16. -->
+    <div class="bg-primary text-primary-foreground h-8 hidden md:flex items-center">
+      <div class="container mx-auto px-4 flex w-full items-center justify-between text-xs">
         <div class="text-xs opacity-80">
           2026년 표어: 주안에 뿌리내리고 함께 자라나 열매 맺는 성도의 교회 (요 15:5)
         </div>
@@ -194,11 +195,12 @@
         <!-- Mobile menu button -->
         <button
           type="button"
-          class="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          class="lg:hidden -mr-2 inline-flex h-11 w-11 items-center justify-center rounded-lg hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           :aria-label="isMenuOpen ? '메뉴 닫기' : '메뉴 열기'"
           :aria-expanded="isMenuOpen"
           aria-controls="mobile-menu"
           @click="isMenuOpen = !isMenuOpen"
+          @keydown.escape="isMenuOpen = false"
         >
           <X v-if="isMenuOpen" class="w-5 h-5" aria-hidden="true" />
           <Menu v-else class="w-5 h-5" aria-hidden="true" />
@@ -208,10 +210,17 @@
 
     <!-- Mobile menu -->
     <Transition name="slide-down">
+      <!--
+        패널 안에서 스크롤한다. 대메뉴를 다 펼치면 작은 폰(667px)에서는 로그아웃·
+        회원가입이 화면 밖으로 나가므로 높이를 헤더(4rem) 뺀 뷰포트로 묶는다.
+        키보드 핸들러는 안의 버튼·링크가 맡고 이 div 는 ESC 만 받는다.
+      -->
+      <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
       <div
         v-if="isMenuOpen"
         id="mobile-menu"
-        class="lg:hidden border-t border-border bg-white overflow-hidden"
+        class="lg:hidden border-t border-border bg-white overflow-y-auto overscroll-contain max-h-[calc(100dvh-4rem)]"
+        @keydown.escape="isMenuOpen = false"
       >
         <div class="container mx-auto px-4 py-3 space-y-1">
           <div v-for="item in NAV_ITEMS" :key="item.label">
@@ -219,7 +228,7 @@
               type="button"
               :aria-expanded="mobileOpenMenu === item.label"
               :aria-controls="`mobile-${item.label}`"
-              class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              class="w-full flex items-center justify-between px-3 py-3 rounded-lg text-sm font-medium hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               @click="toggleMobileMenu(item.label)"
             >
               {{ item.label }}
@@ -242,7 +251,7 @@
                   v-for="child in item.children"
                   :key="child.path"
                   :to="child.path"
-                  class="block px-3 py-2 text-sm rounded-lg mb-0.5 transition-colors text-muted-foreground hover:bg-muted hover:text-foreground"
+                  class="block px-3 py-2.5 min-h-10 text-sm rounded-lg mb-0.5 transition-colors text-muted-foreground hover:bg-muted hover:text-foreground"
                   active-class="bg-primary/10 !text-primary font-medium"
                 >
                   {{ child.label }}
@@ -254,7 +263,7 @@
           <!-- 모바일 인증 버튼 -->
           <div class="border-t border-border pt-3 mt-2">
             <template v-if="isLoggedIn">
-              <RouterLink :to="ROUTE_PATHS.PROFILE" class="px-3 py-2 text-sm text-muted-foreground flex items-center gap-2 rounded-lg hover:bg-muted transition-colors">
+              <RouterLink :to="ROUTE_PATHS.PROFILE" class="px-3 py-2.5 min-h-10 text-sm text-muted-foreground flex items-center gap-2 rounded-lg hover:bg-muted transition-colors">
                 <span v-if="isAdmin" class="bg-primary/10 text-primary text-xs px-1.5 py-0.5 rounded-full font-medium">관리자</span>
                 {{ displayName }}님 · 내 정보
               </RouterLink>
@@ -283,6 +292,18 @@
       </div>
     </Transition>
   </header>
+
+  <!-- 모바일 메뉴 뒤 딤. 헤더는 z-50 이라 위에 남고, 딤을 누르면 닫힌다. -->
+  <Teleport to="body">
+    <Transition name="fade">
+      <div
+        v-if="isMenuOpen"
+        class="fixed inset-0 top-16 z-40 bg-black/30 lg:hidden"
+        aria-hidden="true"
+        @click="isMenuOpen = false"
+      />
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -344,19 +365,28 @@ function toggleMobileMenu(label: string) {
   mobileOpenMenu.value = mobileOpenMenu.value === label ? null : label
 }
 
-function handleClickOutside(e: MouseEvent) {
-  if (!activeDropdown.value && !userMenuOpen.value) return
+// 모바일 메뉴가 열린 동안 뒤 본문이 스크롤되지 않게 한다. 패널 안에서만 스크롤.
+watch(isMenuOpen, open => {
+  document.body.style.overflow = open ? 'hidden' : ''
+})
+
+function handleClickOutside(e: MouseEvent | TouchEvent) {
+  if (!activeDropdown.value && !userMenuOpen.value && !isMenuOpen.value) return
   if (headerRef.value && !headerRef.value.contains(e.target as Node)) {
     activeDropdown.value = null
     userMenuOpen.value = false
+    isMenuOpen.value = false
   }
 }
 
 onMounted(() => {
   document.addEventListener('mousedown', handleClickOutside)
+  document.addEventListener('touchstart', handleClickOutside, { passive: true })
 })
 
 onUnmounted(() => {
   document.removeEventListener('mousedown', handleClickOutside)
+  document.removeEventListener('touchstart', handleClickOutside)
+  document.body.style.overflow = ''
 })
 </script>

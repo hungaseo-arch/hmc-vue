@@ -55,11 +55,11 @@
                   <!-- relative z-10: 카드를 덮는 링크(before) 위로 올려야 눌린다. -->
                   <button
                     v-if="isAdmin"
-                    class="relative z-10 p-1.5 rounded-lg hover:bg-muted transition"
+                    class="icon-btn relative z-10"
                     :aria-label="`${cleanTitle(col.title)} 수정`"
                     @click.stop="openEditModal(col)"
                   >
-                    <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
+                    <Pencil class="w-4 h-4 text-muted-foreground" />
                   </button>
                   <ChevronRight class="w-4 h-4 text-muted-foreground" />
                 </div>
@@ -87,7 +87,7 @@
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="showModal = false"
       >
-        <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-xl">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-lg shadow-xl max-h-[90dvh] overflow-y-auto">
           <h3 id="pastoralcolumn-showModal-title" class="text-lg font-bold mb-6">새 칼럼 작성</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>
@@ -127,7 +127,7 @@
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="showEditModal = false"
       >
-        <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-xl">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-lg shadow-xl max-h-[90dvh] overflow-y-auto">
           <h3 id="pastoralcolumn-showEditModal-title" class="text-lg font-bold mb-6">칼럼 수정</h3>
           <form class="space-y-4" @submit.prevent="handleEditSubmit">
             <div>

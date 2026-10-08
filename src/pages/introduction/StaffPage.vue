@@ -52,7 +52,7 @@
               <div v-if="staff.phone" class="flex items-center justify-center gap-1.5">
                 <dt><Phone class="w-3.5 h-3.5 text-muted-foreground" aria-label="전화" /></dt>
                 <dd>
-                  <a :href="`tel:${staff.phone.replace(/-/g, '')}`" class="text-muted-foreground hover:text-primary transition-colors">
+                  <a :href="`tel:${staff.phone.replace(/-/g, '')}`" class="inline-flex items-center min-h-10 text-muted-foreground hover:text-primary transition-colors">
                     {{ staff.phone }}
                   </a>
                 </dd>
@@ -60,7 +60,7 @@
               <div v-if="staff.email" class="flex items-center justify-center gap-1.5">
                 <dt><Mail class="w-3.5 h-3.5 text-muted-foreground" aria-label="이메일" /></dt>
                 <dd class="min-w-0">
-                  <a :href="`mailto:${staff.email}`" class="text-muted-foreground hover:text-primary transition-colors break-all">
+                  <a :href="`mailto:${staff.email}`" class="inline-flex items-center min-h-10 text-muted-foreground hover:text-primary transition-colors break-all">
                     {{ staff.email }}
                   </a>
                 </dd>

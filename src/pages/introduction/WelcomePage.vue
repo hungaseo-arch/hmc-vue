@@ -42,7 +42,7 @@
           </div>
           <p class="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{{ address }}</p>
           <p class="text-sm text-muted-foreground mt-2">
-            <a :href="`tel:${CHURCH.phoneTel}`" class="hover:text-primary transition-colors">{{ CHURCH.phone }}</a>
+            <a :href="`tel:${CHURCH.phoneTel}`" class="inline-flex items-center min-h-10 hover:text-primary transition-colors">{{ CHURCH.phone }}</a>
           </p>
         </div>
 

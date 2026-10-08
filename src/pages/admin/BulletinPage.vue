@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between gap-4 flex-wrap mb-6">
           <h2 class="text-xl font-bold shrink-0">주보 목록</h2>
           <!-- 연도 선택. 자료가 몇 년 치씩 쌓이면 한 화면에 다 보이는 게 오히려 찾기 어렵다. -->
-          <div v-if="years.length > 1" class="flex gap-2 overflow-x-auto" role="tablist" aria-label="주보 연도 선택">
+          <div v-if="years.length > 1" class="flex gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 max-w-full" role="tablist" aria-label="주보 연도 선택">
             <button
               v-for="y in years"
               :key="y"
@@ -41,20 +41,20 @@
         />
 
         <div v-else>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             <div
               v-for="(group, i) in visibleGroups"
               :key="group.date"
               class="relative bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md transition-all hover:-translate-y-1 group animate-fade-in-up"
-              :style="{ animationDelay: `${i * 0.08}s` }"
+              :style="{ animationDelay: `${Math.min(i, 11) * 0.08}s` }"
             >
               <div
-                class="relative h-48 overflow-hidden flex items-center justify-center transition-all duration-300"
+                class="relative h-32 sm:h-48 overflow-hidden flex items-center justify-center transition-all duration-300"
                 :style="{ background: getThumbnailBg(group.date) }"
               >
                 <span class="text-lg font-semibold text-slate-500 group-hover:text-slate-700 transition-colors duration-300">주보 보기</span>
               </div>
-              <div class="p-5 flex items-center gap-3">
+              <div class="p-3 sm:p-5 flex items-center gap-3">
                 <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <FileText class="w-4 h-4 text-primary" />
                 </div>
@@ -71,18 +71,18 @@
               </div>
               <div v-if="isAdmin" class="absolute top-2 right-2 z-10 flex gap-1" @click.stop>
                 <button
-                  class="p-1.5 bg-white/90 rounded-lg shadow hover:bg-white transition"
+                  class="icon-btn bg-white/90 shadow hover:bg-white"
                   :aria-label="`${group.label} 주보 교체`"
                   @click="openReplaceModal(group)"
                 >
-                  <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
+                  <Pencil class="w-4 h-4 text-muted-foreground" />
                 </button>
                 <button
-                  class="p-1.5 bg-white/90 rounded-lg shadow hover:bg-red-50 transition"
+                  class="icon-btn bg-white/90 shadow hover:bg-red-50"
                   :aria-label="`${group.label} 주보 삭제`"
                   @click="handleDelete(group.date)"
                 >
-                  <Trash2 class="w-3.5 h-3.5 text-red-400" />
+                  <Trash2 class="w-4 h-4 text-red-400" />
                 </button>
               </div>
             </div>
@@ -107,7 +107,7 @@
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="closeReplaceModal"
       >
-        <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-xl max-h-[90dvh] overflow-y-auto">
           <h3 id="bulletin-showReplaceModal-title" class="text-lg font-bold mb-2">주보 파일 교체</h3>
           <p class="text-sm text-muted-foreground mb-6">{{ replacingLabel }} — 기존 파일을 삭제하고 새 파일로 교체합니다.</p>
           <form class="space-y-4" @submit.prevent="handleReplace">
@@ -141,7 +141,7 @@
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="closeModal"
       >
-        <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-xl max-h-[90dvh] overflow-y-auto">
           <h3 id="bulletin-showModal-title" class="text-lg font-bold mb-6">주보 업로드</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>

@@ -8,16 +8,16 @@
       <div class="container mx-auto px-4 max-w-3xl">
         <div class="bg-white rounded-2xl shadow-sm border border-border overflow-hidden animate-fade-in-up">
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm table-fixed sm:table-auto">
               <thead>
                 <tr class="bg-primary text-primary-foreground">
-                  <th class="py-4 px-4 text-left font-semibold whitespace-nowrap">예배구분</th>
+                  <th class="py-4 px-3 sm:px-4 w-[34%] sm:w-auto text-left font-semibold whitespace-nowrap">예배구분</th>
                   <th class="py-4 px-2 text-center font-semibold">
                     <span class="flex items-center justify-center gap-1 whitespace-nowrap">
                       <Clock class="w-2 h-4" /> 예배시간
                     </span>
                   </th>
-                  <th class="py-4 px-2 text-center font-semibold">
+                  <th class="py-4 px-2 w-[24%] sm:w-auto text-center font-semibold">
                     <span class="flex items-center justify-center gap-1 whitespace-nowrap">
                       <MapPin class="w-2 h-4" /> 예배장소
                     </span>
@@ -30,7 +30,7 @@
                   :key="i"
                   :class="['border-b border-border last:border-0', i % 2 === 0 ? 'bg-white' : 'bg-muted/40']"
                 >
-                  <td class="py-4 px-4 font-medium text-foreground">{{ ws.name }}</td>
+                  <td class="py-4 px-3 sm:px-4 font-medium text-foreground break-keep">{{ ws.name }}</td>
                   <td class="py-4 px-2 text-center text-muted-foreground">{{ ws.time }}</td>
                   <td class="py-4 px-2 text-center">
                     <span :class="['px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap', locationBadgeClass(ws.location)]">

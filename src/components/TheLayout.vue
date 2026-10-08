@@ -8,7 +8,7 @@
       본문으로 건너뛰기
     </a>
     <TheHeader />
-    <main id="main" tabindex="-1" class="flex-1 pt-26 md:pt-28">
+    <main id="main" tabindex="-1" class="flex-1 pt-16 md:pt-24">
       <slot />
     </main>
     <TheFooter />

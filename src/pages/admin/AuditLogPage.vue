@@ -151,8 +151,9 @@
             해당 기간에 기록이 없습니다.
           </p>
 
-          <div v-else class="overflow-x-auto">
-            <table class="w-full text-left">
+          <p v-else class="sm:hidden px-5 py-2 text-xs text-muted-foreground">표를 옆으로 밀어 보세요 →</p>
+          <div v-if="loading || rows.length" class="overflow-x-auto">
+            <table class="w-full min-w-[640px] text-left">
               <caption class="sr-only">접속 기록 목록. 최근 순으로 정렬되어 있습니다.</caption>
               <thead class="bg-secondary">
                 <tr class="text-sm text-secondary-foreground">

@@ -168,7 +168,7 @@
         aria-labelledby="manage-title"
         @click.self="closeManage"
       >
-        <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-lg shadow-xl max-h-[90dvh] overflow-y-auto">
           <h3 id="manage-title" class="text-lg font-bold mb-6">{{ nameOf(openMember) }} 관리</h3>
 
           <p v-if="errorMsg" role="alert" class="mb-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm leading-relaxed text-red-700">

@@ -1,5 +1,5 @@
 <template>
-  <footer class="bg-foreground text-background mt-auto">
+  <footer class="bg-foreground text-background mt-auto pb-[env(safe-area-inset-bottom)]">
     <div class="container mx-auto px-5 py-5">
       <!--
         헌금 계좌. 예전에는 모든 방문자에게 늘 보였다. 교회 계좌를 공개된

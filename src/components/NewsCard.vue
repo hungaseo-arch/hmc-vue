@@ -14,8 +14,9 @@
       decoding="async"
       class="w-full h-48 object-cover"
     />
-    <div v-else class="w-full h-48 flex items-center justify-center bg-muted">
-      <Newspaper class="w-8 h-8 text-muted-foreground" />
+    <!-- 썸네일이 없을 때. 모바일에서 빈 회색 상자가 사진만큼 크면 세 장이 화면을 다 먹는다. -->
+    <div v-else class="w-full h-24 md:h-48 flex items-center justify-center bg-muted">
+      <Newspaper class="w-6 h-6 md:w-8 md:h-8 text-muted-foreground" />
     </div>
     <div class="p-5">
       <div class="flex items-center gap-2 mb-2">

@@ -23,14 +23,14 @@
           title="등록된 앨범이 없습니다"
           description="교회 행사 사진이 올라오면 이곳에 표시됩니다."
         />
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-else class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           <div
-            v-for="(album, i) in items"
+            v-for="(album, i) in visibleItems"
             :key="album.id"
             class="relative bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md transition-all hover:-translate-y-1 group animate-fade-in-up"
-            :style="{ animationDelay: `${i * 0.08}s` }"
+            :style="{ animationDelay: `${Math.min(i, 11) * 0.08}s` }"
           >
-            <div class="relative overflow-hidden h-48">
+            <div class="relative overflow-hidden h-32 sm:h-48">
               <img
                 :src="album.thumbnail"
                 :alt="album.title || album.date"
@@ -46,7 +46,7 @@
               </div>
             </div>
             <!-- before 로 카드 전체를 덮는 진짜 링크. 새 탭 열기·주소 복사가 된다. -->
-            <div class="p-4">
+            <div class="p-3 sm:p-4">
               <RouterLink
                 :to="`/community/photos/${album.id}`"
                 class="before:absolute before:inset-0 before:content-[''] before:rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
@@ -57,13 +57,23 @@
             </div>
             <button
               v-if="isAdmin"
-              class="absolute top-2 right-2 z-10 p-1.5 bg-white/90 rounded-lg shadow hover:bg-white transition"
+              class="icon-btn absolute top-2 right-2 z-10 bg-white/90 shadow hover:bg-white"
               :aria-label="`${album.title || album.date} 앨범 수정`"
               @click.stop="openEditModal(album)"
             >
-              <Pencil class="w-3.5 h-3.5 text-muted-foreground" />
+              <Pencil class="w-4 h-4 text-muted-foreground" />
             </button>
           </div>
+        </div>
+        <!-- 앨범이 수십 개라 한 번에 다 그리면 모바일에서 페이지가 2만 px 를 넘는다. 18개씩. -->
+        <div v-if="!loading && !error && visibleCount < items.length" class="mt-8 text-center">
+          <button
+            type="button"
+            class="inline-flex items-center justify-center min-h-11 rounded-lg border border-border bg-white px-6 text-sm font-medium hover:bg-muted transition"
+            @click="visibleCount += PAGE_STEP"
+          >
+            더 보기 ({{ items.length - visibleCount }}개 남음)
+          </button>
         </div>
       </div>
     </section>
@@ -83,7 +93,7 @@
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="showEditModal = false"
       >
-        <div class="bg-white rounded-2xl p-8 w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-lg shadow-xl max-h-[90dvh] overflow-y-auto">
           <h3 id="photoalbum-showEditModal-title" class="text-lg font-bold mb-6">앨범 수정</h3>
           <form class="space-y-4" @submit.prevent="handleEditSubmit">
             <div>
@@ -142,7 +152,7 @@
         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click.self="closeModal"
       >
-        <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-xl max-h-[90dvh] overflow-y-auto">
           <h3 id="photoalbum-showModal-title" class="text-lg font-bold mb-6">새 앨범 등록</h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <div>
@@ -174,7 +184,7 @@
 
 <script setup lang="ts">
 import { errorMessage } from '@/lib/errors'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Image as ImageIcon, Plus, Pencil } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -190,6 +200,10 @@ import { compressImages, sizeSummary } from '@/lib/imageCompress'
 const { isAdmin } = useAuth()
 const { items, loading, error, fetchAlbums, reset } = usePhotoAlbum()
 fetchAlbums()
+
+const PAGE_STEP = 18
+const visibleCount = ref(PAGE_STEP)
+const visibleItems = computed(() => items.value.slice(0, visibleCount.value))
 
 const showEditModal = ref(false)
 const editSaving = ref(false)

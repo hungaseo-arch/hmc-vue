@@ -14,13 +14,15 @@
     -->
     <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
     <section
-      class="relative h-125 md:h-150 overflow-hidden"
+      class="relative h-[70svh] max-h-125 md:h-150 md:max-h-none overflow-hidden touch-pan-y select-none"
       aria-roledescription="carousel"
       aria-label="교회 소개 슬라이드"
       @mouseenter="pauseAuto"
       @mouseleave="resumeAuto"
       @focusin="pauseAuto"
       @focusout="resumeAuto"
+      @pointerdown="onPointerDown"
+      @pointerup="onPointerUp"
     >
       <div
         v-for="(slide, i) in heroSlides"
@@ -45,11 +47,12 @@
           width="1600"
           height="900"
           :fetchpriority="i === 0 ? 'high' : 'auto'"
+          draggable="false"
           class="w-full h-full object-cover"
         />
         <div class="absolute inset-0 bg-linear-to-b from-black/50 via-black/40 to-black/60" />
         <div class="absolute inset-0 flex items-center justify-center">
-          <div class="text-center text-white px-4">
+          <div class="text-center text-white px-14 sm:px-16 md:px-24">
             <p
               :class="[
                 'text-sm md:text-base font-medium mb-3 text-white/80 uppercase tracking-widest transition-all duration-700',
@@ -61,7 +64,7 @@
             <!-- 크기는 그대로 두고 태그만 낮춘다. 석 장 모두 h1 이면 h1 이 셋이 된다. -->
             <p
               :class="[
-                'text-2xl md:text-4xl lg:text-5xl font-bold mb-4 leading-snug max-w-3xl mx-auto transition-all duration-700 delay-200',
+                'text-2xl md:text-4xl lg:text-5xl font-bold mb-4 leading-snug break-keep max-w-3xl mx-auto transition-all duration-700 delay-200',
                 i === current ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
               ]"
               style="font-family: 'Noto Serif KR', serif"
@@ -84,7 +87,7 @@
       <button
         type="button"
         aria-label="이전 슬라이드"
-        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/30 sm:bg-white/20 hover:bg-white/40 text-white p-2.5 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         @click="prev"
       >
         <ChevronLeft class="w-5 h-5" aria-hidden="true" />
@@ -92,14 +95,15 @@
       <button
         type="button"
         aria-label="다음 슬라이드"
-        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/30 sm:bg-white/20 hover:bg-white/40 text-white p-2.5 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         @click="next"
       >
         <ChevronRight class="w-5 h-5" aria-hidden="true" />
       </button>
 
       <!-- Dots -->
-      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2" role="tablist" aria-label="슬라이드 선택">
+      <!-- 버튼은 24×24 로 손가락이 닿게, 보이는 점은 안쪽 span 이 그린다. -->
+      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1" role="tablist" aria-label="슬라이드 선택">
         <button
           v-for="(slide, i) in heroSlides"
           :key="i"
@@ -107,12 +111,16 @@
           role="tab"
           :aria-label="slide.title"
           :aria-selected="i === current"
-          :class="[
-            'transition-all duration-300 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
-            i === current ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/50'
-          ]"
+          class="flex h-6 w-6 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           @click="current = i"
-        />
+        >
+          <span
+            :class="[
+              'block h-2 rounded-full transition-all duration-300',
+              i === current ? 'w-6 bg-white' : 'w-2 bg-white/50'
+            ]"
+          />
+        </button>
       </div>
     </section>
 
@@ -211,7 +219,7 @@
           </div>
           <RouterLink
             :to="ROUTE_PATHS.CHURCH_NEWS"
-            class="text-sm text-primary hover:underline font-medium hidden md:block"
+            class="text-sm text-primary hover:underline font-medium"
           >
             전체 보기 →
           </RouterLink>
@@ -385,5 +393,24 @@ function prev() {
 
 function next() {
   current.value = (current.value + 1) % heroSlides.length
+}
+
+// 손가락으로 좌우로 밀어 넘기기. 버튼·키보드와 병행하는 추가 동작이다.
+// 세로 스크롤 중에는 반응하지 않도록 가로 이동이 더 크고 50px 이상일 때만.
+let startX = 0
+let startY = 0
+function onPointerDown(e: PointerEvent) {
+  startX = e.clientX
+  startY = e.clientY
+}
+function onPointerUp(e: PointerEvent) {
+  const dx = e.clientX - startX
+  const dy = e.clientY - startY
+  if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return
+  if (dx < 0) next()
+  else prev()
+  // 방금 넘겼는데 곧바로 자동으로 또 넘어가지 않게 타이머를 처음부터.
+  pauseAuto()
+  resumeAuto()
 }
 </script>
