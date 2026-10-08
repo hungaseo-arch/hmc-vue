@@ -13,9 +13,18 @@
   Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
 
 # 모든 응답 공통 보안 헤더.
+#
+# HSTS: 처음에는 max-age 를 짧게(1일) 두고, 일주일 문제 없으면 31536000(1년)과
+# includeSubDomains 로 올린다. 하위 도메인(mail/calendar 등)은 Google 으로
+# 가는 레코드라 includeSubDomains 는 메일 정리가 끝난 뒤에만 붙인다.
+# Cloudflare 대시보드의 HSTS 설정과 중복되면 더 긴 값이 적용된다.
+#
+# CSP: 2026-10 전환 후 Report-Only 위반이 없어 강제로 바꾼다. 새 외부 리소스를
+# 붙일 때는 여기에 출처를 먼저 추가해야 한다(안 그러면 브라우저가 차단).
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy-Report-Only: default-src 'self'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self'; connect-src 'self' https://*.supabase.co; frame-src https://www.youtube-nocookie.com https://www.google.com/maps/embed
+  Strict-Transport-Security: max-age=86400
+  Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self'; connect-src 'self' https://*.supabase.co; frame-src https://www.youtube-nocookie.com https://www.google.com/maps/embed; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
