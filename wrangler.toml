@@ -1,3 +1,9 @@
+# 정식 배포 설정 (www.hanmaumch.id, 교회 Cloudflare 계정 hmcjktsu@gmail.com).
+# 배포 전 `npx wrangler whoami` 가 교회 계정인지 확인한다. 개인 계정이면 배포 금지.
+# 배포: npm run deploy
+# apex(hanmaumch.id) → www 301 은 Cloudflare 대시보드 Rules → Redirect Rule 로 잡혀 있다.
+# 옛 임시 주소(hmc.hunga-seo.workers.dev)는 redirect-worker/ 가 301 로 넘긴다(개인 계정).
+
 name = "hmc"
 compatibility_date = "2025-01-01"
 
@@ -7,10 +13,6 @@ directory = "./dist"
 # index.html 을 돌려줘야 라우터가 받는다. 이게 없으면 404 가 뜬다.
 not_found_handling = "single-page-application"
 
-# 도메인 이전(www.hanmaumch.id)은 아직 확정 전이다. 확정되어 Cloudflare 에
-# hanmaumch.id 존이 등록되면 주석을 풀고 `npm run deploy` 한다.
-# apex(hanmaumch.id) → www 로 넘기는 규칙은 Cloudflare 대시보드의
-# Bulk Redirects 나 Redirect Rules 에서 따로 잡는다.
-# [[routes]]
-# pattern = "www.hanmaumch.id"
-# custom_domain = true
+[[routes]]
+pattern = "www.hanmaumch.id"
+custom_domain = true

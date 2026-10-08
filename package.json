@@ -13,8 +13,7 @@
     "test": "vitest run",
     "build": "vue-tsc --noEmit && eslint . --max-warnings 0 && vitest run && vite build && node scripts/gen-sitemap.mjs",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler deploy",
-    "deploy:prod": "VITE_SITE_URL=https://www.hanmaumch.id npm run build && wrangler deploy -c wrangler.cutover.toml"
+    "deploy": "VITE_SITE_URL=https://www.hanmaumch.id npm run build && wrangler deploy"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.0",
