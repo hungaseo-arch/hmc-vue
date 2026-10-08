@@ -269,7 +269,7 @@ curl -sI https://hmc.hunga-seo.workers.dev/introduction/staff | grep -iE '^(HTTP
 ## 8. 작업 보고 (Claude 가 채움)
 | 단계 | 상태 | 일시 | 결과·특이사항 |
 | --- | --- | --- | --- |
-| 0 사전 점검·커밋 | | | |
+| 0 사전 점검·커밋 | 완료 | 2026-10-08 | 브랜치 `chore/domain-cutover` 생성, d09d4ac 커밋. git 2.56·node 26. `VITE_SITE_URL=https://www.hanmaumch.id npm run build` 통과(타입·린트·vitest), canonical·og:url 새 도메인, sitemap 315 URL(workers.dev 0건). wrangler 는 토큰 만료로 미로그인 — 3단계에서 교회 계정으로 로그인 예정 |
 | 1 DNS 정리 | | | |
 | 2 네임서버 전환 | | | |
 | 3 배포 | | | |
