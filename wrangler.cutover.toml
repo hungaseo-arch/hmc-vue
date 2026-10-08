@@ -1,0 +1,26 @@
+# 도메인 전환(www.hanmaumch.id)용 Wrangler 설정.
+#
+# 기본 wrangler.toml 은 workers.dev 주소 배포용으로 그대로 둔다. 이 파일은
+# 아래 조건이 모두 갖춰진 뒤에만 쓴다.
+#   1) 교회 Cloudflare 계정(hmcjktsu@gmail.com)에 hanmaumch.id 존이 "Active"
+#      (= Rumahweb 에서 네임서버를 brodie / demi.ns.cloudflare.com 으로 변경 완료)
+#   2) `wrangler login` 이 교회 Cloudflare 계정으로 되어 있음
+#   3) 존의 DNS 에 www 이름으로 남아 있는 옛 A/CNAME 레코드를 지움
+#      (custom_domain 이 자기 DNS 레코드를 만들기 때문에 겹치면 배포가 실패한다)
+#
+# 배포: npm run deploy:prod
+# apex(hanmaumch.id) → www 301 은 Cloudflare 대시보드 Rules → Redirect Rules 에서
+# 따로 만든다(docs: hmc_cutover_checklist.md).
+
+name = "hmc"
+compatibility_date = "2025-01-01"
+
+[assets]
+directory = "./dist"
+# 히스토리 모드 SPA. /worship/sunday-sermon 같은 딥링크로 직접 들어와도
+# index.html 을 돌려줘야 라우터가 받는다.
+not_found_handling = "single-page-application"
+
+[[routes]]
+pattern = "www.hanmaumch.id"
+custom_domain = true

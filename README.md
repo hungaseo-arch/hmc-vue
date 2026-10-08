@@ -15,7 +15,7 @@ npm run dev
 | --- | --- |
 | `VITE_SUPABASE_URL` | Supabase 프로젝트 URL |
 | `VITE_SUPABASE_ANON_KEY` | anon/publishable 키. **service_role 키는 절대 넣지 않는다** |
-| `VITE_SITE_URL` | 배포 주소. 지금은 `https://hmc.hunga-seo.workers.dev`. canonical·OG·sitemap 에 쓰이며 빌드에 필수 |
+| `VITE_SITE_URL` | 배포 주소. 정식 주소는 `https://www.hanmaumch.id`(전환 전 임시 주소 `https://hmc.hunga-seo.workers.dev`). canonical·OG·sitemap 에 쓰이며 빌드에 필수 |
 
 ## 명령
 
@@ -25,7 +25,8 @@ npm run dev
 | `npm run lint` / `lint:fix` | ESLint (vue + a11y 규칙 포함) |
 | `npm run build` | 타입 검사 → 린트 → Vite 빌드 → `dist/sitemap.xml`·`robots.txt` 생성 |
 | `npm run preview` | 빌드 결과 미리보기 |
-| `npm run deploy` | 빌드 후 `wrangler deploy` |
+| `npm run deploy` | 빌드 후 `wrangler deploy` (기본 `wrangler.toml`, workers.dev 주소) |
+| `npm run deploy:prod` | `VITE_SITE_URL=https://www.hanmaumch.id` 로 빌드 후 `wrangler.cutover.toml` 로 배포 (커스텀 도메인 www.hanmaumch.id) |
 
 sitemap 생성은 Supabase 에서 설교·칼럼 id 를 읽는다. 네트워크가 안 되면 정적 경로만 넣고 종료 코드 1 을 남긴다(`node scripts/gen-sitemap.mjs --allow-partial` 로 무시 가능).
 
@@ -67,11 +68,15 @@ docs/history/   이전 작업 문서
 - [ ] Supabase → Authentication → URL Configuration 의 Site URL·Redirect URLs 가 배포 주소와 같다.
 - [ ] 카카오 개발자 콘솔 Redirect URI 에 Supabase 콜백 주소가 등록돼 있다.
 
-### 도메인 이전(www.hanmaumch.id)이 확정되면
+### 도메인 전환(www.hanmaumch.id)
 
-1. `.env`(및 배포 환경)의 `VITE_SITE_URL` 을 새 주소로 바꾼다.
-2. `src/lib/seo.ts`·`scripts/gen-sitemap.mjs` 의 기본값도 새 주소로 바꾼다.
-3. Supabase Auth 의 Site URL·Redirect URLs, 카카오 Redirect URI 를 새 주소로 바꾼다.
-4. `wrangler.toml` 의 `[[routes]]` 주석을 풀고 배포한다. apex → www 리다이렉트는 Cloudflare 규칙으로 잡는다.
-5. 옛 주소(workers.dev)에서 새 주소로 301 리다이렉트를 걸어 검색 순위를 넘긴다.
+도메인은 2026-10-02 Rumahweb(등록기관 PT Digital Registra Indonesia)으로 이전 완료. 교회 계정(hmcjktsu@gmail.com) Cloudflare 에 존을 만들어 두었고, 네임서버는 아직 옛 교회사랑넷(church-love.com) 상태다.
+
+1. Cloudflare 존 hanmaumch.id 의 DNS 에서 옛 서버(211.169.73.17)를 가리키는 A 레코드(`@`, `*`, `www`)를 지운다. Google 메일용 MX 7개·SPF 는 남긴다. `calendar`/`docs`/`mail`/`sites` CNAME 은 프록시를 끄고 DNS only 로 둔다.
+2. Rumahweb 에서 네임서버를 `brodie.ns.cloudflare.com` / `demi.ns.cloudflare.com` 으로 바꾼다. 존이 Active 가 될 때까지 기다린다.
+3. `wrangler login` 을 교회 Cloudflare 계정으로 하고 `npm run deploy:prod` 로 배포한다(`wrangler.cutover.toml` 의 custom_domain 이 www 레코드를 만든다).
+4. apex(hanmaumch.id) → www 301 은 Cloudflare Rules → Redirect Rules 로 만든다. apex 에는 프록시된 더미 A 레코드(예: 192.0.2.1)가 필요하다.
+5. Supabase Auth 의 Site URL 을 `https://www.hanmaumch.id` 로, Redirect URLs 에 `https://www.hanmaumch.id/**` 를 추가한다. 카카오 콘솔 Web 플랫폼 도메인에도 새 주소를 추가한다(카카오 Redirect URI 는 Supabase 콜백이라 변경 불필요).
+6. 옛 주소(workers.dev)에서 새 주소로 301 리다이렉트를 걸어 검색 순위를 넘긴다.
+7. 전환 후 카카오 로그인·회원 승인·교인 전용 페이지·교회 메일 수발신을 테스트한다.
 - [ ] `public/_headers` 의 CSP 는 Report-Only 다. 콘솔에 위반이 없으면 `Content-Security-Policy` 로 바꿔 강제한다.
