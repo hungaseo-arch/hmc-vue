@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isSpaRoute } from './worker'
+import { isSpaRoute, communityMeta } from './worker'
 import { ROUTE_PATHS } from './lib/index'
 
 describe('worker isSpaRoute', () => {
@@ -22,5 +22,26 @@ describe('worker isSpaRoute', () => {
     for (const p of ['/zzz-not-exist', '/worship/sunday-sermon/abc', '/education', '/community', '/admin', '/index.html', '/worship/sunday-sermon/1/x']) {
       expect(isSpaRoute(p), p).toBe(false)
     }
+  })
+})
+
+describe('worker communityMeta', () => {
+  it('교인 전용 상세 주소에서 종류·날짜만으로 제목을 만든다', () => {
+    expect(communityMeta('/community/bulletin/20260906')?.title).toBe('주보 2026년 9월 6일 | 자카르타 한마음교회')
+    expect(communityMeta('/community/news/2024-09-01_999-prayer')?.title).toBe('교회소식 2024년 9월 1일 | 자카르타 한마음교회')
+    expect(communityMeta('/community/mission-news/2024-06-23_001')?.title).toBe('선교소식 2024년 6월 23일 | 자카르타 한마음교회')
+    expect(communityMeta('/community/photos/2025-11-16_617/')?.title).toBe('사진앨범 2025년 11월 16일 | 자카르타 한마음교회')
+  })
+
+  it('목록·다른 경로에는 손대지 않는다', () => {
+    for (const p of ['/community/news', '/community/bulletin', '/worship/sunday-sermon/12', '/', '/community/news/a/b']) {
+      expect(communityMeta(p), p).toBeNull()
+    }
+  })
+
+  it('제목·본문 같은 교인 전용 내용은 넣지 않는다', () => {
+    const m = communityMeta('/community/news/2024-09-01_999-prayer')!
+    expect(m.title).not.toContain('prayer')
+    expect(m.description).toContain('로그인')
   })
 })

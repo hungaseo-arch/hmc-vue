@@ -31,6 +31,53 @@ const DYNAMIC: RegExp[] = [
   /^\/admin\/(news|photos|bulletin|mission-news)(\/[\w.-]+)?$/,
 ]
 
+/*
+  교인 전용 상세 페이지(소식·선교소식·주보·사진첩)의 미리보기 카드.
+
+  카카오톡·WhatsApp 은 링크의 HTML 에 적힌 og 태그로 카드를 만드는데, SPA 라 모든
+  주소가 같은 index.html 을 주니 어느 소식을 보내도 "자카르타 한마음교회"로만 뜬다.
+  내용(제목·본문·사진)은 승인 교인만 보는 자료라 로그인 없는 크롤러에게 줄 수 없다.
+  그래서 주소만 보고 알 수 있는 것 — 종류와 날짜 — 로 제목을 만든다.
+*/
+const COMMUNITY_KIND: Record<string, string> = {
+  news: '교회소식', 'mission-news': '선교소식', bulletin: '주보', photos: '사진앨범',
+}
+
+function koreanDate(y: string, m: string, d: string): string {
+  return `${y}년 ${Number(m)}월 ${Number(d)}일`
+}
+
+export function communityMeta(pathname: string): { title: string; description: string } | null {
+  const m = /^\/community\/(news|mission-news|bulletin|photos)\/([\w.-]+)\/?$/.exec(pathname)
+  if (!m) return null
+  const kind = COMMUNITY_KIND[m[1]]
+  const id = m[2]
+  // 주보는 YYYYMMDD, 나머지는 YYYY-MM-DD_… 로 시작한다.
+  const date = /^(\d{4})(\d{2})(\d{2})$/.exec(id) ?? /^(\d{4})-(\d{2})-(\d{2})_/.exec(id)
+  const title = date ? `${kind} ${koreanDate(date[1], date[2], date[3])}` : kind
+  return {
+    title: `${title} | 자카르타 한마음교회`,
+    description: `자카르타 한마음교회 교인 전용 ${kind}입니다. 로그인(승인 교인) 후 볼 수 있습니다.`,
+  }
+}
+
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+/** index.html 의 제목·설명 태그만 바꿔 돌려준다. og:image(로고)는 그대로. */
+function rewriteMeta(html: string, meta: { title: string; description: string }): string {
+  const t = escapeAttr(meta.title)
+  const d = escapeAttr(meta.description)
+  return html
+    .replace(/<title>[^<]*<\/title>/, `<title>${t}</title>`)
+    .replace(/(<meta name="description" content=")[^"]*(")/, `$1${d}$2`)
+    .replace(/(<meta property="og:title" content=")[^"]*(")/, `$1${t}$2`)
+    .replace(/(<meta property="og:description" content=")[^"]*(")/, `$1${d}$2`)
+    .replace(/(<meta name="twitter:title" content=")[^"]*(")/, `$1${t}$2`)
+    .replace(/(<meta name="twitter:description" content=")[^"]*(")/, `$1${d}$2`)
+}
+
 export function isSpaRoute(pathname: string): boolean {
   const p = pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname
   return EXACT.has(p) || DYNAMIC.some(r => r.test(p))
@@ -46,9 +93,18 @@ export default {
     // 실제 파일(js/css/이미지/bible/sitemap 등)과 오류 응답은 그대로 둔다.
     const isHtml = res.headers.get('content-type')?.includes('text/html') ?? false
     if (res.status !== 200 || !isHtml) return res
+    const pathname = new URL(request.url).pathname
     // HTML(index.html) 인데 SPA 경로가 아니면 본문·헤더는 그대로, 상태만 404.
-    if (!isSpaRoute(new URL(request.url).pathname)) {
+    if (!isSpaRoute(pathname)) {
       return new Response(res.body, { status: 404, headers: res.headers })
+    }
+    // 교인 전용 상세 페이지는 미리보기 카드용 제목·설명을 바꿔 준다.
+    const meta = communityMeta(pathname)
+    if (meta) {
+      const html = rewriteMeta(await res.text(), meta)
+      const headers = new Headers(res.headers)
+      headers.delete('content-length')
+      return new Response(html, { status: 200, headers })
     }
     return res
   },
