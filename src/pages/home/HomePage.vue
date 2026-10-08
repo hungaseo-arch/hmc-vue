@@ -376,7 +376,8 @@ onUnmounted(() => {
   clearTimeout(preloadTimer)
 })
 
-const mainSchedules = computed(() => worshipSchedules.slice(0, 4))
+// 주보에 있는 예배를 모두 보여준다(교육부·새벽예배 포함, 2026-10 목사님 요청).
+const mainSchedules = computed(() => worshipSchedules)
 
 function prev() {
   current.value = (current.value - 1 + heroSlides.length) % heroSlides.length

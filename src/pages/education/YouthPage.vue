@@ -14,7 +14,7 @@
 import MinistryPage from '@/components/MinistryPage.vue'
 
 const details = [
-  { label: '대상', items: ['자카르타 및 근교 거주 청년', '직장인 및 대학생', '20대-30대'] },
+  { label: '대상', items: ['자카르타 및 근교 거주 청년', '직장인 및 대학생', '20~30대', '※ 현재는 성인들과 함께 예배합니다'] },
   { label: '사역 가치', items: ['찬양과 기도와 말씀', '다니엘의 신앙 본받기', '서로 격려하고 세워주는 공동체', '해외생활 속 믿음의 삶'] },
 ]
 </script>

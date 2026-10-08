@@ -1,6 +1,13 @@
 import type { HistoryItem, WorshipSchedule, WorshipVideo, MissionNews } from '@/lib/index'
 
 export const historyData: HistoryItem[] = [
+  { year: 2026, events: ['01.17 자유교회 이주연 목사 부임', '01.18 임직식 — 장로 서민성·양남기·이석창, 안수집사 박정효·전원진, 권사 박혜진·여나영·정숙자', '03.05 목요기도회 재개'] },
+  { year: 2025, events: ['02.01 리모델링 감사예배', '04.27 담임목사 재신임 및 임직자 투표', '07.20 남선교회 주최 골프대회', '08.03 주일예배 1·2부로 분리 / 교회학교 예배 주일 전환', '08.29 여선교회 바자회', '11.02 특별찬양 간증예배 (장종택 목사)', '11.09 전교인 체육대회 (JIKS)'] },
+  { year: 2024, events: ['01.05 자유교회 양휘석 목사 부임', '01.14 잘릴 선교사(아프간 난민공동체) 파송 / 창립기념주일예배 (21주년)', '07~11월 교회 리모델링 실시 / 임시예배당(3F)에서 모임'] },
+  { year: 2023, events: ['01.15 창립기념 주일예배 (20주년)', '08.25 여선교회 바자회', '08.27 남선교회 골프대회', '09.16~17 20주년 특별축하예배 / 선교사님과 함께'] },
+  { year: 2022, events: ['02.13 김옥희 권사 은퇴', '11.06 강준원·현명해 전도사 부임'] },
+  { year: '2020-2021', events: ['코로나로 인한 비대면 예배', '인터넷 예배 실황 시작 / 새벽예배 온라인으로 전환'] },
+  { year: 2019, events: ['01.06 자유교회 이용정 목사 부임', '01.20 담임목사 재신임(위임식) / 장로 김원관, 안수집사 백승근·양남기·이범주, 권사 강경희·나성애·박나영·하경수 임직 / 장로 은퇴 전영돈·강정포', '05.20~24 선교지 방문 / 고형돈 목사, 전영돈 장로', '07.07 교회 음향 교체', '10.29~11.01 INTO 부모교실'] },
   { year: 2018, events: ['01.07 백광호 목사 부임'] },
   { year: 2017, events: ['01.08 담임목사 취임식 / 장로, 안수집사, 권사 취임식'] },
   { year: 2016, events: ['10.02 장로, 안수집사, 권사 임직투표', '10.02 한마음교회 홈페이지 오픈', '08.07 상반기 새신자 환영회', '06.26 박헌식 장로 은퇴식', '04.10 청년 인니진출 전략세미나', '04.02 손정백, 민미경 전도사 부임', '03.19 특별 외부주일예배', '01.31 권사 임직식'] },
@@ -32,17 +39,19 @@ export const worshipSchedules: WorshipSchedule[] = [
   { name: '새벽 예배', time: '화-토요일 오전 4:00', location: '온라인' },
   { name: 'J-Angels (유치부) 예배', time: '주일 오전 11:00', location: '소예배당' },
   { name: 'J-Kids (아동부) 예배', time: '주일 오전 11:00', location: '소예배당' },
-  { name: 'Ja-Yu (중고등부) 예배', time: '토요일 오전 10:00', location: '예배당' },
+  { name: 'Ja-You (중고등부) 예배', time: '토요일 오전 10:00 (각 교회 순회) / 주일 오전 11:00 (본예배 후 자체모임)', location: '예배당' },
 ]
 
 // 교회영상 (외부 링크)
-// TODO: url 을 실제 YouTube 링크로 교체하세요.
+// 특송·행사 영상은 게시판 형태로 만들 예정(2026-10 목사님 요청). 그 전까지는
+// 채널 링크로 보낸다.
 const HMC_YOUTUBE = 'https://www.youtube.com/@%EC%9E%90%EC%B9%B4%EB%A5%B4%ED%83%80%ED%95%9C%EB%A7%88%EC%9D%8C%EA%B5%90%ED%9A%8C'
 
 export const worshipVideos: WorshipVideo[] = [
   { label: '주일예배', description: '주일 대예배 실황', url: HMC_YOUTUBE },
   { label: '새벽예배', description: '매일 새벽 말씀', url: 'https://www.youtube.com/playlist?list=PLTBFyC2v_y-__tHzJ9UvW-BVWIYBE_WHc' },
-  { label: '교육부', description: '다음세대 예배 영상', url: 'https://www.youtube.com/playlist?list=PLTBFyC2v_y-8o3kA7DUug5w_3yNqI2D-u' },
+  { label: '특별영상', description: '특송·행사 영상', url: HMC_YOUTUBE },
+  { label: '교육부 (자유교회)', description: '토요 예배 실황', url: 'https://www.youtube.com/@jakartayouthchurch6368' },
 ]
 
 // 선교소식 (인도네시아 선교지)

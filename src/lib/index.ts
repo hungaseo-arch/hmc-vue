@@ -75,7 +75,7 @@ export const NAV_ITEMS: NavItem[] = [
     children: [
       { label: 'J-Angels', path: ROUTE_PATHS.J_ANGELS },
       { label: 'J-Kids', path: ROUTE_PATHS.J_KIDS },
-      { label: 'Ja-Yu', path: ROUTE_PATHS.JA_YU },
+      { label: 'Ja-You', path: ROUTE_PATHS.JA_YU },
       { label: '청년부', path: ROUTE_PATHS.YOUTH },
       { label: '성인교육', path: ROUTE_PATHS.ADULT_EDU },
     ],
@@ -141,7 +141,8 @@ export interface PastoralColumnListItem {
 }
 
 export interface HistoryItem {
-  year: number
+  // 2020-2021 처럼 묶는 해도 있어 문자열을 허용한다.
+  year: number | string
   events: string[]
 }
 

@@ -51,7 +51,8 @@ const router = createRouter({
     { path: ROUTE_PATHS.PHOTO_ALBUM_DETAIL, component: () => import('@/pages/detailPage/PhotoAlbumDetailPage.vue'), meta: { access: 1, title: '사진앨범', noindex: true } },
     { path: ROUTE_PATHS.BULLETIN, component: () => import('@/pages/admin/BulletinPage.vue'), meta: { access: 1, title: '주보', noindex: true } },
     { path: ROUTE_PATHS.BULLETIN_DETAIL, component: () => import('@/pages/detailPage/BulletinDetailPage.vue'), meta: { access: 1, title: '주보', noindex: true } },
-    { path: ROUTE_PATHS.MISSION_NEWS, component: () => import('@/pages/admin/MissionNewsPage.vue'), meta: { title: '선교소식', description: '자카르타 한마음교회가 후원하는 선교지 소식입니다.' } },
+    // 선교소식도 교인 전용(2026-10 목사님 요청 — 현지 정부가 볼 수 있어 공개하지 않는다).
+    { path: ROUTE_PATHS.MISSION_NEWS, component: () => import('@/pages/admin/MissionNewsPage.vue'), meta: { access: 1, title: '선교소식', noindex: true } },
 
     // 관리자(2등급) 전용. 아래 /admin/:rest 리디렉트보다 위에 둔다 — 정적
     // 구간이 매개변수보다 우선이라 순서와 무관하게 매칭되지만, 읽는 사람이

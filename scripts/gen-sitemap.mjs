@@ -49,12 +49,11 @@ const STATIC_ROUTES = [
   ['/education/ja-yu', '0.5', 'yearly'],
   ['/education/youth', '0.5', 'yearly'],
   ['/education/adult', '0.5', 'yearly'],
-  ['/community/mission-news', '0.5', 'monthly'],
 ]
 
 /** 검색엔진에 노출하지 않을 경로. router 의 noindex 와 짝을 맞춘다. */
 const DISALLOW = [
-  '/community/news', '/community/photos', '/community/bulletin',
+  '/community/news', '/community/photos', '/community/bulletin', '/community/mission-news',
   '/login', '/signup', '/profile', '/pending', '/no-access', '/admin',
 ]
 

@@ -16,5 +16,6 @@ import MinistryPage from '@/components/MinistryPage.vue'
 const details = [
   { label: '예배 정보', items: ['매주 주일 오전 11:00', '소예배당', '초등학교 1~6학년'] },
   { label: '사역 목표', items: ['예수님 영접과 거듭남', '하나님의 자녀 됨 인식', '성령님의 도우심으로 변화와 성장', '믿음의 공동체 경험'] },
+  { label: '섬기는 이', items: ['부장: 변희경 권사', '지도: 강준원 목사', '교사: 김은호, 김지연, 엘리자베스'] },
 ]
 </script>

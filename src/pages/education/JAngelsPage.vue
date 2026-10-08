@@ -16,5 +16,6 @@ import MinistryPage from '@/components/MinistryPage.vue'
 const details = [
   { label: '예배 정보', items: ['매주 주일 오전 11:00', '소예배당', '영유아 ~ 유치원생 대상'] },
   { label: '사역 목표', items: ['경험을 통한 신앙교육', '하나님의 사랑 체험', '예배와 활동 중심의 교육', '하나님의 자녀로 바르게 성장'] },
+  { label: '섬기는 이', items: ['부장: 유현주 권사', '지도: 현명해 전도사', '교사: 김선희, 허순경, 이장미'] },
 ]
 </script>
