@@ -4,13 +4,16 @@
     <section class="py-16">
       <div class="container mx-auto px-4 max-w-4xl">
 
+        <div class="flex items-center justify-between mb-8">
         <button
-          class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
+          class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           @click="goBack()"
         >
           <ChevronLeft class="w-4 h-4" />
           앨범 목록으로
         </button>
+          <ShareButton v-if="album" :title="`사진앨범 · ${album.title}`" />
+        </div>
 
         <div v-if="loading" class="text-center py-20 text-muted-foreground">불러오는 중...</div>
         <div v-else-if="!album" class="text-center py-20 text-muted-foreground">앨범을 찾을 수 없습니다.</div>
@@ -70,6 +73,7 @@ import { ROUTE_PATHS } from '@/lib/index'
 import { ChevronLeft, Calendar, Image as ImageIcon } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import ShareButton from '@/components/ShareButton.vue'
 import ImageLightbox from '@/components/ImageLightbox.vue'
 import { usePhotoAlbum } from '@/composables/usePhotoAlbum'
 import { useImageRatio } from '@/composables/useImageRatio'

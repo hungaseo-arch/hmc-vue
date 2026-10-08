@@ -4,13 +4,16 @@
     <section class="py-16">
       <div class="container mx-auto px-4 max-w-3xl">
 
+        <div class="flex items-center justify-between mb-8">
         <button
-          class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
+          class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           @click="goBack()"
         >
           <ChevronLeft class="w-4 h-4" />
           주보 목록으로
         </button>
+          <ShareButton v-if="pages.length" :title="`주보 ${dateLabel}`" />
+        </div>
 
         <div v-if="loading" class="text-center py-20 text-muted-foreground">불러오는 중...</div>
         <div v-else-if="error" class="text-center py-20 text-red-500">{{ error }}</div>
@@ -71,6 +74,7 @@ import { ROUTE_PATHS } from '@/lib/index'
 import { ChevronLeft, FileText } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import ShareButton from '@/components/ShareButton.vue'
 import ImageLightbox from '@/components/ImageLightbox.vue'
 import { supabase } from '@/lib/supabase'
 import { signPaths } from '@/lib/storage'
