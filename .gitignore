@@ -7,3 +7,6 @@ dist/
 
 # 동기화 도구(아이클라우드 등)가 충돌 시 만드는 사본
 package-lock [0-9]*.json
+
+# wrangler 로컬 개발용 변수(.dev.vars). 비밀은 아니지만 .env 와 같이 둔다.
+.dev.vars

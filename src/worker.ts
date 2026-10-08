@@ -36,8 +36,9 @@ const DYNAMIC: RegExp[] = [
 
   카카오톡·WhatsApp 은 링크의 HTML 에 적힌 og 태그로 카드를 만드는데, SPA 라 모든
   주소가 같은 index.html 을 주니 어느 소식을 보내도 "자카르타 한마음교회"로만 뜬다.
-  내용(제목·본문·사진)은 승인 교인만 보는 자료라 로그인 없는 크롤러에게 줄 수 없다.
-  그래서 주소만 보고 알 수 있는 것 — 종류와 날짜 — 로 제목을 만든다.
+  2026-10 요청: 카드에 소식 제목만, 설명과 그림은 없이. 제목은 Supabase 의
+  community_share_title() (T17, anon 허용, 제목 한 열만)로 받고, 못 받으면
+  주소에서 알 수 있는 종류·날짜로 만든다. 본문·사진은 어떤 경우에도 넣지 않는다.
 */
 const COMMUNITY_KIND: Record<string, string> = {
   news: '교회소식', 'mission-news': '선교소식', bulletin: '주보', photos: '사진앨범',
@@ -47,17 +48,50 @@ function koreanDate(y: string, m: string, d: string): string {
   return `${y}년 ${Number(m)}월 ${Number(d)}일`
 }
 
-export function communityMeta(pathname: string): { title: string; description: string } | null {
+export interface CommunityRef { kind: string; id: string; fallbackTitle: string }
+
+/** 주소가 교인 전용 상세면 종류·id·대체 제목을 돌려준다. */
+export function communityRef(pathname: string): CommunityRef | null {
   const m = /^\/community\/(news|mission-news|bulletin|photos)\/([\w.-]+)\/?$/.exec(pathname)
   if (!m) return null
-  const kind = COMMUNITY_KIND[m[1]]
+  const kind = m[1]
   const id = m[2]
   // 주보는 YYYYMMDD, 나머지는 YYYY-MM-DD_… 로 시작한다.
   const date = /^(\d{4})(\d{2})(\d{2})$/.exec(id) ?? /^(\d{4})-(\d{2})-(\d{2})_/.exec(id)
-  const title = date ? `${kind} ${koreanDate(date[1], date[2], date[3])}` : kind
-  return {
-    title: `${title} | 자카르타 한마음교회`,
-    description: `자카르타 한마음교회 교인 전용 ${kind}입니다. 로그인(승인 교인) 후 볼 수 있습니다.`,
+  const label = COMMUNITY_KIND[kind]
+  return { kind, id, fallbackTitle: date ? `${label} ${koreanDate(date[1], date[2], date[3])}` : label }
+}
+
+const TITLE_CACHE_SEC = 600
+const TITLE_TIMEOUT_MS = 2500
+
+/** Supabase 에서 제목만 받는다. 실패·없음이면 null. 엣지 캐시 10분. */
+async function fetchShareTitle(ref: CommunityRef, env: Env): Promise<string | null> {
+  if (ref.kind === 'bulletin' || !env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return null
+  const cacheKey = new Request(`https://share-title.local/${ref.kind}/${encodeURIComponent(ref.id)}`)
+  // caches.default 는 Workers 전용이라 DOM 타입에 없다.
+  const cache = (caches as unknown as { default: Cache }).default
+  const hit = await cache.match(cacheKey)
+  if (hit) return (await hit.text()) || null
+  try {
+    const r = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/community_share_title`, {
+      method: 'POST',
+      headers: {
+        apikey: env.SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ kind: ref.kind, item_id: ref.id }),
+      signal: AbortSignal.timeout(TITLE_TIMEOUT_MS),
+    })
+    if (!r.ok) return null
+    const raw = (await r.text()).trim()
+    // PostgREST 는 스칼라를 JSON 문자열("…") 또는 null 로 준다.
+    const title = raw === 'null' || raw === '' ? '' : String(JSON.parse(raw)).trim()
+    await cache.put(cacheKey, new Response(title, { headers: { 'Cache-Control': `max-age=${TITLE_CACHE_SEC}` } }))
+    return title || null
+  } catch {
+    return null
   }
 }
 
@@ -65,17 +99,17 @@ function escapeAttr(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-/** index.html 의 제목·설명 태그만 바꿔 돌려준다. og:image(로고)는 그대로. */
-function rewriteMeta(html: string, meta: { title: string; description: string }): string {
-  const t = escapeAttr(meta.title)
-  const d = escapeAttr(meta.description)
+/**
+ * index.html 의 제목 태그를 바꾸고 설명·그림 태그는 지운다(카드에 제목만 뜨게).
+ * og:type·og:site_name·og:url 은 남는다.
+ */
+export function rewriteShareMeta(html: string, title: string): string {
+  const t = escapeAttr(title)
   return html
     .replace(/<title>[^<]*<\/title>/, `<title>${t}</title>`)
-    .replace(/(<meta name="description" content=")[^"]*(")/, `$1${d}$2`)
     .replace(/(<meta property="og:title" content=")[^"]*(")/, `$1${t}$2`)
-    .replace(/(<meta property="og:description" content=")[^"]*(")/, `$1${d}$2`)
     .replace(/(<meta name="twitter:title" content=")[^"]*(")/, `$1${t}$2`)
-    .replace(/(<meta name="twitter:description" content=")[^"]*(")/, `$1${d}$2`)
+    .replace(/[ \t]*<meta (?:name|property)="(?:description|og:description|og:image|twitter:description|twitter:image|twitter:card)" content="[^"]*" \/>\n?/g, '')
 }
 
 export function isSpaRoute(pathname: string): boolean {
@@ -85,6 +119,9 @@ export function isSpaRoute(pathname: string): boolean {
 
 interface Env {
   ASSETS: { fetch(request: Request): Promise<Response> }
+  // 공유 카드 제목 조회용. wrangler secret 으로 넣는다(anon 키는 클라이언트에도 있는 공개 키).
+  SUPABASE_URL?: string
+  SUPABASE_ANON_KEY?: string
 }
 
 export default {
@@ -98,10 +135,11 @@ export default {
     if (!isSpaRoute(pathname)) {
       return new Response(res.body, { status: 404, headers: res.headers })
     }
-    // 교인 전용 상세 페이지는 미리보기 카드용 제목·설명을 바꿔 준다.
-    const meta = communityMeta(pathname)
-    if (meta) {
-      const html = rewriteMeta(await res.text(), meta)
+    // 교인 전용 상세 페이지는 미리보기 카드에 소식 제목만 보이게 바꿔 준다.
+    const ref = communityRef(pathname)
+    if (ref) {
+      const title = (await fetchShareTitle(ref, env)) ?? ref.fallbackTitle
+      const html = rewriteShareMeta(await res.text(), title)
       const headers = new Headers(res.headers)
       headers.delete('content-length')
       return new Response(html, { status: 200, headers })

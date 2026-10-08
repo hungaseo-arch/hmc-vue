@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isSpaRoute, communityMeta } from './worker'
+import { isSpaRoute, communityRef, rewriteShareMeta } from './worker'
 import { ROUTE_PATHS } from './lib/index'
 
 describe('worker isSpaRoute', () => {
@@ -25,23 +25,42 @@ describe('worker isSpaRoute', () => {
   })
 })
 
-describe('worker communityMeta', () => {
-  it('교인 전용 상세 주소에서 종류·날짜만으로 제목을 만든다', () => {
-    expect(communityMeta('/community/bulletin/20260906')?.title).toBe('주보 2026년 9월 6일 | 자카르타 한마음교회')
-    expect(communityMeta('/community/news/2024-09-01_999-prayer')?.title).toBe('교회소식 2024년 9월 1일 | 자카르타 한마음교회')
-    expect(communityMeta('/community/mission-news/2024-06-23_001')?.title).toBe('선교소식 2024년 6월 23일 | 자카르타 한마음교회')
-    expect(communityMeta('/community/photos/2025-11-16_617/')?.title).toBe('사진앨범 2025년 11월 16일 | 자카르타 한마음교회')
+describe('worker communityRef', () => {
+  it('교인 전용 상세 주소에서 종류·id·대체 제목을 뽑는다', () => {
+    expect(communityRef('/community/bulletin/20260906')).toEqual({ kind: 'bulletin', id: '20260906', fallbackTitle: '주보 2026년 9월 6일' })
+    expect(communityRef('/community/news/2024-09-01_999-prayer')?.fallbackTitle).toBe('교회소식 2024년 9월 1일')
+    expect(communityRef('/community/mission-news/2024-06-23_001')?.id).toBe('2024-06-23_001')
+    expect(communityRef('/community/photos/2025-11-16_617/')?.kind).toBe('photos')
   })
 
   it('목록·다른 경로에는 손대지 않는다', () => {
     for (const p of ['/community/news', '/community/bulletin', '/worship/sunday-sermon/12', '/', '/community/news/a/b']) {
-      expect(communityMeta(p), p).toBeNull()
+      expect(communityRef(p), p).toBeNull()
     }
   })
+})
 
-  it('제목·본문 같은 교인 전용 내용은 넣지 않는다', () => {
-    const m = communityMeta('/community/news/2024-09-01_999-prayer')!
-    expect(m.title).not.toContain('prayer')
-    expect(m.description).toContain('로그인')
+describe('worker rewriteShareMeta', () => {
+  const html = `<head>
+    <title>자카르타 한마음교회</title>
+    <meta name="description" content="설명" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="자카르타 한마음교회" />
+    <meta property="og:description" content="설명" />
+    <meta property="og:image" content="https://x/logo.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="자카르타 한마음교회" />
+    <meta name="twitter:description" content="설명" />
+    <meta name="twitter:image" content="https://x/logo.png" />
+  </head>`
+
+  it('제목만 바꾸고 설명·그림 태그는 지운다', () => {
+    const out = rewriteShareMeta(html, '추수감사절 "안내" & 초대')
+    expect(out).toContain('<title>추수감사절 &quot;안내&quot; &amp; 초대</title>')
+    expect(out).toContain('og:title" content="추수감사절 &quot;안내&quot; &amp; 초대"')
+    expect(out).toContain('og:type')
+    for (const gone of ['og:description', 'og:image', 'twitter:description', 'twitter:image', 'twitter:card', 'name="description"']) {
+      expect(out, gone).not.toContain(gone)
+    }
   })
 })
