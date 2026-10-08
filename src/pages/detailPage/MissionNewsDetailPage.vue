@@ -1,5 +1,5 @@
 <template>
-  <NewsBoardDetail kind="church" />
+  <NewsBoardDetail kind="mission" />
 </template>
 
 <script setup lang="ts">

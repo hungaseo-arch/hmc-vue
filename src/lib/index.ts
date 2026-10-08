@@ -29,6 +29,7 @@ export const ROUTE_PATHS = {
   BULLETIN: '/community/bulletin',
   BULLETIN_DETAIL: '/community/bulletin/:id',
   MISSION_NEWS: '/community/mission-news',
+  MISSION_NEWS_DETAIL: '/community/mission-news/:id',
   LOGIN: '/login',
   SIGNUP: '/signup',
   PROFILE: '/profile',
@@ -156,16 +157,6 @@ export interface WorshipVideo {
   label: string
   description: string
   url: string
-}
-
-export interface MissionNews {
-  id: number
-  region: string
-  title: string
-  missionary: string
-  date: string
-  body: string
-  prayers?: string[]
 }
 
 export interface ChurchNewsItem {

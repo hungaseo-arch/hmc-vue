@@ -27,7 +27,7 @@ const EXACT = new Set<string>([
 const DYNAMIC: RegExp[] = [
   /^\/worship\/sunday-sermon\/\d+$/,
   /^\/worship\/pastoral-column\/\d+$/,
-  /^\/community\/(news|photos|bulletin)\/[\w.-]+$/,
+  /^\/community\/(news|photos|bulletin|mission-news)\/[\w.-]+$/,
   /^\/admin\/(news|photos|bulletin|mission-news)(\/[\w.-]+)?$/,
 ]
 
