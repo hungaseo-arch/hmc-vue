@@ -42,16 +42,19 @@
               class="rounded-2xl overflow-hidden shadow-sm border border-border bg-muted"
               :style="boxStyle(url)"
             >
-              <img
-                :src="url"
-                :alt="`사진 ${i + 1}`"
-                class="w-full h-full object-contain"
-                loading="lazy"
-                decoding="async"
-                @load="remember(url, $event)"
-              />
+              <button type="button" class="block w-full h-full cursor-zoom-in" :aria-label="`사진 ${i + 1} 크게 보기`" @click="viewerIndex = i">
+                <img
+                  :src="url"
+                  :alt="`사진 ${i + 1}`"
+                  class="w-full h-full object-contain"
+                  loading="lazy"
+                  decoding="async"
+                  @load="remember(url, $event)"
+                />
+              </button>
             </div>
           </div>
+          <ImageLightbox v-model:index="viewerIndex" :images="album.images" :label="album.title" />
         </div>
 
       </div>
@@ -60,13 +63,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBackTo } from '@/composables/useBackTo'
 import { ROUTE_PATHS } from '@/lib/index'
 import { ChevronLeft, Calendar, Image as ImageIcon } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import ImageLightbox from '@/components/ImageLightbox.vue'
 import { usePhotoAlbum } from '@/composables/usePhotoAlbum'
 import { useImageRatio } from '@/composables/useImageRatio'
 
@@ -81,4 +85,5 @@ onMounted(fetchAlbums)
 
 // id는 '2025-11-16_617' 형태
 const album = computed(() => items.value.find(a => a.id === route.params.id))
+const viewerIndex = ref<number | null>(null)
 </script>

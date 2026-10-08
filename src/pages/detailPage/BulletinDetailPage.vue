@@ -26,7 +26,7 @@
               주보
             </div>
             <h1 class="text-2xl md:text-3xl font-bold mb-1">{{ dateLabel }}</h1>
-            <p class="text-sm text-muted-foreground">총 {{ pages.length }}페이지</p>
+            <p class="text-sm text-muted-foreground">총 {{ pages.length }}페이지 · 페이지를 누르면 크게 볼 수 있습니다</p>
           </div>
 
           <div class="flex flex-col gap-4">
@@ -42,17 +42,20 @@
               class="rounded-2xl overflow-hidden shadow-sm border border-border bg-muted"
               :style="loadedUrls.has(url) ? undefined : boxStyle(url, fallbackRatio)"
             >
-              <img
-                :src="url"
-                :alt="`${dateLabel} ${i + 1}페이지`"
-                class="w-full block"
-                :class="loadedUrls.has(url) ? 'h-auto' : 'h-full object-contain'"
-                loading="lazy"
-                decoding="async"
-                @load="onLoad(url, $event)"
-              />
+              <button type="button" class="block w-full h-full cursor-zoom-in" :aria-label="`${i + 1}페이지 크게 보기`" @click="viewerIndex = i">
+                <img
+                  :src="url"
+                  :alt="`${dateLabel} ${i + 1}페이지`"
+                  class="w-full block"
+                  :class="loadedUrls.has(url) ? 'h-auto' : 'h-full object-contain'"
+                  loading="lazy"
+                  decoding="async"
+                  @load="onLoad(url, $event)"
+                />
+              </button>
             </div>
           </div>
+          <ImageLightbox v-model:index="viewerIndex" :images="pages" :label="`${dateLabel} 주보`" />
         </div>
 
       </div>
@@ -68,6 +71,7 @@ import { ROUTE_PATHS } from '@/lib/index'
 import { ChevronLeft, FileText } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import ImageLightbox from '@/components/ImageLightbox.vue'
 import { supabase } from '@/lib/supabase'
 import { signPaths } from '@/lib/storage'
 import { useImageRatio } from '@/composables/useImageRatio'
@@ -78,6 +82,7 @@ import { useImageRatio } from '@/composables/useImageRatio'
 const { boxStyle, remember } = useImageRatio(1 / 1.414)
 const fallbackRatio = computed(() => (pages.value.length === 1 ? 1.414 : 1 / 1.414))
 const loadedUrls = ref<Set<string>>(new Set())
+const viewerIndex = ref<number | null>(null)
 
 function onLoad(url: string, e: Event) {
   remember(url, e)

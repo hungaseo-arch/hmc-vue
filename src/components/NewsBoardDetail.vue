@@ -40,16 +40,19 @@
               class="bg-muted"
               :style="boxStyle(url)"
             >
-              <img
-                :src="url"
-                :alt="`${item.title} ${i + 1}/${item.images.length}`"
-                class="w-full h-full object-contain"
-                loading="lazy"
-                decoding="async"
-                @load="remember(url, $event)"
-              />
+              <button type="button" class="block w-full h-full cursor-zoom-in" :aria-label="`사진 ${i + 1} 크게 보기`" @click="viewerIndex = i">
+                <img
+                  :src="url"
+                  :alt="`${item.title} ${i + 1}/${item.images.length}`"
+                  class="w-full h-full object-contain"
+                  loading="lazy"
+                  decoding="async"
+                  @load="remember(url, $event)"
+                />
+              </button>
             </div>
           </div>
+          <ImageLightbox v-model:index="viewerIndex" :images="item.images" :label="item.title" />
         </div>
 
       </div>
@@ -58,12 +61,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBackTo } from '@/composables/useBackTo'
 import { ChevronLeft, Calendar } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import ImageLightbox from '@/components/ImageLightbox.vue'
 import { useNewsBoard } from '@/composables/useNewsBoard'
 import { NEWS_BOARDS, type NewsBoardKind } from '@/lib/newsBoards'
 import { useImageRatio } from '@/composables/useImageRatio'
@@ -81,4 +85,5 @@ const { items, loading, fetchNews } = useNewsBoard(props.kind)
 onMounted(fetchNews)
 
 const item = computed(() => items.value.find(n => n.id === route.params.id))
+const viewerIndex = ref<number | null>(null)
 </script>
