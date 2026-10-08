@@ -273,7 +273,7 @@ curl -sI https://hmc.hunga-seo.workers.dev/introduction/staff | grep -iE '^(HTTP
 | 1 DNS 정리 | 완료·검증 | 2026-10-08 | 사용자가 대시보드에서 A `@`·`*`·`www`(211.169.73.17) 삭제, google CNAME 4개 DNS only, MX 유지, apex 더미 A `@`→192.0.2.1 Proxied 추가. 존이 Pending 이라 Cloudflare NS 직접 조회는 빈 응답 — dig 검증은 2단계 네임서버 전환 후 재실행. 네임서버 전환 직후 brodie·demi 직접 조회로 검증: MX 7개 Google, mail·calendar CNAME ghs.google.com, www 비어 있음, apex A 192.0.2.1 — 모두 정상 |
 | 2 네임서버 전환 | 완료·Active 확인 | 2026-10-08 | Rumahweb 에서 brodie/demi.ns.cloudflare.com 으로 변경, PANDI RDAP 반영. 10:12 1.1.1.1·8.8.8.8 모두 Cloudflare NS 로 전파. apex 가 Cloudflare 프록시 IP 로 응답하고 HTTPS 인증서 발급됨(server=cloudflare, 더미 원본이라 522 — 4단계 리다이렉트 전까지 정상). wrangler 교회 계정(aa50308c…) 로그인 확인 |
 | 3 배포 | 완료 | 2026-10-08 | 교회 계정 확인 후 `npm run deploy:prod` 성공(버전 240f3a13). custom domain www.hanmaumch.id 자동 생성. 검증: 루트 200, canonical·og:url 새 도메인, robots Sitemap 새 도메인, sitemap 315 URL, SPA 딥링크 200, 인증서 Let's Encrypt(CN=hanmaumch.id, SAN 포함) |
-| 4 apex 301 | | | |
+| 4 apex 301 | 완료·검증 | 2026-10-08 | 사용자가 Rules → Overview → Redirect Rule 생성(새 대시보드엔 Redirect Rules 메뉴 없음). 검증: `hanmaumch.id/worship/sunday-sermon?x=1` → 301 `https://www.hanmaumch.id/worship/sunday-sermon?x=1`(경로·쿼리 유지), 루트·http 도 301 |
 | 5 Supabase·카카오 | | | |
 | 6 임시사이트 301 | | | |
 | 7 기본 설정 정리 | | | |
