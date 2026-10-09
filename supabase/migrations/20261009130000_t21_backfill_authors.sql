@@ -15,8 +15,8 @@
 --
 -- 작성자 고정 트리거(set_author)가 UPDATE·INSERT 값을 되돌리므로 보정하는 동안만
 -- 끈다. 한 트랜잭션이라 중간에 실패하면 전부 취소된다.
--- 사람은 profiles.name 으로 찾는다. 이름이 둘 이상이면 중단하고, 한 명도 없으면
--- 이름만 기록하고 author_id 는 비운다(그 글은 슈퍼관리자만 삭제).
+-- 사람은 profiles.name 으로 찾는다. 동명이면 등급이 높은 쪽(같으면 먼저 가입한 쪽),
+-- 한 명도 없으면 이름만 기록하고 author_id 는 비운다(그 글은 슈퍼관리자만 삭제).
 -- ============================================================================
 
 do $$
@@ -26,10 +26,14 @@ declare
   t      text;
   n      int;
 begin
-  select count(*), min(id::text)::uuid into v_seo_n, v_seo from public.profiles where name = '서종환';
-  select count(*), min(id::text)::uuid into v_ko_n,  v_ko  from public.profiles where name = '고형돈';
-  if v_seo_n > 1 then raise exception '이름이 서종환인 프로필이 % 명입니다. 하나로 정리한 뒤 다시 실행하세요.', v_seo_n; end if;
-  if v_ko_n  > 1 then raise exception '이름이 고형돈인 프로필이 % 명입니다. 하나로 정리한 뒤 다시 실행하세요.', v_ko_n; end if;
+  -- 같은 이름의 프로필이 여럿이면(예: 이메일·카카오 두 계정) 등급이 높은 쪽,
+  -- 같으면 먼저 가입한 쪽을 쓴다.
+  select count(*) into v_seo_n from public.profiles where name = '서종환';
+  select id into v_seo from public.profiles where name = '서종환' order by access_level desc, created_at asc limit 1;
+  select count(*) into v_ko_n  from public.profiles where name = '고형돈';
+  select id into v_ko  from public.profiles where name = '고형돈' order by access_level desc, created_at asc limit 1;
+  if v_seo_n > 1 then raise notice '서종환 프로필 % 개 - 등급 높은 쪽(%) 사용', v_seo_n, v_seo; end if;
+  if v_ko_n  > 1 then raise notice '고형돈 프로필 % 개 - 등급 높은 쪽(%) 사용', v_ko_n, v_ko; end if;
   if v_seo_n = 0 then raise notice '서종환 프로필 없음 - author_id 는 비워 둔다'; end if;
   if v_ko_n  = 0 then raise notice '고형돈 프로필 없음 - author_id 는 비워 둔다'; end if;
 
