@@ -15,7 +15,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 /*
-  anon 키만 쓴다. service_role 키는 이 저장소 어디에도 두지 않는다 —
+  anon 키만 쓴다. service_role 키는 이 저장소 어디에도 두지 않는다 -
   브라우저로 내려가는 순간 RLS 를 통째로 우회할 수 있는 열쇠가 된다.
 
   auth 옵션을 명시하는 이유:
@@ -28,7 +28,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 /*
   카카오에서 돌아왔는지 여부. 세션 교환이 끝나면 supabase-js 가 주소에서
   ?code= 를 스스로 지우기 때문에, App.vue 가 확인할 때는 이미 늦을 수 있다.
-  클라이언트를 만들기 전에 — 즉 교환이 시작되기 전에 — 먼저 찍어 둔다.
+  클라이언트를 만들기 전에 - 즉 교환이 시작되기 전에 - 먼저 찍어 둔다.
 */
 export const oauthReturn = (() => {
   if (typeof window === 'undefined') return { pending: false, failed: false }

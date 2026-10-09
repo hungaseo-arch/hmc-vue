@@ -20,7 +20,7 @@ export const ROUTE_PATHS = {
   JA_YU: '/education/ja-yu',
   YOUTH: '/education/youth',
   ADULT_EDU: '/education/adult',
-  // 소식과나눔 — 관리자 도구가 아니라 교인용 콘텐츠라 /admin 이 아닌 /community 를 쓴다.
+  // 소식과나눔 - 관리자 도구가 아니라 교인용 콘텐츠라 /admin 이 아닌 /community 를 쓴다.
   // 예전 /admin/* 주소는 router 에서 리디렉트로 받는다.
   CHURCH_NEWS: '/community/news',
   CHURCH_NEWS_DETAIL: '/community/news/:id',
@@ -33,7 +33,7 @@ export const ROUTE_PATHS = {
   LOGIN: '/login',
   SIGNUP: '/signup',
   PROFILE: '/profile',
-  // 인증 안내 — 메뉴에는 넣지 않는다. 라우터 가드가 보낼 때만 쓰는 곳이다.
+  // 인증 안내 - 메뉴에는 넣지 않는다. 라우터 가드가 보낼 때만 쓰는 곳이다.
   PENDING: '/pending',
   NO_ACCESS: '/no-access',
   // 관리자 전용
@@ -163,7 +163,7 @@ export interface ChurchNewsItem {
   id: string        // slug: '2024-09-01_999-prayer-campaign'
   title: string
   date: string
-  files: string[]   // storage paths — the durable identity; never parse these back out of a URL
+  files: string[]   // storage paths - the durable identity; never parse these back out of a URL
   thumbnail: string
   images: string[]  // signed URLs, index-aligned with files; re-minted before expiry
   content?: string | null
@@ -176,7 +176,7 @@ export interface PhotoAlbumItem {
   id: string        // '{date}_{numId}' e.g. '2025-11-16_617'
   date: string      // 'YYYY-MM-DD'
   title: string
-  files: string[]   // storage paths — see note on ChurchNewsItem
+  files: string[]   // storage paths - see note on ChurchNewsItem
   thumbnail: string
   images: string[]  // signed URLs, index-aligned with files
   count: number

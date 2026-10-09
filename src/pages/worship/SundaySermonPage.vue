@@ -59,7 +59,7 @@
                 <tr class="bg-muted/60 border-b border-border">
                   <!-- <th class="py-3 px-4 text-left text-muted-foreground font-semibold w-12 whitespace-nowrap">번호</th> -->
                   <th class="py-3 px-4 text-left text-muted-foreground font-semibold">제목</th>
-                  <th class="py-3 px-4 w-32 text-left text-muted-foreground font-semibold hidden sm:table-cell">본문</th>
+                  <th class="py-3 px-4 w-40 whitespace-nowrap text-left text-muted-foreground font-semibold hidden sm:table-cell">본문</th>
                   <th class="py-3 px-4 w-28 text-left text-muted-foreground font-semibold hidden md:table-cell">설교자</th>
                   <th class="py-3 px-4 w-28 text-right text-muted-foreground font-semibold">날짜</th>
                   <th v-if="isAdmin" class="py-2 px-2 w-12"></th>
@@ -85,7 +85,7 @@
                       @click.stop
                     >{{ sermon.title }}</RouterLink>
                   </td>
-                  <td class="py-4 px-4 text-muted-foreground hidden sm:table-cell">{{ sermon.scripture }}</td>
+                  <td class="py-4 px-4 text-muted-foreground whitespace-nowrap hidden sm:table-cell">{{ sermon.scripture }}</td>
                   <td class="py-4 px-4 text-muted-foreground hidden md:table-cell">{{ sermon.preacher }}</td>
                   <td class="py-4 px-4 text-muted-foreground text-right text-xs whitespace-nowrap">{{ sermon.date }}</td>
                   <td v-if="isAdmin" class="py-2 px-1" @click.stop>

@@ -11,7 +11,7 @@ export interface StaffMember {
   email?: string | null
 }
 
-// 모듈 싱글톤 — 페이지 이동 시 재요청 방지. staff 는 누구나 보지만 연락처는
+// 모듈 싱글톤 - 페이지 이동 시 재요청 방지. staff 는 누구나 보지만 연락처는
 // 승인 교인만 봐서, 로그인/승인 상태가 바뀌면 연락처 포함 여부도 다시 맞춰야 한다.
 const items = ref<StaffMember[]>([])
 const loading = ref(true)

@@ -3,7 +3,7 @@
     <PageHeader title="교회영상" subtitle="예배 실황을 영상으로 함께 하세요." />
     <section class="py-16">
       <div class="container mx-auto px-4 max-w-3xl">
-        <div class="grid gap-4 sm:grid-cols-3">
+        <div class="grid gap-4 sm:grid-cols-2">
           <a
             v-for="(video, i) in worshipVideos"
             :key="i"

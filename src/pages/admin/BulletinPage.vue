@@ -109,7 +109,7 @@
       >
         <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-xl max-h-[90dvh] overflow-y-auto">
           <h3 id="bulletin-showReplaceModal-title" class="text-lg font-bold mb-2">주보 파일 교체</h3>
-          <p class="text-sm text-muted-foreground mb-6">{{ replacingLabel }} — 기존 파일을 삭제하고 새 파일로 교체합니다.</p>
+          <p class="text-sm text-muted-foreground mb-6">{{ replacingLabel }} - 기존 파일을 삭제하고 새 파일로 교체합니다.</p>
           <form class="space-y-4" @submit.prevent="handleReplace">
             <div>
               <label for="bulletinpage-field-1" class="block text-sm font-medium mb-1.5">새 파일 선택</label>
@@ -370,7 +370,7 @@ async function handleReplace() {
       replaceProgress.value = `파일 줄이는 중... (${d}/${t})`
     })
     const summary = sizeSummary(files, ready)
-    // 기존 파일 삭제 — 실패하면 여기서 멈춘다. 예전에는 조용히 무시하고
+    // 기존 파일 삭제 - 실패하면 여기서 멈춘다. 예전에는 조용히 무시하고
     // 업로드로 넘어가 "이미 존재함" 오류가 나던 자리다.
     const { data: existing, error: listErr } = await supabase.storage
       .from(BUCKET)

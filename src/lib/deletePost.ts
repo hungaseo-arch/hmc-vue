@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { mustAffectRows, mustRemoveFiles } from '@/lib/db'
 
 /**
- * 소식과나눔 게시물 삭제. 파일을 먼저, 내용 행을 나중에 지운다 — 파일 삭제가
+ * 소식과나눔 게시물 삭제. 파일을 먼저, 내용 행을 나중에 지운다 - 파일 삭제가
  * 거부되면(작성자가 아님) 아무것도 지워지지 않는다. 반대 순서였다면 행만 사라지고
  * 사진이 남아 목록에 '제목 없는 글' 로 되살아난다.
  *

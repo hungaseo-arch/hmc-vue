@@ -6,7 +6,7 @@ import { NEWS_BOARDS, type NewsBoardKind, type NewsBoardConfig } from '@/lib/new
 import type { ChurchNewsItem } from '@/lib/index'
 
 /*
-  소식 게시판 저장소. 교회소식·선교소식이 같은 코드를 쓴다 — 버킷과 테이블만
+  소식 게시판 저장소. 교회소식·선교소식이 같은 코드를 쓴다 - 버킷과 테이블만
   NEWS_BOARDS 에서 받는다. 게시판마다 모듈 싱글톤 하나(페이지 이동 시 재요청 방지).
 */
 interface Store {
@@ -52,7 +52,7 @@ function createStore(config: NewsBoardConfig): Store {
   let signedAt = 0
   let inflight: Promise<void> | null = null
 
-  /** Cache is warm but the URLs are near expiry: re-mint only — no list(), no select(). */
+  /** Cache is warm but the URLs are near expiry: re-mint only - no list(), no select(). */
   async function resign() {
     try {
       const [urls, thumbs] = await Promise.all([

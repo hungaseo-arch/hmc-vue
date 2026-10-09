@@ -43,7 +43,7 @@ export function useSermons() {
     return inflight
   }
 
-  /** 등록 후 — 서버가 부여한 id 를 반영하려면 다시 받아야 한다. */
+  /** 등록 후 - 서버가 부여한 id 를 반영하려면 다시 받아야 한다. */
   function refresh() {
     fetched = false
     return fetchSermons()

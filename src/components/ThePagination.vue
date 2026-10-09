@@ -54,7 +54,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [number] }>()
 
-// 1 … 4 [5] 6 … 16 — 페이지 수가 늘어도 버튼 개수는 고정이다.
+// 1 … 4 [5] 6 … 16 - 페이지 수가 늘어도 버튼 개수는 고정이다.
 const pages = computed<(number | '…')[]>(() => {
   const total = props.totalPages
   const cur = props.modelValue

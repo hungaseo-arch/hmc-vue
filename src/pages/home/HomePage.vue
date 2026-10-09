@@ -3,7 +3,7 @@
     <!--
       이 페이지의 제목. 화면에는 로고와 슬라이드 문구가 이미 있어 굳이 한 번 더
       쓰지 않지만, 검색엔진과 화면낭독기에는 h1 이 하나 있어야 한다.
-      (슬라이드 문구는 석 장이라 h1 로 둘 수 없다 — 페이지 제목은 하나다.)
+      (슬라이드 문구는 석 장이라 h1 로 둘 수 없다 - 페이지 제목은 하나다.)
     -->
     <h1 class="sr-only">자카르타 한마음교회</h1>
 
@@ -37,7 +37,7 @@
           i === current ? 'opacity-100' : 'opacity-0'
         ]"
       >
-        <!-- alt 는 비운다 — 제목·구절은 바로 아래 텍스트로 이미 읽힌다. -->
+        <!-- alt 는 비운다 - 제목·구절은 바로 아래 텍스트로 이미 읽힌다. -->
         <img
           v-if="shown.has(i)"
           :src="heroSrc(slide.bg, 1600)"
@@ -158,7 +158,7 @@
               >
                 <Clock class="w-4 h-4 text-primary-foreground/70 shrink-0" />
                 <span class="font-medium">{{ ws.name }}</span>
-                <span class="ml-auto text-primary-foreground/80">{{ ws.time }}</span>
+                <span class="ml-auto text-right text-primary-foreground/80">{{ ws.time }}</span>
               </li>
             </ul>
             <RouterLink
@@ -345,7 +345,7 @@ function reveal(i: number) {
 }
 watch(current, reveal)
 
-// WCAG 2.2.2 — 자동으로 움직이는 것은 멈출 수 있어야 한다.
+// WCAG 2.2.2 - 자동으로 움직이는 것은 멈출 수 있어야 한다.
 // 마우스를 올리거나 키보드 포커스가 들어오면 넘김을 세운다.
 const AUTOPLAY_MS = 5000
 const prefersReducedMotion =

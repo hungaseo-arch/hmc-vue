@@ -7,7 +7,7 @@ import type { PastoralColumnListItem } from '@/lib/index'
 const LIST_COLUMNS = 'id, title, created_at, excerpt'
 export const PAGE_SIZE = 10
 
-// 모듈 싱글톤 — 목록으로 돌아올 때 같은 페이지를 다시 받지 않는다.
+// 모듈 싱글톤 - 목록으로 돌아올 때 같은 페이지를 다시 받지 않는다.
 const pageCache = new Map<number, PastoralColumnListItem[]>()
 const items = ref<PastoralColumnListItem[]>([])
 const total = ref(0)
@@ -50,7 +50,7 @@ export function usePastoralColumns() {
     return inflight
   }
 
-  /** 등록·수정 후 — 캐시를 버리고 현재 페이지를 다시 받는다. */
+  /** 등록·수정 후 - 캐시를 버리고 현재 페이지를 다시 받는다. */
   async function invalidate(page: number) {
     pageCache.clear()
     await fetchPage(page)

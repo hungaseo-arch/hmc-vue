@@ -68,7 +68,7 @@ import { useIdleLogout } from '@/composables/useIdleLogout'
 
 const router = useRouter()
 
-// 공용 컴퓨터에 로그인된 채로 남지 않게 한다 — useIdleLogout 설명 참고.
+// 공용 컴퓨터에 로그인된 채로 남지 않게 한다 - useIdleLogout 설명 참고.
 const { warning, secondsLeft, stay } = useIdleLogout()
 
 // oauthReturn 은 supabase 클라이언트를 만들기 전에 찍어 둔 값이다.
@@ -86,7 +86,7 @@ function stripOAuthParams() {
     }
   }
   if (!touched) return
-  // replaceState 라서 히스토리에 남지 않는다 — 뒤로가기로 인가 코드가 붙은
+  // replaceState 라서 히스토리에 남지 않는다 - 뒤로가기로 인가 코드가 붙은
   // 주소로 되돌아가지 않게 하려는 것이다. 이미 쓴 코드는 재사용할 수 없다.
   window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash)
 }

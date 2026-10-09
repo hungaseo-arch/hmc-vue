@@ -214,7 +214,7 @@ import { logEvent } from '@/composables/useAuth'
 import { ROUTE_PATHS } from '@/lib/index'
 /*
   날짜는 모두 자카르타 기준이다. 날짜 칸에 적은 '8월 9일' 은 자카르타의
-  8월 9일이어야 한다 — 브라우저 시간대로 해석하면 한국에서 볼 때 두 시간이
+  8월 9일이어야 한다 - 브라우저 시간대로 해석하면 한국에서 볼 때 두 시간이
   어긋난다. 포맷터를 매번 새로 짓지 않도록 lib/jakarta 에 모아 두었다.
 */
 import { WIB, fullDateTime, shortDateTime, dayLabel, todayYmd, shiftYmd, todayCompact } from '@/lib/jakarta'

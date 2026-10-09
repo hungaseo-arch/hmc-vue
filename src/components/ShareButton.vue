@@ -2,7 +2,7 @@
   "공유하기" 버튼. 소식·주보·사진첩 상세에서 쓴다.
 
   - 휴대폰(카카오톡·WhatsApp 이 깔린 곳)은 브라우저의 공유창(navigator.share)을
-    띄운다 — 거기서 카카오톡·WhatsApp 을 고른다. 앱 SDK 없이도 된다.
+    띄운다 - 거기서 카카오톡·WhatsApp 을 고른다. 앱 SDK 없이도 된다.
   - PC 처럼 공유창이 없는 환경은 작은 메뉴: 링크 복사 / WhatsApp 으로 보내기.
     카카오톡 PC 는 주소를 받는 창이 없어 링크 복사로 붙여 넣는다.
   - 공유하는 것은 페이지 주소뿐이다. 사진의 서명 URL(1시간짜리)은 넣지 않는다.
@@ -61,7 +61,7 @@ async function onClick() {
       await navigator.share({ title: text.value, text: text.value, url: url.value })
       return
     } catch {
-      // 사용자가 공유창을 닫은 경우 — 아무것도 하지 않는다.
+      // 사용자가 공유창을 닫은 경우 - 아무것도 하지 않는다.
       return
     }
   }

@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
  *
  * A signed URL is a bearer token: whoever holds it can fetch the object
  * regardless of auth. Expiry is therefore the only real control, and these two
- * constants are the single place it is defined — never inline a TTL at a call site.
+ * constants are the single place it is defined - never inline a TTL at a call site.
  *
  * We mint for 1 hour but re-mint at 45 minutes, so a URL handed to the browser
  * is never close to expiring at render time.
@@ -22,7 +22,7 @@ const CHUNK = 500
  *
  * Returns a `path -> signedUrl` map. Paths that were denied by RLS or are
  * missing are omitted rather than throwing, so one bad file cannot blank out a
- * whole album — callers should `.filter(Boolean)` the result of a lookup.
+ * whole album - callers should `.filter(Boolean)` the result of a lookup.
  */
 export async function signPaths(
   bucket: string,
@@ -62,7 +62,7 @@ const THUMB_CONCURRENCY = 8
  * Mint transformed (resized) signed URLs.
  *
  * Deliberately separate from `signPaths`: the batch endpoint does not accept
- * transform options — the transformation is baked into the token, so each URL
+ * transform options - the transformation is baked into the token, so each URL
  * needs its own request. Only pass the one image per item that a grid actually
  * shows; Supabase bills per distinct origin image transformed per month
  * (Pro includes 100), so transforming whole albums would be wasteful.

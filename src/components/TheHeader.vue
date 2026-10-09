@@ -330,7 +330,7 @@ function onDropdownFocusOut(e: FocusEvent, label: string) {
   if (wrap && next && wrap.contains(next)) return
   if (activeDropdown.value === label) activeDropdown.value = null
 }
-/** 위 메뉴와 같은 이유로 relatedTarget 을 본다 — onDropdownFocusOut 설명 참고. */
+/** 위 메뉴와 같은 이유로 relatedTarget 을 본다 - onDropdownFocusOut 설명 참고. */
 function onUserMenuFocusOut(e: FocusEvent) {
   const wrap = e.currentTarget as HTMLElement | null
   const next = e.relatedTarget as Node | null

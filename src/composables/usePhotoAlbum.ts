@@ -113,7 +113,7 @@ function coverPaths(list: PhotoAlbumItem[]) {
   return list.map(i => i.files[0]).filter(Boolean)
 }
 
-/** Cache is warm but the URLs are near expiry: re-mint only — no list(), no select(). */
+/** Cache is warm but the URLs are near expiry: re-mint only - no list(), no select(). */
 async function resign() {
   try {
     const [urls, thumbs] = await Promise.all([

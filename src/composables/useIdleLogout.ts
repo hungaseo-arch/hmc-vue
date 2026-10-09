@@ -84,13 +84,13 @@ export function useIdleLogout() {
     stop()
     warning.value = false
     // logout() 이 감사 로그의 'logout' 을 먼저 남긴다. 세션이 사라진 뒤에는
-    // 남길 수 없다 — useAuth.logout 설명 참고.
+    // 남길 수 없다 - useAuth.logout 설명 참고.
     await logout()
     setAuthNotice('30분 동안 사용하지 않아 자동으로 로그아웃되었습니다. 계속하시려면 다시 로그인해 주세요.')
     /*
       교인 전용 화면에 남아 있다면 로그인 화면으로 보낸다. 그대로 두면 이미
       권한이 없는 화면을 계속 보고 있게 되고, 무엇이 잘못됐는지 알 수 없다.
-      공개 화면이라면 그 자리에 그대로 둔다 — 읽던 설교를 빼앗을 이유가 없다.
+      공개 화면이라면 그 자리에 그대로 둔다 - 읽던 설교를 빼앗을 이유가 없다.
     */
     const guarded = ((route.meta.access as number | undefined) ?? 0) >= 1 || !!route.meta.requiresAuth
     if (guarded) await router.replace(ROUTE_PATHS.LOGIN)

@@ -39,7 +39,7 @@
             <!--
               사진이 도착하기 전에는 추정 비율로 자리를 잡아 밀림을 줄인다(useImageRatio 참고).
               다만 주보는 실제 비율이 추정과 꽤 어긋나는 경우가 많아(펼침 스캔마다 여백이 달라),
-              도착하면 상자를 실제 비율에 맞게 다시 잡는다 — 페이지 수가 적어 이 한 번의
+              도착하면 상자를 실제 비율에 맞게 다시 잡는다 - 페이지 수가 적어 이 한 번의
               밀림은 갤러리처럼 계속 흔들리는 문제가 되지 않는다.
             -->
             <div
@@ -88,7 +88,7 @@ import { useImageRatio } from '@/composables/useImageRatio'
 
 // 주보는 A4 를 스캔한 세로 문서라 거의 전부 1:√2 다. 다만 최근에는 앞뒤 면을
 // 펼쳐서 한 장(가로)으로 스캔해 올리는 경우가 많아, 페이지가 1장뿐이면
-// 가로(√2:1)로 추정한다 — 실제 비율은 로드 후 remember() 가 다음 방문용으로 적어 둔다.
+// 가로(√2:1)로 추정한다 - 실제 비율은 로드 후 remember() 가 다음 방문용으로 적어 둔다.
 const { boxStyle, remember } = useImageRatio(1 / 1.414)
 const fallbackRatio = computed(() => (pages.value.length === 1 ? 1.414 : 1 / 1.414))
 const loadedUrls = ref<Set<string>>(new Set())
@@ -133,7 +133,7 @@ async function remove() {
 
 onMounted(async () => {
   try {
-    // search 로 이 날짜 파일만 받아온다 — 예전에는 버킷 전체를 나열했다.
+    // search 로 이 날짜 파일만 받아온다 - 예전에는 버킷 전체를 나열했다.
     const { data: files, error: err } = await supabase.storage
       .from(BUCKET)
       .list('', { limit: 1000, search: `${date}-`, sortBy: { column: 'name', order: 'asc' } })

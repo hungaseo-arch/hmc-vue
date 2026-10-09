@@ -6,7 +6,7 @@
   검색엔진·모니터링이 정상 페이지로 본다. 여기서 알려진 SPA 경로만 200 으로
   통과시키고, 모르는 경로는 같은 index.html 을 404 상태로 돌려준다.
 
-  경로 목록은 src/lib/index.ts 의 ROUTE_PATHS 와 같이 고친다 — worker.test.ts 가
+  경로 목록은 src/lib/index.ts 의 ROUTE_PATHS 와 같이 고친다 - worker.test.ts 가
   둘이 어긋나면 실패한다. (이 파일은 Vite 번들이 아니라 wrangler 가 따로 묶으므로
   '@/..' 별칭을 쓰지 않는다.)
 */

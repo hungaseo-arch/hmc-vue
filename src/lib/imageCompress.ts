@@ -50,7 +50,7 @@ function toBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null
 
 /**
  * 300 KB 아래로 줄인 파일을 돌려준다. 줄일 수 없거나 줄일 필요가 없으면
- * 원본을 그대로 돌려준다. 실패해도 던지지 않는다 — 압축은 편의 기능이지
+ * 원본을 그대로 돌려준다. 실패해도 던지지 않는다 - 압축은 편의 기능이지
  * 업로드를 막을 이유가 아니다.
  */
 export async function compressImage(file: File, maxBytes = MAX_UPLOAD_BYTES): Promise<File> {

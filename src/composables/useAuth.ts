@@ -61,7 +61,7 @@ const profile = ref<Profile | null>(null)
 
 /**
  * 마지막 프로필 조회가 통신 오류로 끝났는지. 라우터 가드가 이 값을 보고
- * '승인 전' 과 '아직 모름' 을 가른다 — 승인된 교인을 회선 문제로 승인 대기
+ * '승인 전' 과 '아직 모름' 을 가른다 - 승인된 교인을 회선 문제로 승인 대기
  * 화면에 보내지 않기 위해서다.
  */
 const profileError = ref(false)
@@ -94,7 +94,7 @@ function fetchProfile(uid: string): Promise<void> {
       조회 자체가 실패한 것과 '행이 없다'는 것은 다르다. 통신이 잠깐 끊겼을 때
       null 로 덮어쓰면 등급이 0 으로 떨어지고, 승인된 교인이 승인 대기 화면으로
       밀려난다. 인도네시아 모바일 회선에서 실제로 일어날 수 있는 일이다.
-      그래서 실패는 기록만 하고 마지막으로 알던 값을 그대로 둔다 — 화면만
+      그래서 실패는 기록만 하고 마지막으로 알던 값을 그대로 둔다 - 화면만
       유지될 뿐, 실제 데이터는 RLS 가 막으므로 등급을 부풀리지 못한다.
     */
     if (error) {
@@ -132,7 +132,7 @@ export async function ensureProfile(opts: { retryOnError?: boolean } = {}): Prom
 }
 
 /**
- * 접근 기록을 남긴다. 실패해도 화면 동작을 막지 않는다 — 기록이 안 남는 것보다
+ * 접근 기록을 남긴다. 실패해도 화면 동작을 막지 않는다 - 기록이 안 남는 것보다
  * 사용자가 버튼을 못 누르게 되는 쪽이 더 나쁘다. 그래서 절대 던지지 않는다.
  *
  * user_id 는 서버(log_event)가 auth.uid() 로 정한다. 클라이언트가 남의 이름으로
@@ -204,7 +204,7 @@ supabase.auth.onAuthStateChange((event, session) => {
     resetAllCaches()
     return
   }
-  // 이 콜백 안에서는 await 하지 않는다 — auth 클라이언트가 잠긴다.
+  // 이 콜백 안에서는 await 하지 않는다 - auth 클라이언트가 잠긴다.
   if (changedUser) void fetchProfile(nextUser.id)
 
   /*
@@ -217,7 +217,7 @@ supabase.auth.onAuthStateChange((event, session) => {
 
 /**
  * App.vue 가 부른다. 구독은 이미 이 모듈이 읽히는 시점에 한 번만 등록되고
- * 앱이 살아 있는 동안 유지된다 — 라우터 가드가 App 마운트보다 먼저 도는데,
+ * 앱이 살아 있는 동안 유지된다 - 라우터 가드가 App 마운트보다 먼저 도는데,
  * 그때 이미 세션 판정이 준비돼 있어야 하기 때문이다.
  * 그래서 여기서는 준비 완료만 기다린다. 여러 번 불러도 안전하다.
  */
@@ -255,7 +255,7 @@ const isSuperAdmin = computed(() => accessLevel.value >= 3)
 /**
  * 게시물 삭제 권한. 슈퍼관리자이거나, 관리자이면서 작성자 본인이고 올린 지
  * 1달 안일 때만. 작성자 기록이 없는 옛 글은 슈퍼관리자만 지운다. DB 정책
- * (T18·T20 의 may_delete_post)과 같은 규칙이다 — 화면은 버튼을 보일지만 정하고,
+ * (T18·T20 의 may_delete_post)과 같은 규칙이다 - 화면은 버튼을 보일지만 정하고,
  * 막는 것은 DB 가 한다.
  */
 function canDelete(authorId: string | null | undefined, createdAt?: string | null): boolean {
@@ -281,7 +281,7 @@ export function authSnapshot() {
 
 /**
  * 인증 오류를 노년 사용자가 읽을 수 있는 한국어로 바꾼다. 원문은 콘솔에만
- * 남긴다. 알 수 없는 오류는 뭉뚱그려 안내한다 — 자세한 원문은 다음 행동을
+ * 남긴다. 알 수 없는 오류는 뭉뚱그려 안내한다 - 자세한 원문은 다음 행동을
  * 알려주지 못하고 겁만 준다.
  */
 function signUpErrorMessage(e: AuthError): string {
@@ -377,8 +377,8 @@ export function useAuth() {
    * 클라이언트가 profiles 에 직접 쓰지 않으므로 이메일 확인이 켜져 있어
    * 세션이 바로 생기지 않는 경우에도 프로필이 온전하다.
    *
-   * @returns needsEmailConfirm — 확인 메일을 눌러야 로그인되는 경우 true.
-   *   (이미 가입된 이메일로 다시 신청해도 서버는 같은 모양으로 답한다 —
+   * @returns needsEmailConfirm - 확인 메일을 눌러야 로그인되는 경우 true.
+   *   (이미 가입된 이메일로 다시 신청해도 서버는 같은 모양으로 답한다 -
    *   가입 여부를 남이 알아내지 못하게 하는 조치라 그대로 둔다.)
    */
   async function signUp(

@@ -1,6 +1,6 @@
 /*
   자카르타 기준 시각 표기. 교회가 거기 있고 관리자도 거기서 본다.
-  자카르타는 UTC+7 고정이다 — 서머타임이 없어 오프셋을 상수로 박아도 안전하다.
+  자카르타는 UTC+7 고정이다 - 서머타임이 없어 오프셋을 상수로 박아도 안전하다.
 
   포맷터를 모듈 수준에 한 번만 만든다. Date#toLocaleString 은 부를 때마다
   Intl.DateTimeFormat 을 새로 짓는데, 접속 기록은 목록 50줄 · CSV 5,000줄을
@@ -12,7 +12,7 @@ export const WIB = '+07:00'
 
 const TZ = 'Asia/Jakarta'
 
-/** 2026. 08. 10. 14:33:07 — 기록 목록·CSV 처럼 초까지 필요한 자리. */
+/** 2026. 08. 10. 14:33:07 - 기록 목록·CSV 처럼 초까지 필요한 자리. */
 const fullFmt = new Intl.DateTimeFormat('ko-KR', {
   timeZone: TZ,
   year: 'numeric', month: '2-digit', day: '2-digit',
@@ -20,19 +20,19 @@ const fullFmt = new Intl.DateTimeFormat('ko-KR', {
   hourCycle: 'h23',
 })
 
-/** 8. 10. 14:33 — 곁들이는 정보라 짧게. */
+/** 8. 10. 14:33 - 곁들이는 정보라 짧게. */
 const shortFmt = new Intl.DateTimeFormat('ko-KR', {
   timeZone: TZ, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
 })
 
-/** 2026년 8월 10일 오후 02:33 — 사람이 읽는 명부용. */
+/** 2026년 8월 10일 오후 02:33 - 사람이 읽는 명부용. */
 const longFmt = new Intl.DateTimeFormat('ko-KR', {
   timeZone: TZ,
   year: 'numeric', month: 'long', day: 'numeric',
   hour: '2-digit', minute: '2-digit',
 })
 
-/** 8. 10. (월) — 날짜별 막대 눈금. */
+/** 8. 10. (월) - 날짜별 막대 눈금. */
 const dayFmt = new Intl.DateTimeFormat('ko-KR', {
   timeZone: TZ, month: 'numeric', day: 'numeric', weekday: 'short',
 })

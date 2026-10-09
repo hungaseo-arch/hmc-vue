@@ -28,12 +28,12 @@ const router = createRouter({
     { path: ROUTE_PATHS.HISTORY, component: () => import('@/pages/introduction/HistoryPage.vue'), meta: { title: '연혁', description: '2002년 설립 이후 자카르타 한마음교회가 걸어온 길입니다.' } },
     { path: ROUTE_PATHS.STAFF, component: () => import('@/pages/introduction/StaffPage.vue'), meta: { title: '섬기는 사람들', description: '자카르타 한마음교회를 섬기는 목회자와 사역자를 소개합니다.' } },
     { path: ROUTE_PATHS.WORSHIP_GUIDE, component: () => import('@/pages/introduction/WorshipGuidePage.vue'), meta: { title: '예배안내', description: '주일예배·수요예배·새벽기도 등 자카르타 한마음교회 예배 시간 안내입니다.' } },
-    { path: ROUTE_PATHS.DIRECTIONS, component: () => import('@/pages/introduction/DirectionsPage.vue'), meta: { title: '오시는 길', description: 'Darmawangsa Square The City Walk 1층 — 자카르타 한마음교회 위치와 연락처입니다.' } },
+    { path: ROUTE_PATHS.DIRECTIONS, component: () => import('@/pages/introduction/DirectionsPage.vue'), meta: { title: '오시는 길', description: 'Darmawangsa Square The City Walk 1층 - 자카르타 한마음교회 위치와 연락처입니다.' } },
 
-    // 예배와기도 — 설교·목회칼럼은 개인정보가 없어 전체 공개한다.
+    // 예배와기도 - 설교·목회칼럼은 개인정보가 없어 전체 공개한다.
     { path: ROUTE_PATHS.SUNDAY_SERMON, component: () => import('@/pages/worship/SundaySermonPage.vue'), meta: { title: '주일설교', description: '자카르타 한마음교회 주일설교 말씀을 본문과 함께 볼 수 있습니다.' } },
     { path: ROUTE_PATHS.SUNDAY_SERMON_DETAIL, component: () => import('@/pages/detailPage/SundaySermonDetailPage.vue'), meta: { title: '주일설교' } },
-    { path: ROUTE_PATHS.PASTORAL_COLUMN, component: () => import('@/pages/worship/PastoralColumnPage.vue'), meta: { title: '목회칼럼', description: '고목사의 짧은 단상 — 자카르타 한마음교회 목회칼럼입니다.' } },
+    { path: ROUTE_PATHS.PASTORAL_COLUMN, component: () => import('@/pages/worship/PastoralColumnPage.vue'), meta: { title: '목회칼럼', description: '고목사의 짧은 단상 - 자카르타 한마음교회 목회칼럼입니다.' } },
     { path: ROUTE_PATHS.PASTORAL_COLUMN_DETAIL, component: () => import('@/pages/detailPage/PastoralColumnDetailPage.vue'), meta: { title: '목회칼럼' } },
     { path: ROUTE_PATHS.CHURCH_VIDEO, component: () => import('@/pages/worship/ChurchVideoPage.vue'), meta: { title: '교회영상', description: '자카르타 한마음교회 예배와 행사 영상입니다.' } },
 
@@ -44,18 +44,18 @@ const router = createRouter({
     { path: ROUTE_PATHS.YOUTH, component: () => import('@/pages/education/YouthPage.vue'), meta: { title: '청년부', description: '자카르타 한마음교회 대학·직장 청년부를 소개합니다.' } },
     { path: ROUTE_PATHS.ADULT_EDU, component: () => import('@/pages/education/AdultEduPage.vue'), meta: { title: '성인교육', description: '자카르타 한마음교회 장년 양육 과정을 소개합니다.' } },
 
-    // 소식과나눔 — 승인 교인(1등급) 전용. 색인에서 뺀다.
+    // 소식과나눔 - 승인 교인(1등급) 전용. 색인에서 뺀다.
     { path: ROUTE_PATHS.CHURCH_NEWS, component: () => import('@/pages/admin/ChurchNewsPage.vue'), meta: { access: 1, title: '교회소식', noindex: true } },
     { path: ROUTE_PATHS.CHURCH_NEWS_DETAIL, component: () => import('@/pages/detailPage/ChurchNewsDetailPage.vue'), meta: { access: 1, title: '교회소식', noindex: true } },
     { path: ROUTE_PATHS.PHOTO_ALBUM, component: () => import('@/pages/admin/PhotoAlbumPage.vue'), meta: { access: 1, title: '사진앨범', noindex: true } },
     { path: ROUTE_PATHS.PHOTO_ALBUM_DETAIL, component: () => import('@/pages/detailPage/PhotoAlbumDetailPage.vue'), meta: { access: 1, title: '사진앨범', noindex: true } },
     { path: ROUTE_PATHS.BULLETIN, component: () => import('@/pages/admin/BulletinPage.vue'), meta: { access: 1, title: '주보', noindex: true } },
     { path: ROUTE_PATHS.BULLETIN_DETAIL, component: () => import('@/pages/detailPage/BulletinDetailPage.vue'), meta: { access: 1, title: '주보', noindex: true } },
-    // 선교소식도 교인 전용(2026-10 목사님 요청 — 현지 정부가 볼 수 있어 공개하지 않는다).
+    // 선교소식도 교인 전용(2026-10 목사님 요청 - 현지 정부가 볼 수 있어 공개하지 않는다).
     { path: ROUTE_PATHS.MISSION_NEWS, component: () => import('@/pages/admin/MissionNewsPage.vue'), meta: { access: 1, title: '선교소식', noindex: true } },
     { path: ROUTE_PATHS.MISSION_NEWS_DETAIL, component: () => import('@/pages/detailPage/MissionNewsDetailPage.vue'), meta: { access: 1, title: '선교소식', noindex: true } },
 
-    // 관리자(2등급) 전용. 아래 /admin/:rest 리디렉트보다 위에 둔다 — 정적
+    // 관리자(2등급) 전용. 아래 /admin/:rest 리디렉트보다 위에 둔다 - 정적
     // 구간이 매개변수보다 우선이라 순서와 무관하게 매칭되지만, 읽는 사람이
     // 헷갈리지 않게 앞에 놓는다.
     { path: ROUTE_PATHS.ADMIN_MEMBERS, component: () => import('@/pages/admin/MemberApprovalPage.vue'), meta: { access: 2, title: '회원 승인', noindex: true } },
@@ -85,8 +85,8 @@ const router = createRouter({
   라우터 가드는 UI 편의일 뿐이다. 실제 접근 통제는 Supabase RLS 와
   비공개 버킷(서명 URL)이 담당한다. 여기를 통과해도 데이터는 오지 않는다.
 
-  meta.access — 0 공개 / 1 승인 교인 / 2 민감(관리자). 생략하면 0.
-  meta.requiresAuth — 등급은 필요 없지만 로그인은 해야 하는 곳(내 정보 등).
+  meta.access - 0 공개 / 1 승인 교인 / 2 민감(관리자). 생략하면 0.
+  meta.requiresAuth - 등급은 필요 없지만 로그인은 해야 하는 곳(내 정보 등).
 */
 router.beforeEach(async (to) => {
   const need = (to.meta.access as 0 | 1 | 2 | 3 | undefined) ?? 0

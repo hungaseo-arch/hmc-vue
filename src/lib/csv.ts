@@ -27,7 +27,7 @@ export function toCsv(header: readonly string[], rows: readonly unknown[][]): st
 /**
  * 브라우저에 내려받기를 시킨다.
  *
- * 링크를 문서에 실제로 붙였다가 뗀다 — 붙이지 않은 <a> 의 click() 을 무시하는
+ * 링크를 문서에 실제로 붙였다가 뗀다 - 붙이지 않은 <a> 의 click() 을 무시하는
  * 브라우저가 있다. revokeObjectURL 도 곧바로 부르지 않는다. click() 은 내려받기
  * 시작을 예약할 뿐이라, 같은 프레임에서 주소를 거둬들이면 시작도 못 하고
  * 취소되는 경우가 있다. 다음 차례로 미룬다.

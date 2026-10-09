@@ -5,7 +5,7 @@ import type { PostgrestError } from '@supabase/supabase-js'
  * Why this module exists.
  *
  * When RLS filters out every candidate row, PostgREST returns 204 with
- * `error: null` — indistinguishable at the client from "you legitimately
+ * `error: null` - indistinguishable at the client from "you legitimately
  * updated 0 rows". Storage `.remove()` has the same trap: it resolves with
  * `{ data: [], error: null }` when a delete is denied.
  *
@@ -45,7 +45,7 @@ export class DbError extends Error {
 
 /**
  * Wrap a PostgREST write that must touch at least one row.
- * The builder MUST end in `.select(...)` — that is what makes the affected
+ * The builder MUST end in `.select(...)` - that is what makes the affected
  * rows observable.
  *
  * Caveat worth keeping in mind: the returned rows are themselves filtered by
@@ -53,7 +53,7 @@ export class DbError extends Error {
  * would raise a false "denied". That is safe for every table here (sermons and
  * pastorColumn are world-readable; church_news_content and photo_album_meta are
  * readable by any authenticated user and only written by admins; profiles is
- * own-row read and own-row write) — but re-check it if a SELECT policy is ever
+ * own-row read and own-row write) - but re-check it if a SELECT policy is ever
  * tightened.
  */
 export async function mustAffectRows<T>(
