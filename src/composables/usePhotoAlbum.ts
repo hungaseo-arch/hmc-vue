@@ -134,7 +134,7 @@ async function load() {
     try {
       const [storageResult, metaResult] = await Promise.all([
         supabase.storage.from(BUCKET).list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } }),
-        supabase.from('photo_album_meta').select('id, title'),
+        supabase.from('photo_album_meta').select('id, title, author_id, author_name'),
       ])
 
       if (storageResult.error) throw storageResult.error
@@ -165,7 +165,11 @@ async function load() {
         groups[key].files.sort()
       }
       const metaMap: Record<string, string> = {}
-      for (const row of metaRows ?? []) metaMap[row.id] = row.title
+      const authorMap: Record<string, { id: string | null; name: string | null }> = {}
+      for (const row of metaRows ?? []) {
+        metaMap[row.id] = row.title
+        authorMap[row.id] = { id: row.author_id, name: row.author_name }
+      }
 
       const result: PhotoAlbumItem[] = []
       for (const [key, { files, title: slugTitle }] of Object.entries(groups)) {
@@ -181,6 +185,8 @@ async function load() {
           images: [],
           // files, not images: the count stays correct even if a sign fails
           count: files.length,
+          authorId: authorMap[key]?.id ?? null,
+          authorName: authorMap[key]?.name ?? null,
         })
       }
 

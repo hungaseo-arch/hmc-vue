@@ -12,7 +12,10 @@
           <ChevronLeft class="w-4 h-4" />
           주보 목록으로
         </button>
-          <ShareButton v-if="pages.length" :title="`주보 ${dateLabel}`" />
+          <div v-if="pages.length" class="flex items-center gap-2">
+            <DeletePostButton v-if="canDelete(authorId)" :label="`${dateLabel} 주보`" :action="remove" />
+            <ShareButton :title="`주보 ${dateLabel}`" />
+          </div>
         </div>
 
         <div v-if="loading" class="text-center py-20 text-muted-foreground">불러오는 중...</div>
@@ -29,7 +32,7 @@
               주보
             </div>
             <h1 class="text-2xl md:text-3xl font-bold mb-1">{{ dateLabel }}</h1>
-            <p class="text-sm text-muted-foreground">총 {{ pages.length }}페이지 · 페이지를 누르면 크게 볼 수 있습니다</p>
+            <p class="text-sm text-muted-foreground">총 {{ pages.length }}페이지 · 페이지를 누르면 크게 볼 수 있습니다<template v-if="authorName"> · 작성자 {{ authorName }}</template></p>
           </div>
 
           <div class="flex flex-col gap-4">
@@ -75,6 +78,9 @@ import { ChevronLeft, FileText } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import ShareButton from '@/components/ShareButton.vue'
+import DeletePostButton from '@/components/DeletePostButton.vue'
+import { useAuth } from '@/composables/useAuth'
+import { deletePost } from '@/lib/deletePost'
 import ImageLightbox from '@/components/ImageLightbox.vue'
 import { supabase } from '@/lib/supabase'
 import { signPaths } from '@/lib/storage'
@@ -97,6 +103,10 @@ function onLoad(url: string, e: Event) {
 const goBack = useBackTo(ROUTE_PATHS.BULLETIN)
 const route = useRoute()
 
+const { canDelete, isSuperAdmin } = useAuth()
+const authorId = ref<string | null>(null)
+const authorName = ref<string | null>(null)
+const pageFiles = ref<string[]>([])
 const pages = ref<string[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -112,6 +122,14 @@ const dateLabel = computed(() => {
   return `${year}년 ${month}월 ${day}일`
 })
 
+async function remove() {
+  await deletePost({
+    op: '주보 삭제', bucket: BUCKET, paths: pageFiles.value,
+    table: 'bulletin_meta', id: date, isSuperAdmin: isSuperAdmin.value,
+  })
+  goBack()
+}
+
 onMounted(async () => {
   try {
     // search 로 이 날짜 파일만 받아온다 — 예전에는 버킷 전체를 나열했다.
@@ -126,7 +144,13 @@ onMounted(async () => {
       .sort((a, b) => a.localeCompare(b))
 
     const urls = await signPaths(BUCKET, paths)
+    pageFiles.value = paths
     pages.value = paths.map(p => urls[p]).filter(Boolean)
+
+    // 작성자. 기록이 없는 옛 주보는 null 로 남는다.
+    const { data: meta } = await supabase.from('bulletin_meta').select('author_id, author_name').eq('id', date).maybeSingle()
+    authorId.value = meta?.author_id ?? null
+    authorName.value = meta?.author_name ?? null
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : '주보를 불러오지 못했습니다.'
   } finally {

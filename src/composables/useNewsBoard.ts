@@ -73,13 +73,13 @@ function createStore(config: NewsBoardConfig): Store {
     try {
       const [storageResult, contentResult] = await Promise.all([
         supabase.storage.from(bucket).list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } }),
-        supabase.from(table).select('id, title, content, date'),
+        supabase.from(table).select('id, title, content, date, author_id, author_name'),
       ])
 
       if (storageResult.error) throw storageResult.error
       if (contentResult.error) throw contentResult.error
       const data = storageResult.data
-      const contentRows = contentResult.data as { id: string; title?: string; content?: string; date?: string }[] | null
+      const contentRows = contentResult.data as { id: string; title?: string; content?: string; date?: string; author_id?: string | null; author_name?: string | null }[] | null
 
       // 파일명 기준으로 그룹핑 (_p01, _p02 → 같은 항목)
       const groups: Record<string, string[]> = {}
@@ -93,8 +93,10 @@ function createStore(config: NewsBoardConfig): Store {
       for (const base of Object.keys(groups)) {
         groups[base].sort()
       }
-      const contentMap: Record<string, { title?: string; content?: string; date?: string }> = {}
-      for (const row of contentRows ?? []) contentMap[row.id] = { title: row.title, content: row.content, date: row.date }
+      const contentMap: Record<string, { title?: string; content?: string; date?: string; authorId?: string | null; authorName?: string | null }> = {}
+      for (const row of contentRows ?? []) {
+        contentMap[row.id] = { title: row.title, content: row.content, date: row.date, authorId: row.author_id, authorName: row.author_name }
+      }
 
       // 이미지 없이 등록된 소식은 storage 에 파일이 없어 groups 에 안 잡힌다.
       // DB 행의 id 도 함께 훑어야 목록에서 빠지지 않는다.
@@ -116,6 +118,8 @@ function createStore(config: NewsBoardConfig): Store {
           thumbnail: '',
           images: [],
           content: row?.content ?? null,
+          authorId: row?.authorId ?? null,
+          authorName: row?.authorName ?? null,
         })
       }
 

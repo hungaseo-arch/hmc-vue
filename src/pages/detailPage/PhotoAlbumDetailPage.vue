@@ -12,7 +12,10 @@
           <ChevronLeft class="w-4 h-4" />
           앨범 목록으로
         </button>
-          <ShareButton v-if="album" :title="`사진앨범 · ${album.title}`" />
+          <div v-if="album" class="flex items-center gap-2">
+            <DeletePostButton v-if="canDelete(album.authorId)" :label="album.title || `${album.date} 사진`" :action="remove" />
+            <ShareButton :title="`사진앨범 · ${album.title}`" />
+          </div>
         </div>
 
         <div v-if="loading" class="text-center py-20 text-muted-foreground">불러오는 중...</div>
@@ -31,6 +34,7 @@
                 <ImageIcon class="w-4 h-4" />
                 {{ album.count }}장
               </span>
+              <span v-if="album.authorName">작성자 {{ album.authorName }}</span>
             </div>
           </div>
 
@@ -74,6 +78,9 @@ import { ChevronLeft, Calendar, Image as ImageIcon } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import ShareButton from '@/components/ShareButton.vue'
+import DeletePostButton from '@/components/DeletePostButton.vue'
+import { useAuth } from '@/composables/useAuth'
+import { deletePost } from '@/lib/deletePost'
 import ImageLightbox from '@/components/ImageLightbox.vue'
 import { usePhotoAlbum } from '@/composables/usePhotoAlbum'
 import { useImageRatio } from '@/composables/useImageRatio'
@@ -83,11 +90,23 @@ const { boxStyle, remember } = useImageRatio(4 / 3)
 
 const goBack = useBackTo(ROUTE_PATHS.PHOTO_ALBUM)
 const route = useRoute()
-const { items, loading, fetchAlbums } = usePhotoAlbum()
+const { items, loading, fetchAlbums, reset } = usePhotoAlbum()
+const { canDelete, isSuperAdmin } = useAuth()
 
 onMounted(fetchAlbums)
 
 // id는 '2025-11-16_617' 형태
 const album = computed(() => items.value.find(a => a.id === route.params.id))
 const viewerIndex = ref<number | null>(null)
+
+async function remove() {
+  const a = album.value
+  if (!a) return
+  await deletePost({
+    op: '앨범 삭제', bucket: 'photoAlbum', paths: a.files,
+    table: 'photo_album_meta', id: a.id, isSuperAdmin: isSuperAdmin.value,
+  })
+  reset()
+  goBack()
+}
 </script>

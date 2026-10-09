@@ -167,6 +167,8 @@ export interface ChurchNewsItem {
   thumbnail: string
   images: string[]  // signed URLs, index-aligned with files; re-minted before expiry
   content?: string | null
+  authorId?: string | null
+  authorName?: string | null
 }
 
 export interface PhotoAlbumItem {
@@ -177,6 +179,8 @@ export interface PhotoAlbumItem {
   thumbnail: string
   images: string[]  // signed URLs, index-aligned with files
   count: number
+  authorId?: string | null
+  authorName?: string | null
 }
 
 

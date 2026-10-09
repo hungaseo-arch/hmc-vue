@@ -175,7 +175,8 @@ import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import { supabase } from '@/lib/supabase'
-import { mustRemoveFiles } from '@/lib/db'
+import { mustAffectRows, mustRemoveFiles } from '@/lib/db'
+import { deletePost } from '@/lib/deletePost'
 import { compressImages, sizeSummary } from '@/lib/imageCompress'
 import { useAuth } from '@/composables/useAuth'
 import { useEscapeToClose } from '@/composables/useEscapeToClose'
@@ -186,7 +187,7 @@ interface BulletinGroup {
   pageCount: number
 }
 
-const { isAdmin } = useAuth()
+const { isAdmin, isSuperAdmin } = useAuth()
 const bulletinGroups = ref<BulletinGroup[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -304,6 +305,8 @@ async function handleSubmit() {
       const { error: err } = await supabase.storage.from(BUCKET).upload(`${dateFormatted}-p${p}.${ext}`, ready[i], { upsert: true })
       if (err) throw err
     }
+    // 작성자 기록(작성자 이름은 DB 트리거가 채운다).
+    await mustAffectRows('주보 등록', supabase.from('bulletin_meta').upsert({ id: dateFormatted }).select('id'))
     await fetchBulletins()
     closeModal()
   } catch (e: unknown) {
@@ -325,7 +328,7 @@ async function handleDelete(date: string) {
       .list('', { limit: 1000, search: `${date}-` })
     if (listErr) throw listErr
     const targets = (files ?? []).filter(f => f.name.startsWith(`${date}-`)).map(f => f.name)
-    await mustRemoveFiles('주보 삭제', BUCKET, targets)
+    await deletePost({ op: '주보 삭제', bucket: BUCKET, paths: targets, table: 'bulletin_meta', id: date, isSuperAdmin: isSuperAdmin.value })
     // 삭제가 실제로 성공한 뒤에 목록에서 제거한다.
     bulletinGroups.value = bulletinGroups.value.filter(g => g.date !== date)
   } catch (e: unknown) {

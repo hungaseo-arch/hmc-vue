@@ -7,8 +7,8 @@ import type { AuthError, User } from '@supabase/supabase-js'
 /** 승인 절차. pending 은 가입 신청만 된 상태로 교인 자료를 보지 못한다. */
 export type MemberStatus = 'pending' | 'active' | 'suspended' | 'rejected'
 
-/** 0=공개, 1=교인, 2=민감(관리자). 자세한 정의는 T1 마이그레이션 머리말 참고. */
-export type AccessLevel = 0 | 1 | 2
+/** 0=공개, 1=교인, 2=민감(관리자), 3=슈퍼관리자(T18). 자세한 정의는 T1 마이그레이션 머리말 참고. */
+export type AccessLevel = 0 | 1 | 2 | 3
 
 /** 클라이언트가 남길 수 있는 기록. 승인·반려는 서버 함수만 남긴다. */
 export type AuditEvent = 'login' | 'logout' | 'view_sensitive' | 'access_denied'
@@ -249,6 +249,19 @@ const accessLevel = computed<AccessLevel>(() => {
 /** 화면의 '관리자' 판정. DB 의 is_admin() 과 같은 규칙(등급 2 이상)이다. */
 const isAdmin = computed(() => accessLevel.value >= 2)
 
+/** 슈퍼관리자. DB 의 is_super_admin() 과 같은 규칙(등급 3)이다. */
+const isSuperAdmin = computed(() => accessLevel.value >= 3)
+
+/**
+ * 게시물 삭제 권한. 슈퍼관리자이거나, 관리자이면서 작성자 본인일 때만.
+ * 작성자 기록이 없는 옛 글은 슈퍼관리자만 지운다. DB 정책(T18)과 같은 규칙이다 —
+ * 화면은 버튼을 보일지만 정하고, 막는 것은 DB 가 한다.
+ */
+function canDelete(authorId: string | null | undefined): boolean {
+  if (isSuperAdmin.value) return true
+  return isAdmin.value && !!authorId && authorId === user.value?.id
+}
+
 /** 프로필을 아직 못 받았고, 그 이유가 통신 오류인 경우 true. 승인 대기 화면이 본다. */
 const profileUnknown = computed(() => profileError.value && !profile.value)
 
@@ -403,7 +416,7 @@ export function useAuth() {
 
   return {
     user, profile,
-    isLoggedIn, isAdmin, displayName,
+    isLoggedIn, isAdmin, isSuperAdmin, canDelete, displayName,
     memberStatus, isApproved, accessLevel, profileUnknown,
     login, logout, signUp, signInWithKakao, updateProfile, refreshProfile,
     logEvent,

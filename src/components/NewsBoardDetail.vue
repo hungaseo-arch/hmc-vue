@@ -13,7 +13,10 @@
           <ChevronLeft class="w-4 h-4" />
           {{ cfg.backLabel }}
         </button>
-          <ShareButton v-if="item" :title="`${cfg.title} · ${item.title}`" />
+          <div v-if="item" class="flex items-center gap-2">
+            <DeletePostButton v-if="canDelete(item.authorId)" :label="item.title" :action="remove" />
+            <ShareButton :title="`${cfg.title} · ${item.title}`" />
+          </div>
         </div>
 
         <div v-if="loading" class="text-center py-20 text-muted-foreground">
@@ -27,6 +30,7 @@
             <div class="flex items-center gap-1 mb-4 text-xs text-muted-foreground">
               <Calendar class="w-3.5 h-3.5" />
               {{ item.date }}
+              <span v-if="item.authorName" class="ml-2">· 작성자 {{ item.authorName }}</span>
             </div>
             <h1 class="text-2xl md:text-3xl font-bold leading-snug">{{ item.title }}</h1>
           </div>
@@ -71,6 +75,9 @@ import { ChevronLeft, Calendar } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import ShareButton from '@/components/ShareButton.vue'
+import DeletePostButton from '@/components/DeletePostButton.vue'
+import { useAuth } from '@/composables/useAuth'
+import { deletePost } from '@/lib/deletePost'
 import ImageLightbox from '@/components/ImageLightbox.vue'
 import { useNewsBoard } from '@/composables/useNewsBoard'
 import { NEWS_BOARDS, type NewsBoardKind } from '@/lib/newsBoards'
@@ -84,10 +91,22 @@ const cfg = NEWS_BOARDS[props.kind]
 
 const goBack = useBackTo(cfg.basePath)
 const route = useRoute()
-const { items, loading, fetchNews } = useNewsBoard(props.kind)
+const { items, loading, fetchNews, reset } = useNewsBoard(props.kind)
+const { canDelete, isSuperAdmin } = useAuth()
 
 onMounted(fetchNews)
 
 const item = computed(() => items.value.find(n => n.id === route.params.id))
 const viewerIndex = ref<number | null>(null)
+
+async function remove() {
+  const it = item.value
+  if (!it) return
+  await deletePost({
+    op: `${cfg.noun} 삭제`, bucket: cfg.bucket, paths: it.files,
+    table: cfg.table, id: it.id, isSuperAdmin: isSuperAdmin.value,
+  })
+  reset()
+  goBack()
+}
 </script>
