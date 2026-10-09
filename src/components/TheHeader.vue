@@ -31,7 +31,7 @@
               @click="userMenuOpen = !userMenuOpen"
               @keydown.escape="userMenuOpen = false"
             >
-              <span v-if="isAdmin" class="bg-white/20 text-xs px-1.5 py-0.5 rounded-full font-medium">관리자</span>
+              <span v-if="isAdmin" class="bg-white/20 text-xs px-1.5 py-0.5 rounded-full font-medium">{{ isSuperAdmin ? '슈퍼관리자' : '관리자' }}</span>
               {{ displayName }}님
               <ChevronDown
                 aria-hidden="true"
@@ -75,6 +75,7 @@
                     회원 승인
                   </RouterLink>
                   <RouterLink
+                    v-if="accessLevel >= 3"
                     :to="ROUTE_PATHS.ADMIN_AUDIT_LOG"
                     class="block px-4 py-2 text-xs hover:bg-muted hover:text-primary transition-colors"
                     active-class="bg-primary/10 !text-primary font-medium"
@@ -264,7 +265,7 @@
           <div class="border-t border-border pt-3 mt-2">
             <template v-if="isLoggedIn">
               <RouterLink :to="ROUTE_PATHS.PROFILE" class="px-3 py-2.5 min-h-10 text-sm text-muted-foreground flex items-center gap-2 rounded-lg hover:bg-muted transition-colors">
-                <span v-if="isAdmin" class="bg-primary/10 text-primary text-xs px-1.5 py-0.5 rounded-full font-medium">관리자</span>
+                <span v-if="isAdmin" class="bg-primary/10 text-primary text-xs px-1.5 py-0.5 rounded-full font-medium">{{ isSuperAdmin ? '슈퍼관리자' : '관리자' }}</span>
                 {{ displayName }}님 · 내 정보
               </RouterLink>
               <RouterLink
@@ -275,7 +276,7 @@
                 회원 승인
               </RouterLink>
               <RouterLink
-                v-if="accessLevel >= 2"
+                v-if="accessLevel >= 3"
                 :to="ROUTE_PATHS.ADMIN_AUDIT_LOG"
                 class="block px-3 py-2.5 text-sm rounded-lg hover:bg-muted transition-colors font-medium text-primary"
               >
@@ -341,7 +342,7 @@ const mobileOpenMenu = ref<string | null>(null)
 const headerRef = ref<HTMLDivElement | null>(null)
 
 const { scrolled } = useScrolled(10)
-const { isLoggedIn, isAdmin, displayName, accessLevel, logout } = useAuth()
+const { isLoggedIn, isAdmin, isSuperAdmin, displayName, accessLevel, logout } = useAuth()
 const router = useRouter()
 
 async function handleLogout() {

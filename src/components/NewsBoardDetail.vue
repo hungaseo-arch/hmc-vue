@@ -14,7 +14,7 @@
           {{ cfg.backLabel }}
         </button>
           <div v-if="item" class="flex items-center gap-2">
-            <DeletePostButton v-if="canDelete(item.authorId)" :label="item.title" :action="remove" />
+            <DeletePostButton v-if="canDelete(item.authorId, item.createdAt)" :label="item.title" :action="remove" />
             <ShareButton :title="`${cfg.title} · ${item.title}`" />
           </div>
         </div>

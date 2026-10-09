@@ -253,13 +253,17 @@ const isAdmin = computed(() => accessLevel.value >= 2)
 const isSuperAdmin = computed(() => accessLevel.value >= 3)
 
 /**
- * 게시물 삭제 권한. 슈퍼관리자이거나, 관리자이면서 작성자 본인일 때만.
- * 작성자 기록이 없는 옛 글은 슈퍼관리자만 지운다. DB 정책(T18)과 같은 규칙이다 —
- * 화면은 버튼을 보일지만 정하고, 막는 것은 DB 가 한다.
+ * 게시물 삭제 권한. 슈퍼관리자이거나, 관리자이면서 작성자 본인이고 올린 지
+ * 1달 안일 때만. 작성자 기록이 없는 옛 글은 슈퍼관리자만 지운다. DB 정책
+ * (T18·T20 의 may_delete_post)과 같은 규칙이다 — 화면은 버튼을 보일지만 정하고,
+ * 막는 것은 DB 가 한다.
  */
-function canDelete(authorId: string | null | undefined): boolean {
+function canDelete(authorId: string | null | undefined, createdAt?: string | null): boolean {
   if (isSuperAdmin.value) return true
-  return isAdmin.value && !!authorId && authorId === user.value?.id
+  if (!isAdmin.value || !authorId || authorId !== user.value?.id || !createdAt) return false
+  const limit = new Date(createdAt)
+  limit.setMonth(limit.getMonth() + 1)
+  return limit.getTime() > Date.now()
 }
 
 /** 프로필을 아직 못 받았고, 그 이유가 통신 오류인 경우 true. 승인 대기 화면이 본다. */

@@ -61,7 +61,7 @@ const router = createRouter({
     { path: ROUTE_PATHS.ADMIN_MEMBERS, component: () => import('@/pages/admin/MemberApprovalPage.vue'), meta: { access: 2, title: '회원 승인', noindex: true } },
     // noAudit: 접속 기록 화면 자체는 기록하지 않는다. 관리자가 목록을 훑을
     // 때마다 view_sensitive 가 쌓이면 기록이 자기 자신으로 가득 찬다.
-    { path: ROUTE_PATHS.ADMIN_AUDIT_LOG, component: () => import('@/pages/admin/AuditLogPage.vue'), meta: { access: 2, noAudit: true, title: '접속 기록', noindex: true } },
+    { path: ROUTE_PATHS.ADMIN_AUDIT_LOG, component: () => import('@/pages/admin/AuditLogPage.vue'), meta: { access: 3, noAudit: true, title: '접속 기록', noindex: true } },
 
     // 예전 /admin/* 주소를 /community/* 로 넘긴다. 회원들이 저장해 둔 링크와
     // 카톡 등에 뿌려진 주소가 깨지지 않게. 404 규칙보다 위에 있어야 한다.
@@ -89,7 +89,7 @@ const router = createRouter({
   meta.requiresAuth — 등급은 필요 없지만 로그인은 해야 하는 곳(내 정보 등).
 */
 router.beforeEach(async (to) => {
-  const need = (to.meta.access as 0 | 1 | 2 | undefined) ?? 0
+  const need = (to.meta.access as 0 | 1 | 2 | 3 | undefined) ?? 0
   const needsLogin = need >= 1 || !!to.meta.requiresAuth
 
   if (!needsLogin && to.path !== ROUTE_PATHS.LOGIN) return

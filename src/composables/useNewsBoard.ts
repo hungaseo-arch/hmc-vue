@@ -73,13 +73,13 @@ function createStore(config: NewsBoardConfig): Store {
     try {
       const [storageResult, contentResult] = await Promise.all([
         supabase.storage.from(bucket).list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } }),
-        supabase.from(table).select('id, title, content, date, author_id, author_name'),
+        supabase.from(table).select('id, title, content, date, author_id, author_name, created_at'),
       ])
 
       if (storageResult.error) throw storageResult.error
       if (contentResult.error) throw contentResult.error
       const data = storageResult.data
-      const contentRows = contentResult.data as { id: string; title?: string; content?: string; date?: string; author_id?: string | null; author_name?: string | null }[] | null
+      const contentRows = contentResult.data as { id: string; title?: string; content?: string; date?: string; author_id?: string | null; author_name?: string | null; created_at?: string | null }[] | null
 
       // 파일명 기준으로 그룹핑 (_p01, _p02 → 같은 항목)
       const groups: Record<string, string[]> = {}
@@ -93,9 +93,9 @@ function createStore(config: NewsBoardConfig): Store {
       for (const base of Object.keys(groups)) {
         groups[base].sort()
       }
-      const contentMap: Record<string, { title?: string; content?: string; date?: string; authorId?: string | null; authorName?: string | null }> = {}
+      const contentMap: Record<string, { title?: string; content?: string; date?: string; authorId?: string | null; authorName?: string | null; createdAt?: string | null }> = {}
       for (const row of contentRows ?? []) {
-        contentMap[row.id] = { title: row.title, content: row.content, date: row.date, authorId: row.author_id, authorName: row.author_name }
+        contentMap[row.id] = { title: row.title, content: row.content, date: row.date, authorId: row.author_id, authorName: row.author_name, createdAt: row.created_at }
       }
 
       // 이미지 없이 등록된 소식은 storage 에 파일이 없어 groups 에 안 잡힌다.
@@ -120,6 +120,7 @@ function createStore(config: NewsBoardConfig): Store {
           content: row?.content ?? null,
           authorId: row?.authorId ?? null,
           authorName: row?.authorName ?? null,
+          createdAt: row?.createdAt ?? null,
         })
       }
 

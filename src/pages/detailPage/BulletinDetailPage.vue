@@ -13,7 +13,7 @@
           주보 목록으로
         </button>
           <div v-if="pages.length" class="flex items-center gap-2">
-            <DeletePostButton v-if="canDelete(authorId)" :label="`${dateLabel} 주보`" :action="remove" />
+            <DeletePostButton v-if="canDelete(authorId, createdAt)" :label="`${dateLabel} 주보`" :action="remove" />
             <ShareButton :title="`주보 ${dateLabel}`" />
           </div>
         </div>
@@ -106,6 +106,7 @@ const route = useRoute()
 const { canDelete, isSuperAdmin } = useAuth()
 const authorId = ref<string | null>(null)
 const authorName = ref<string | null>(null)
+const createdAt = ref<string | null>(null)
 const pageFiles = ref<string[]>([])
 const pages = ref<string[]>([])
 const loading = ref(true)
@@ -148,9 +149,10 @@ onMounted(async () => {
     pages.value = paths.map(p => urls[p]).filter(Boolean)
 
     // 작성자. 기록이 없는 옛 주보는 null 로 남는다.
-    const { data: meta } = await supabase.from('bulletin_meta').select('author_id, author_name').eq('id', date).maybeSingle()
+    const { data: meta } = await supabase.from('bulletin_meta').select('author_id, author_name, created_at').eq('id', date).maybeSingle()
     authorId.value = meta?.author_id ?? null
     authorName.value = meta?.author_name ?? null
+    createdAt.value = meta?.created_at ?? null
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : '주보를 불러오지 못했습니다.'
   } finally {

@@ -169,6 +169,7 @@ export interface ChurchNewsItem {
   content?: string | null
   authorId?: string | null
   authorName?: string | null
+  createdAt?: string | null   // 올린 시각. 작성자의 삭제 가능 기간(1달) 계산용
 }
 
 export interface PhotoAlbumItem {
@@ -181,6 +182,7 @@ export interface PhotoAlbumItem {
   count: number
   authorId?: string | null
   authorName?: string | null
+  createdAt?: string | null   // 올린 시각. 작성자의 삭제 가능 기간(1달) 계산용
 }
 
 

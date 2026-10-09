@@ -134,7 +134,7 @@ async function load() {
     try {
       const [storageResult, metaResult] = await Promise.all([
         supabase.storage.from(BUCKET).list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } }),
-        supabase.from('photo_album_meta').select('id, title, author_id, author_name'),
+        supabase.from('photo_album_meta').select('id, title, author_id, author_name, created_at'),
       ])
 
       if (storageResult.error) throw storageResult.error
@@ -165,10 +165,10 @@ async function load() {
         groups[key].files.sort()
       }
       const metaMap: Record<string, string> = {}
-      const authorMap: Record<string, { id: string | null; name: string | null }> = {}
+      const authorMap: Record<string, { id: string | null; name: string | null; createdAt: string | null }> = {}
       for (const row of metaRows ?? []) {
         metaMap[row.id] = row.title
-        authorMap[row.id] = { id: row.author_id, name: row.author_name }
+        authorMap[row.id] = { id: row.author_id, name: row.author_name, createdAt: row.created_at }
       }
 
       const result: PhotoAlbumItem[] = []
@@ -187,6 +187,7 @@ async function load() {
           count: files.length,
           authorId: authorMap[key]?.id ?? null,
           authorName: authorMap[key]?.name ?? null,
+          createdAt: authorMap[key]?.createdAt ?? null,
         })
       }
 
