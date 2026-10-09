@@ -1,48 +1,64 @@
 <template>
+  <!--
+    버튼이 아니라 링크(?page=N)다. 크롤러가 따라가 2페이지 이후 상세 글을 찾을 수 있고,
+    새 탭으로 열기·주소 복사도 된다. 1페이지는 쿼리 없이 깨끗한 주소로 보낸다.
+  -->
   <nav v-if="totalPages > 1" class="flex items-center justify-center gap-1 mt-6" aria-label="페이지 이동">
-    <button
-      type="button"
-      class="inline-flex h-10 w-10 lg:h-9 lg:w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition disabled:opacity-40 disabled:cursor-not-allowed"
-      :disabled="modelValue === 1"
-      aria-label="이전 페이지"
-      @click="go(modelValue - 1)"
+    <span
+      v-if="modelValue === 1"
+      class="inline-flex h-10 w-10 lg:h-9 lg:w-9 items-center justify-center rounded-lg text-muted-foreground opacity-40"
+      aria-hidden="true"
     >
       <ChevronLeft class="w-4 h-4" />
-    </button>
+    </span>
+    <RouterLink
+      v-else
+      :to="target(modelValue - 1)"
+      class="inline-flex h-10 w-10 lg:h-9 lg:w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition"
+      aria-label="이전 페이지"
+    >
+      <ChevronLeft class="w-4 h-4" />
+    </RouterLink>
 
     <template v-for="(page, i) in pages" :key="i">
       <span v-if="page === '…'" class="w-6 text-center text-sm text-muted-foreground select-none">…</span>
-      <button
+      <RouterLink
         v-else
-        type="button"
+        :to="target(page)"
         :class="[
-          'h-10 w-10 lg:h-9 lg:w-9 rounded-lg text-sm font-medium transition-colors',
+          'inline-flex items-center justify-center h-10 w-10 lg:h-9 lg:w-9 rounded-lg text-sm font-medium transition-colors',
           page === modelValue
             ? 'bg-primary text-primary-foreground'
             : 'text-muted-foreground hover:bg-muted'
         ]"
         :aria-label="`${page}페이지`"
         :aria-current="page === modelValue ? 'page' : undefined"
-        @click="go(page)"
       >
         {{ page }}
-      </button>
+      </RouterLink>
     </template>
 
-    <button
-      type="button"
-      class="inline-flex h-10 w-10 lg:h-9 lg:w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition disabled:opacity-40 disabled:cursor-not-allowed"
-      :disabled="modelValue === totalPages"
-      aria-label="다음 페이지"
-      @click="go(modelValue + 1)"
+    <span
+      v-if="modelValue === totalPages"
+      class="inline-flex h-10 w-10 lg:h-9 lg:w-9 items-center justify-center rounded-lg text-muted-foreground opacity-40"
+      aria-hidden="true"
     >
       <ChevronRight class="w-4 h-4" />
-    </button>
+    </span>
+    <RouterLink
+      v-else
+      :to="target(modelValue + 1)"
+      class="inline-flex h-10 w-10 lg:h-9 lg:w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition"
+      aria-label="다음 페이지"
+    >
+      <ChevronRight class="w-4 h-4" />
+    </RouterLink>
   </nav>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 const props = withDefaults(defineProps<{
@@ -52,7 +68,7 @@ const props = withDefaults(defineProps<{
   siblings?: number
 }>(), { siblings: 1 })
 
-const emit = defineEmits<{ 'update:modelValue': [number] }>()
+const route = useRoute()
 
 // 1 … 4 [5] 6 … 16 - 페이지 수가 늘어도 버튼 개수는 고정이다.
 const pages = computed<(number | '…')[]>(() => {
@@ -73,8 +89,8 @@ const pages = computed<(number | '…')[]>(() => {
   return out
 })
 
-function go(page: number) {
-  if (page < 1 || page > props.totalPages || page === props.modelValue) return
-  emit('update:modelValue', page)
+/** 다른 쿼리(정렬 등)는 두고 page 만 바꾼 이동 대상. 1페이지는 page 를 뺀다. */
+function target(page: number) {
+  return { query: { ...route.query, page: page > 1 ? String(page) : undefined } }
 }
 </script>

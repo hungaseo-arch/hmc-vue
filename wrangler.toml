@@ -21,3 +21,8 @@ run_worker_first = true
 [[routes]]
 pattern = "www.hanmaumch.id"
 custom_domain = true
+
+# 옛 모바일 주소. 요청은 src/worker.ts 의 legacyRedirect 가 www 새 주소로 301 한다.
+[[routes]]
+pattern = "m.hanmaumch.id"
+custom_domain = true

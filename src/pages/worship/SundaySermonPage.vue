@@ -103,7 +103,7 @@
           </div>
         </div>
 
-        <ThePagination v-if="!loading && !error" v-model="currentPage" :total-pages="totalPages" />
+        <ThePagination v-if="!loading && !error" :model-value="currentPage" :total-pages="totalPages" />
       </div>
     </section>
 
@@ -146,6 +146,10 @@
             <div>
               <label for="sundaysermonpage-form-link" class="block text-sm font-medium mb-1.5">링크 (선택)</label>
               <input id="sundaysermonpage-form-link" v-model="form.link" type="url" placeholder="https://youtube.com/..." class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+            </div>
+            <div>
+              <label for="sundaysermonpage-form-summary" class="block text-sm font-medium mb-1.5">요약 (선택, 2~3문장 - 검색·공유 미리보기에 쓰입니다)</label>
+              <textarea id="sundaysermonpage-form-summary" v-model="form.summary" rows="3" maxlength="300" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <p v-if="errorMsg" class="text-sm text-red-500">{{ errorMsg }}</p>
             <div class="flex gap-3 pt-2">
@@ -196,6 +200,10 @@
             <div>
               <label for="sundaysermonpage-editform-link" class="block text-sm font-medium mb-1.5">링크 (선택)</label>
               <input id="sundaysermonpage-editform-link" v-model="editForm.link" type="url" placeholder="https://youtube.com/..." class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+            </div>
+            <div>
+              <label for="sundaysermonpage-editform-summary" class="block text-sm font-medium mb-1.5">요약 (선택, 2~3문장 - 검색·공유 미리보기에 쓰입니다)</label>
+              <textarea id="sundaysermonpage-editform-summary" v-model="editForm.summary" rows="3" maxlength="300" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
             </div>
             <p v-if="editErrorMsg" class="text-sm text-red-500">{{ editErrorMsg }}</p>
             <div class="flex gap-3 pt-2">
@@ -266,17 +274,17 @@ watch(sortDesc, () => { currentPage.value = 1 })
 const showModal = ref(false)
 const saving = ref(false)
 const errorMsg = ref('')
-const form = ref({ title: '', scripture: '', preacher: '', date: '', link: '' })
+const form = ref({ title: '', scripture: '', preacher: '', date: '', link: '', summary: '' })
 
 const showEditModal = ref(false)
 const editSaving = ref(false)
 const editErrorMsg = ref('')
 const editingId = ref<number | null>(null)
-const editForm = ref({ title: '', scripture: '', preacher: '', date: '', link: '' })
+const editForm = ref({ title: '', scripture: '', preacher: '', date: '', link: '', summary: '' })
 
 function openEditModal(sermon: SermonItem) {
   editingId.value = sermon.id
-  editForm.value = { title: sermon.title, scripture: sermon.scripture, preacher: sermon.preacher, date: sermon.date, link: sermon.link ?? '' }
+  editForm.value = { title: sermon.title, scripture: sermon.scripture, preacher: sermon.preacher, date: sermon.date, link: sermon.link ?? '', summary: sermon.summary ?? '' }
   editErrorMsg.value = ''
   showEditModal.value = true
 }
@@ -294,8 +302,9 @@ async function handleEditSubmit() {
         preacher: editForm.value.preacher,
         date: editForm.value.date,
         link: editForm.value.link || null,
+        summary: editForm.value.summary.trim() || null,
       }).eq('id', editingId.value).select('id'))
-    patch(editingId.value, { ...editForm.value, link: editForm.value.link || undefined })
+    patch(editingId.value, { ...editForm.value, link: editForm.value.link || undefined, summary: editForm.value.summary.trim() || undefined })
     showEditModal.value = false
   } catch (e: unknown) {
     editErrorMsg.value = errorMessage(e)
@@ -311,12 +320,12 @@ async function handleSubmit() {
     await mustAffectRows('설교 등록',
       supabase
         .from('sermons')
-        .insert({ title: form.value.title, scripture: form.value.scripture, preacher: form.value.preacher, date: form.value.date, link: form.value.link || null })
+        .insert({ title: form.value.title, scripture: form.value.scripture, preacher: form.value.preacher, date: form.value.date, link: form.value.link || null, summary: form.value.summary.trim() || null })
         .select('id'))
     await refresh()
     currentPage.value = 1
     showModal.value = false
-    form.value = { title: '', scripture: '', preacher: '', date: '', link: '' }
+    form.value = { title: '', scripture: '', preacher: '', date: '', link: '', summary: '' }
   } catch (e: unknown) {
     errorMsg.value = errorMessage(e)
   } finally {

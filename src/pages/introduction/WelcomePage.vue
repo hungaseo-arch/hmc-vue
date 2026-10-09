@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { Clock, MapPin, HelpCircle, ChevronDown } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
 import PageHeader from '@/components/PageHeader.vue'
@@ -105,4 +105,19 @@ const faqs = [
   { q: '등록은 꼭 해야 하나요?', a: '등록 없이도 예배에 참석하실 수 있습니다. 다만 새가족으로 등록하시면 공동체 소식과 활동에 좀 더 적극적으로 참여하실 수 있고, 교회의 돌봄을 받으실 수 있습니다.' },
   { q: '헌금은 처음부터 해야 하나요?', a: '헌금은 자발적인 신앙의 표현입니다. 처음 방문하신 분들께는 전혀 부담을 드리지 않으니 편안하게 예배에만 집중하셔도 됩니다.' },
 ]
+
+// 같은 faqs 를 FAQPage JSON-LD 로도 내보낸다(화면과 검색 결과의 문구가 어긋나지 않게).
+let faqLd: HTMLScriptElement | null = null
+onMounted(() => {
+  faqLd = document.createElement('script')
+  faqLd.type = 'application/ld+json'
+  faqLd.dataset.faq = ''
+  faqLd.textContent = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  })
+  document.head.appendChild(faqLd)
+})
+onUnmounted(() => faqLd?.remove())
 </script>

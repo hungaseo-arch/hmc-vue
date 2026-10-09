@@ -11,6 +11,10 @@
   '@/..' 별칭을 쓰지 않는다.)
 */
 
+import { legacyRedirect } from './legacy'
+import { detailRef, fetchRow, sermonMeta, columnMeta, injectDetailMeta } from './seoEdge'
+import type { SermonRow, ColumnRow } from './seoEdge'
+
 // 정확히 일치해야 하는 경로
 const EXACT = new Set<string>([
   '/', '/login', '/signup', '/profile', '/pending', '/no-access',
@@ -126,6 +130,11 @@ interface Env {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    // 옛 사이트 주소(www 의 /main/…, m.hanmaumch.id)는 자산을 보기 전에 301.
+    const reqUrl = new URL(request.url)
+    const legacy = legacyRedirect(reqUrl)
+    if (legacy) return Response.redirect(`https://www.hanmaumch.id${legacy}`, 301)
+
     const res = await env.ASSETS.fetch(request)
     // 실제 파일(js/css/이미지/bible/sitemap 등)과 오류 응답은 그대로 둔다.
     const isHtml = res.headers.get('content-type')?.includes('text/html') ?? false
@@ -134,6 +143,20 @@ export default {
     // HTML(index.html) 인데 SPA 경로가 아니면 본문·헤더는 그대로, 상태만 404.
     if (!isSpaRoute(pathname)) {
       return new Response(res.body, { status: 404, headers: res.headers })
+    }
+    // 설교·칼럼 상세(공개): 글 제목·설명·썸네일·JSON-LD 를 HTML 에 넣는다. 없는 글은 404.
+    const dref = detailRef(pathname)
+    if (dref) {
+      const got = dref.kind === 'sermon' ? await fetchRow<SermonRow>(env, 'sermon', dref.id) : await fetchRow<ColumnRow>(env, 'column', dref.id)
+      if (got.status === 'missing') return new Response(res.body, { status: 404, headers: res.headers })
+      if (got.status === 'ok') {
+        const meta = dref.kind === 'sermon' ? sermonMeta(got.row as SermonRow) : columnMeta(got.row as ColumnRow)
+        const out = injectDetailMeta(res, meta)
+        const headers = new Headers(out.headers)
+        headers.set('Cache-Control', 'public, max-age=600, s-maxage=3600')
+        return new Response(out.body, { status: 200, headers })
+      }
+      return res // Supabase 통신 실패: 기본 index.html 로(검색 메타만 홈 값)
     }
     // 교인 전용 상세 페이지는 미리보기 카드에 소식 제목만 보이게 바꿔 준다.
     const ref = communityRef(pathname)

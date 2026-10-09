@@ -37,13 +37,13 @@
           i === current ? 'opacity-100' : 'opacity-0'
         ]"
       >
-        <!-- alt 는 비운다 - 제목·구절은 바로 아래 텍스트로 이미 읽힌다. -->
+        <!-- 제목·구절은 아래 텍스트로 읽히므로 alt 는 사진 자체를 설명한다. -->
         <img
           v-if="shown.has(i)"
           :src="heroSrc(slide.bg, 1600)"
           :srcset="heroSrcset(slide.bg)"
           sizes="100vw"
-          alt=""
+          :alt="slide.alt"
           width="1600"
           height="900"
           :fetchpriority="i === 0 ? 'high' : 'auto'"
@@ -296,18 +296,21 @@ import { useAuth } from '@/composables/useAuth'
 const heroSlides = [
   {
     bg: '/pict/main01',
+    alt: '자카르타 한마음교회 주일예배 설교 - 고형돈 목사',
     title: '2026년 교회 표어',
     subtitle: '주안에 뿌리내리고 함께 자라나 열매 맺는 성도의 교회',
     verse: '요한복음 15:5',
   },
   {
     bg: '/pict/main02',
+    alt: '한마음교회 교인 체육대회 게임 장면',
     title: '한마음교회 방문을 환영합니다',
     subtitle: '내가 이 반석 위에 교회를 세우리니',
     verse: '마태복음 16:18',
   },
   {
     bg: '/pict/main03',
+    alt: '한마음교회 교인 체육대회 단체사진',
     title: '환영하며 축복합니다',
     subtitle: '교인으로 등록하시면 건강한 신앙인으로 함께 자라갈 수 있습니다',
     verse: '인도네시아 자카르타 한마음교회',
