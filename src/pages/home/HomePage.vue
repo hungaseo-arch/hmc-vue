@@ -291,31 +291,32 @@ import { useSermons } from '@/composables/useSermons'
 import { useAuth } from '@/composables/useAuth'
 
 // ── 데이터 ──────────────────────────────────────────────────────
-// bg 는 쿼리 없는 원본 주소. 폭은 heroSrc 가 붙인다.
+// bg 는 public/pict 의 확장자·폭 없는 경로. 폭은 heroSrc 가 붙인다.
+// 이전 사진(Unsplash)은 photo-archive/replaced-photos.md 에 보관.
 const heroSlides = [
   {
-    bg: 'https://images.unsplash.com/photo-1769755410067-a1ea14b0602a',
+    bg: '/pict/main01',
     title: '2026년 교회 표어',
     subtitle: '주안에 뿌리내리고 함께 자라나 열매 맺는 성도의 교회',
     verse: '요한복음 15:5',
   },
   {
-    bg: 'https://images.unsplash.com/photo-1759592702518-b0393a8f7eed',
+    bg: '/pict/main02',
     title: '한마음교회 방문을 환영합니다',
     subtitle: '내가 이 반석 위에 교회를 세우리니',
     verse: '마태복음 16:18',
   },
   {
-    bg: 'https://images.unsplash.com/photo-1583402435141-5fcbce5a18f4',
+    bg: '/pict/main03',
     title: '환영하며 축복합니다',
     subtitle: '교인으로 등록하시면 건강한 신앙인으로 함께 자라갈 수 있습니다',
     verse: '인도네시아 자카르타 한마음교회',
   },
 ]
 
-/** 화면 폭에 맞는 크기만 받는다. fm=webp 로 JPEG 대비 절반 가까이 줄어든다. */
+/** 화면 폭에 맞는 크기만 받는다(640·1024·1600 webp 를 미리 만들어 두었다). */
 function heroSrc(bg: string, w: number) {
-  return `${bg}?w=${w}&q=70&fm=webp&fit=crop&auto=format`
+  return `${bg}-${w}.webp`
 }
 function heroSrcset(bg: string) {
   return [640, 1024, 1600].map(w => `${heroSrc(bg, w)} ${w}w`).join(', ')

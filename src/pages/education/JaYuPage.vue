@@ -4,7 +4,7 @@
     subtitle="자유교회 (Jakarta Youth Church) - 중고등부 청소년 사역"
     bg-color="from-orange-600 to-orange-500"
     accent-color="bg-orange-500"
-    image="https://images.unsplash.com/photo-1726679402113-beb32b857a59?w=800&q=80"
+    image="/pict/jayou.webp"
     description="2015년 1월부터 저희 교회와 꿈이있는교회, 동부교회, 참빛교회의 중고등부를 합쳐 청소년 전문사역자를 모시고 '자유교회(Ja-You)'로 독립시켰습니다. 질풍노도의 시기와 해외라는 상황을 다양하고 특별한 교육으로 준비된 다음세대를 세우는 데 밑거름이 되기를 기대합니다."
     verse="그 작은 자가 천 명을 이루겠고 그 약한 자가 강국을 이룰 것이라 때가 되면 나 여호와가 속히 이루리라 (사60:22)"
     :details="details"
