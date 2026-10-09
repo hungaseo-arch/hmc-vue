@@ -38,6 +38,18 @@ end;
 $$;
 revoke all on function public.set_post_author() from public;
 
+-- 트리거가 UPDATE 에서도 도는지 여기서 다시 보장한다(T18 을 수정 전 버전으로
+-- 적용했다면 insert 전용일 수 있다). 도지 않으면 관리자가 author_id·created_at 을
+-- 직접 고쳐 삭제 규칙을 우회할 수 있다.
+do $$
+declare t text;
+begin
+  foreach t in array array['church_news_content','mission_news_content','photo_album_meta','bulletin_meta'] loop
+    execute format('drop trigger if exists set_author on public.%I', t);
+    execute format('create trigger set_author before insert or update on public.%I for each row execute function public.set_post_author()', t);
+  end loop;
+end $$;
+
 -- 3. 삭제 규칙 한 곳: 슈퍼관리자, 또는 작성자(관리자)이면서 올린 지 1달 안.
 create or replace function public.may_delete_post(is_author boolean, created timestamptz)
 returns boolean
