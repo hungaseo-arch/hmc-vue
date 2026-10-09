@@ -21,7 +21,7 @@ async function load() {
   try {
     const { data, error: err } = await supabase
       .from('sermons')
-      .select('id, title, scripture, preacher, date, link')
+      .select('id, title, scripture, preacher, date, link, summary')
       .order('id', { ascending: false })
     if (err) throw err
     // 표기는 받는 쪽에서 한 번만 맞춘다. 카드·표·상세가 각자 다듬으면 어긋난다.

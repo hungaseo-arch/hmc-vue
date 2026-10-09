@@ -48,6 +48,19 @@
           </div>
         </div>
 
+        <!-- 다른 칼럼: 최근 5건 -->
+        <section v-if="related.length > 0" class="mt-10" aria-labelledby="related-columns">
+          <h2 id="related-columns" class="text-lg font-bold mb-4">다른 목회칼럼</h2>
+          <ul class="bg-white rounded-2xl border border-border divide-y divide-border">
+            <li v-for="r in related" :key="r.id">
+              <RouterLink :to="`${ROUTE_PATHS.PASTORAL_COLUMN}/${r.id}`" class="flex flex-col gap-1 px-6 py-4 hover:bg-muted/40 transition-colors">
+                <span class="font-medium">{{ cleanTitle(r.title) }}</span>
+                <span class="text-xs text-muted-foreground">{{ formatDate(r.created_at) }}</span>
+              </RouterLink>
+            </li>
+          </ul>
+        </section>
+
         <!-- 데이터 없을 때 -->
         <div v-else class="text-center py-20 text-muted-foreground">
           칼럼을 찾을 수 없습니다.
@@ -76,6 +89,7 @@ const route = useRoute()
 const column = ref<PastoralColumnItem | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
+const related = ref<{ id: number; title: string; created_at: string }[]>([])
 
 onMounted(async () => {
   const id = Number(route.params.id)
@@ -97,6 +111,15 @@ onMounted(async () => {
     })
   }
   loading.value = false
+
+  // 최근 칼럼 5건(현재 글 제외). 실패해도 본문에는 영향이 없다.
+  const { data: rel } = await supabase
+    .from('pastorColumn')
+    .select('id, title, created_at')
+    .neq('id', id)
+    .order('created_at', { ascending: false })
+    .limit(5)
+  related.value = rel ?? []
 })
 
 function formatDate(isoString: string): string {

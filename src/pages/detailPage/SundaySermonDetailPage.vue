@@ -96,6 +96,19 @@
           </div><!-- /본문 영역 -->
         </div><!-- /상세 카드 -->
 
+        <!-- 관련 설교: 같은 본문(책)·같은 설교자의 다른 설교. 크롤러가 이어서 따라갈 링크도 된다. -->
+        <section v-if="related.length > 0" class="mt-10" aria-labelledby="related-sermons">
+          <h2 id="related-sermons" class="text-lg font-bold mb-4">같은 본문·같은 설교자의 설교</h2>
+          <ul class="bg-white rounded-2xl border border-border divide-y divide-border">
+            <li v-for="r in related" :key="r.id">
+              <RouterLink :to="`${ROUTE_PATHS.SUNDAY_SERMON}/${r.id}`" class="flex flex-col gap-1 px-6 py-4 hover:bg-muted/40 transition-colors">
+                <span class="font-medium">{{ r.title }}</span>
+                <span class="text-xs text-muted-foreground">{{ [r.scripture, r.preacher, r.date].filter(Boolean).join(' · ') }}</span>
+              </RouterLink>
+            </li>
+          </ul>
+        </section>
+
         <!-- 데이터 없을 때 -->
         <div v-else class="text-center py-20 text-muted-foreground">
           설교를 찾을 수 없습니다.
@@ -107,8 +120,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useSermons } from '@/composables/useSermons'
 import { useBackTo } from '@/composables/useBackTo'
 import { ChevronLeft, BookOpen, User, BookMarked, Calendar, PlayCircle } from 'lucide-vue-next'
 import TheLayout from '@/components/TheLayout.vue'
@@ -144,7 +158,9 @@ onMounted(async () => {
   // 라우터가 깔아둔 '주일설교' 를 실제 설교 제목으로 바꾼다.
   setMeta({
     title: data.title,
-    description: [data.scripture, normalized.preacher, data.date].filter(Boolean).join(' · '),
+    description: data.summary?.trim() || [data.scripture, normalized.preacher, data.date].filter(Boolean).join(' · '),
+    // 엣지(worker)가 넣어 주는 값과 같게 - 영상이 있으면 유튜브 썸네일.
+    image: ytThumb(data.link),
     type: 'article',
   })
 
@@ -153,27 +169,40 @@ onMounted(async () => {
   if (parsed) bibleData.value = await loadBook(parsed.abbrev)
 })
 
+function embedId(link: string): string {
+  try {
+    const url = new URL(link)
+    if (url.hostname.includes('youtu.be')) return url.pathname.slice(1)
+    if (url.hostname.includes('youtube.com')) return url.searchParams.get('v') ?? url.pathname.split('/').pop() ?? ''
+  } catch {
+    // 주소 형식이 아니면 영상 없음으로 본다.
+  }
+  return ''
+}
+
+function ytThumb(link: string | null | undefined): string | undefined {
+  const id = link ? embedId(link) : ''
+  return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : undefined
+}
+
+// 같은 책(본문) → 같은 설교자 순으로 최근 5건. 이미 받아 둔 전체 목록에서 고른다.
+const { items: allSermons, fetchSermons } = useSermons()
+const related = computed(() => {
+  const cur = sermon.value
+  if (!cur) return []
+  const book = resolveScripture(cur.scripture)?.abbrev
+  const others = allSermons.value.filter(s => s.id !== cur.id)
+  const sameBook = book ? others.filter(s => resolveScripture(s.scripture)?.abbrev === book) : []
+  const samePreacher = others.filter(s => cur.preacher && s.preacher === cur.preacher && !sameBook.includes(s))
+  return [...sameBook, ...samePreacher].slice(0, 5)
+})
+watch(() => route.params.id, () => { void fetchSermons() }, { immediate: true })
+
 // YouTube URL → embed URL 변환
 // 지원: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/live/ID
 const embedUrl = computed(() => {
-  const link = sermon.value?.link
-  if (!link) return null
-
-  let videoId = ''
-  try {
-    const url = new URL(link)
-    if (url.hostname.includes('youtu.be')) {
-      videoId = url.pathname.slice(1)
-    } else if (url.hostname.includes('youtube.com')) {
-      videoId = url.searchParams.get('v')
-        ?? url.pathname.split('/').pop()
-        ?? ''
-    }
-  } catch {
-    return null
-  }
-
-  return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}` : null
+  const id = sermon.value?.link ? embedId(sermon.value.link) : ''
+  return id ? `https://www.youtube-nocookie.com/embed/${id}` : null
 })
 
 // scripture 파싱 → 구절 배열 반환

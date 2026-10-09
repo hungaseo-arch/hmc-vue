@@ -68,7 +68,7 @@
           </div>
         </div>
 
-        <ThePagination v-if="!loading && !error" v-model="currentPage" :total-pages="totalPages" />
+        <ThePagination v-if="!loading && !error" :model-value="currentPage" :total-pages="totalPages" />
       </div>
     </section>
 

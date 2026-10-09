@@ -122,6 +122,8 @@ export interface SermonItem {
   preacher: string
   date: string
   link?: string
+  /** 검색·공유 미리보기용 2~3문장(T22). 없으면 본문·설교자·날짜로 대신한다. */
+  summary?: string
 }
 
 export interface PastoralColumnItem {
