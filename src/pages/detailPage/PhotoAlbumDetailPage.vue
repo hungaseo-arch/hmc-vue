@@ -13,7 +13,7 @@
           앨범 목록으로
         </button>
           <div v-if="album" class="flex items-center gap-2">
-            <DeletePostButton v-if="canDelete(album.authorId, album.createdAt)" :label="album.title || `${album.date} 사진`" :action="remove" />
+            <DeletePostButton v-if="canManageOwn(album.authorId, album.createdAt)" :label="album.title || `${album.date} 사진`" :action="remove" />
             <ShareButton :title="`사진앨범 · ${album.title}`" />
           </div>
         </div>
@@ -91,7 +91,7 @@ const { boxStyle, remember } = useImageRatio(4 / 3)
 const goBack = useBackTo(ROUTE_PATHS.PHOTO_ALBUM)
 const route = useRoute()
 const { items, loading, fetchAlbums, reset } = usePhotoAlbum()
-const { canDelete, isSuperAdmin } = useAuth()
+const { canManageOwn, isSuperAdmin } = useAuth()
 
 onMounted(fetchAlbums)
 

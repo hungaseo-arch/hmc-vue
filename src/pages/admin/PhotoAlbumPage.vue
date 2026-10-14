@@ -5,8 +5,9 @@
       <div class="container mx-auto px-4 max-w-5xl">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xl font-bold">앨범 목록</h2>
+          <!-- 승인 교인이면 누구나 올린다. 이 화면 자체가 교인 전용이라 사실상 항상 보인다. -->
           <button
-            v-if="isAdmin"
+            v-if="accessLevel >= 1"
             class="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition"
             @click="showModal = true"
           >
@@ -56,7 +57,7 @@
               </RouterLink>
             </div>
             <button
-              v-if="isAdmin"
+              v-if="canManageOwn(album.authorId, album.createdAt)"
               class="icon-btn absolute top-2 right-2 z-10 bg-white/90 shadow hover:bg-white"
               :aria-label="`${album.title || album.date} 앨범 수정`"
               @click.stop="openEditModal(album)"
@@ -197,7 +198,7 @@ import { nextPageNo } from '@/lib/index'
 import { mustAffectRows, mustRemoveFiles } from '@/lib/db'
 import { compressImages, sizeSummary } from '@/lib/imageCompress'
 
-const { isAdmin } = useAuth()
+const { accessLevel, isSuperAdmin, canManageOwn } = useAuth()
 const { items, loading, error, fetchAlbums, reset } = usePhotoAlbum()
 fetchAlbums()
 
@@ -265,12 +266,12 @@ async function handleEditSubmit() {
         if (upErr) throw upErr
       }
     }
-    // 제목 저장
-    await mustAffectRows('앨범 수정',
-      supabase.from('photo_album_meta').upsert({
-        id: editingId.value,
-        title: editForm.value.title.trim(),
-      }).select('id'))
+    // 제목 저장. 정보 행이 없는 옛 앨범은 슈퍼관리자만 고칠 수 있고, 그때는
+    // 행을 새로 만들어야 하므로 upsert. 나머지는 이미 있는 내 행만 고친다.
+    const title = editForm.value.title.trim()
+    await mustAffectRows('앨범 수정', isSuperAdmin.value
+      ? supabase.from('photo_album_meta').upsert({ id: editingId.value, title }).select('id')
+      : supabase.from('photo_album_meta').update({ title }).eq('id', editingId.value).select('id'))
     // 목록 새로고침
     reset()
     await fetchAlbums()
@@ -304,31 +305,51 @@ async function handleSubmit() {
 
   saving.value = true
   errorMsg.value = ''
+  const numId = Date.now()
+  const base = `${form.value.date}_${numId}`
+  const uploaded: string[] = []
+  let created = false
   try {
-    const numId = Date.now()
-    const base = `${form.value.date}_${numId}`
     // 올리기 전에 브라우저에서 300 KB 아래로 줄인다. imageCompress 설명 참고.
     const ready = await compressImages(files, (d, t) => {
       uploadProgress.value = `사진 줄이는 중... (${d}/${t})`
     })
     const summary = sizeSummary(files, ready)
-    for (let i = 0; i < ready.length; i++) {
-      const ext = ready[i].name.split('.').pop()
-      const p = String(i + 1).padStart(2, '0')
-      uploadProgress.value = `업로드 중... (${i + 1}/${ready.length})${summary}`
-      const { error: err } = await supabase.storage.from('photoAlbum').upload(`${base}_p${p}.${ext}`, ready[i], { upsert: true })
-      if (err) throw err
-    }
+    /*
+      정보 행을 먼저 만든다(T24). 사진 업로드 권한을 서버가 '이 앨범의
+      작성자인가' 로 판정하므로, 행이 먼저 있어야 한다. 작성자·올린 시각은
+      트리거가 채운다.
+    */
     await mustAffectRows('앨범 등록',
-      supabase.from('photo_album_meta').upsert({
+      supabase.from('photo_album_meta').insert({
         id: base,
         title: form.value.title.trim(),
       }).select('id'))
+    created = true
+    for (let i = 0; i < ready.length; i++) {
+      const ext = ready[i].name.split('.').pop()
+      const name = `${base}_p${String(i + 1).padStart(2, '0')}.${ext}`
+      uploadProgress.value = `업로드 중... (${i + 1}/${ready.length})${summary}`
+      const { error: err } = await supabase.storage.from('photoAlbum').upload(name, ready[i])
+      if (err) throw err
+      uploaded.push(name)
+    }
     reset()
     await fetchAlbums()
     closeModal()
   } catch (e: unknown) {
     errorMsg.value = errorMessage(e)
+    // 중간에 끊기면 반쯤 올라간 앨범을 걷어 낸다. 남겨 두면 사진 몇 장짜리
+    // 앨범이 목록에 뜬다. 걷어 내기마저 실패하면 콘솔에만 남긴다 - 사용자에게
+    // 보일 오류는 이미 위에 있다.
+    if (created) {
+      if (uploaded.length) {
+        const { error: rmErr } = await supabase.storage.from('photoAlbum').remove(uploaded)
+        if (rmErr) console.warn('[포토앨범] 실패한 등록의 사진 정리 실패:', rmErr.message)
+      }
+      const { error: delErr } = await supabase.from('photo_album_meta').delete().eq('id', base)
+      if (delErr) console.warn('[포토앨범] 실패한 등록의 정보 정리 실패:', delErr.message)
+    }
   } finally {
     saving.value = false
     uploadProgress.value = ''

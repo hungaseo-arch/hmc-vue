@@ -266,6 +266,19 @@ function canDelete(authorId: string | null | undefined, createdAt?: string | nul
   return limit.getTime() > Date.now()
 }
 
+/**
+ * 교인이 올리는 게시물(포토앨범)의 수정·삭제 권한. 슈퍼관리자이거나, 승인
+ * 교인 이상이면서 작성자 본인이고 올린 지 1달 안일 때만. DB 의
+ * may_manage_album(T24)과 같은 규칙이다.
+ */
+function canManageOwn(authorId: string | null | undefined, createdAt?: string | null): boolean {
+  if (isSuperAdmin.value) return true
+  if (accessLevel.value < 1 || !authorId || authorId !== user.value?.id || !createdAt) return false
+  const limit = new Date(createdAt)
+  limit.setMonth(limit.getMonth() + 1)
+  return limit.getTime() > Date.now()
+}
+
 /** 프로필을 아직 못 받았고, 그 이유가 통신 오류인 경우 true. 승인 대기 화면이 본다. */
 const profileUnknown = computed(() => profileError.value && !profile.value)
 
@@ -420,7 +433,7 @@ export function useAuth() {
 
   return {
     user, profile,
-    isLoggedIn, isAdmin, isSuperAdmin, canDelete, displayName,
+    isLoggedIn, isAdmin, isSuperAdmin, canDelete, canManageOwn, displayName,
     memberStatus, isApproved, accessLevel, profileUnknown,
     login, logout, signUp, signInWithKakao, updateProfile, refreshProfile,
     logEvent,
