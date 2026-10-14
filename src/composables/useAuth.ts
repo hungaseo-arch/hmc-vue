@@ -26,11 +26,15 @@ export interface Profile {
   member_status: MemberStatus
   access_level: AccessLevel
   provider: string | null
+  /** 포토앨범 작성 허용(T27). 관리자만 켜고 끈다. */
+  album_writer: boolean
+  /** 앨범 작성을 신청한 시각. 관리자가 처리하면 비워진다. */
+  album_writer_requested_at: string | null
   created_at: string | null
 }
 
 const PROFILE_COLUMNS =
-  'role, name, phone, position, gender, family_head, child1, child2, child3, member_status, access_level, provider, created_at'
+  'role, name, phone, position, gender, family_head, child1, child2, child3, member_status, access_level, provider, album_writer, album_writer_requested_at, created_at'
 
 /** 카카오로 떠나기 전에 보던 경로. 돌아온 뒤 여기로 되돌린다. */
 export const RETURN_TO_KEY = 'returnTo'
@@ -253,6 +257,14 @@ const isAdmin = computed(() => accessLevel.value >= 2)
 const isSuperAdmin = computed(() => accessLevel.value >= 3)
 
 /**
+ * 포토앨범 작성 권한. 관리자 이상이거나, 관리자가 '앨범 작성 허용' 을 켜 준
+ * 교인. DB 의 can_write_album()(T27)과 같은 규칙이다.
+ */
+const canWriteAlbum = computed(() =>
+  accessLevel.value >= 2 || (accessLevel.value >= 1 && profile.value?.album_writer === true),
+)
+
+/**
  * 게시물 삭제 권한. 슈퍼관리자이거나, 관리자이면서 작성자 본인이고 올린 지
  * 1달 안일 때만. 작성자 기록이 없는 옛 글은 슈퍼관리자만 지운다. DB 정책
  * (T18·T20 의 may_delete_post)과 같은 규칙이다 - 화면은 버튼을 보일지만 정하고,
@@ -267,13 +279,13 @@ function canDelete(authorId: string | null | undefined, createdAt?: string | nul
 }
 
 /**
- * 교인이 올리는 게시물(포토앨범)의 수정·삭제 권한. 슈퍼관리자이거나, 승인
- * 교인 이상이면서 작성자 본인이고 올린 지 1달 안일 때만. DB 의
- * may_manage_album(T24)과 같은 규칙이다.
+ * 교인이 올리는 게시물(포토앨범)의 수정·삭제 권한. 슈퍼관리자이거나, 앨범
+ * 작성 권한이 있으면서 작성자 본인이고 올린 지 1달 안일 때만. DB 의
+ * may_manage_album(T24·T27)과 같은 규칙이다.
  */
 function canManageOwn(authorId: string | null | undefined, createdAt?: string | null): boolean {
   if (isSuperAdmin.value) return true
-  if (accessLevel.value < 1 || !authorId || authorId !== user.value?.id || !createdAt) return false
+  if (!canWriteAlbum.value || !authorId || authorId !== user.value?.id || !createdAt) return false
   const limit = new Date(createdAt)
   limit.setMonth(limit.getMonth() + 1)
   return limit.getTime() > Date.now()
@@ -413,7 +425,7 @@ export function useAuth() {
     return { needsEmailConfirm: false }
   }
 
-  async function updateProfile(fields: Partial<Omit<Profile, 'role' | 'member_status' | 'access_level' | 'provider' | 'created_at'>>) {
+  async function updateProfile(fields: Partial<Omit<Profile, 'role' | 'member_status' | 'access_level' | 'provider' | 'album_writer' | 'album_writer_requested_at' | 'created_at'>>) {
     if (!user.value) throw new Error('로그인이 필요합니다.')
     // 등급 관련 컬럼은 보내지 않는다. 보내면 회원이 스스로 승급할 수 있다.
     const rows = await mustAffectRows(
@@ -433,7 +445,7 @@ export function useAuth() {
 
   return {
     user, profile,
-    isLoggedIn, isAdmin, isSuperAdmin, canDelete, canManageOwn, displayName,
+    isLoggedIn, isAdmin, isSuperAdmin, canDelete, canManageOwn, canWriteAlbum, displayName,
     memberStatus, isApproved, accessLevel, profileUnknown,
     login, logout, signUp, signInWithKakao, updateProfile, refreshProfile,
     logEvent,

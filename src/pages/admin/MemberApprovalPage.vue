@@ -4,7 +4,7 @@
 
     <section class="py-12">
       <div class="container mx-auto px-4 max-w-3xl">
-        <!-- 탭. 기본은 '승인 대기' - 여기 들어오는 이유가 대개 그것이다. -->
+        <!-- 탭. 기본은 '확인 요청'(가입 대기·앨범 작성 신청) - 여기 들어오는 이유가 대개 그것이다. -->
         <div class="flex gap-2 mb-6" role="tablist" aria-label="회원 목록 종류">
           <button
             v-for="t in TABS"
@@ -73,7 +73,7 @@
         <p v-if="loading" class="py-16 text-center text-sm text-muted-foreground">불러오는 중...</p>
 
         <p v-else-if="!visible.length" class="py-16 text-center text-sm text-muted-foreground">
-          {{ tab === 'pending' ? '승인을 기다리는 분이 없습니다.' : '해당하는 회원이 없습니다.' }}
+          {{ tab === 'pending' ? '확인을 기다리는 요청이 없습니다.' : '해당하는 회원이 없습니다.' }}
         </p>
 
         <ul v-else class="space-y-4">
@@ -105,6 +105,12 @@
               <span v-if="levelOf(m) >= 2" class="px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
                 관리자
               </span>
+              <span v-else-if="m.album_writer" class="px-2.5 py-1 rounded-full text-xs font-medium bg-sky-50 text-sky-800">
+                앨범 작성
+              </span>
+              <span v-else-if="albumRequested(m)" class="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                앨범 작성 신청
+              </span>
               <span v-if="m.id === myId" class="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
                 나
               </span>
@@ -125,7 +131,31 @@
                 <dt class="text-muted-foreground">직분</dt>
                 <dd class="text-foreground">{{ m.position }}</dd>
               </template>
+              <template v-if="albumRequested(m)">
+                <dt class="text-muted-foreground">앨범 신청일</dt>
+                <dd class="text-foreground">{{ longDateTime(m.album_writer_requested_at) }}</dd>
+              </template>
             </dl>
+
+            <!-- 앨범 작성 신청(T27). 실명·전화번호·직분을 보고 허용하거나 거절한다. -->
+            <div v-if="tab === 'pending' && albumRequested(m)" class="relative z-20 mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                :disabled="busyId === m.id"
+                class="py-2.5 flex-1 min-w-35 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
+                @click="onAlbumWriter(m, true)"
+              >
+                {{ busyId === m.id ? '처리 중...' : '앨범 작성 허용' }}
+              </button>
+              <button
+                type="button"
+                :disabled="busyId === m.id"
+                class="py-2.5 flex-1 min-w-35 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:brightness-95 transition disabled:opacity-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40"
+                @click="onAlbumWriter(m, false)"
+              >
+                신청 거절
+              </button>
+            </div>
 
             <!-- 대기 중인 분에게는 승인/반려만 크게 보여준다.
                  z-20 이라 명부 탭에서도 덮개보다 위에 있다. -->
@@ -225,6 +255,28 @@
               </p>
             </div>
 
+            <!-- 포토앨범 작성 허용(T27). 관리자는 따로 켜지 않아도 쓴다. -->
+            <div>
+              <h4 class="text-sm font-semibold text-foreground mb-3">포토앨범 작성</h4>
+              <p v-if="levelOf(openMember) >= 2" class="text-xs text-muted-foreground">
+                관리자는 따로 허용하지 않아도 앨범을 올릴 수 있습니다.
+              </p>
+              <template v-else>
+                <button
+                  type="button"
+                  :disabled="busyId === openMember.id || (!openMember.album_writer && openMember.member_status !== 'active')"
+                  class="py-2.5 w-full rounded-xl text-sm font-semibold transition disabled:opacity-40"
+                  :class="openMember.album_writer ? 'bg-secondary text-secondary-foreground hover:brightness-95' : 'bg-primary text-primary-foreground hover:bg-primary/90'"
+                  @click="onAlbumWriter(openMember, !openMember.album_writer)"
+                >
+                  {{ openMember.album_writer ? '앨범 작성 허용 끄기' : '앨범 작성 허용 (실명·연락처 확인 후)' }}
+                </button>
+                <p class="mt-2 text-xs text-muted-foreground">
+                  {{ openMember.album_writer ? '지금 앨범을 올릴 수 있습니다. 끄면 본인 앨범도 더는 고치거나 지우지 못합니다.' : '지금은 앨범을 볼 수만 있습니다.' }}
+                </p>
+              </template>
+            </div>
+
             <!-- 접근 정지 / 해제 -->
             <div>
               <h4 class="text-sm font-semibold text-foreground mb-3">접근</h4>
@@ -303,11 +355,13 @@ interface MemberRow {
   member_status: MemberStatus
   access_level: number
   provider: string | null
+  album_writer: boolean
+  album_writer_requested_at: string | null
   created_at: string | null
 }
 
 const TABS = [
-  { key: 'pending', label: '승인 대기' },
+  { key: 'pending', label: '확인 요청' },
   { key: 'all', label: '회원 명부' },
 ] as const
 
@@ -359,10 +413,14 @@ function levelOf(m: MemberRow): number {
 
 const STATUS_ORDER: Record<MemberStatus, number> = { pending: 0, active: 1, suspended: 2, rejected: 3 }
 
-const pendingCount = computed(() => members.value.filter(m => m.member_status === 'pending').length)
+/** 관리자가 처리할 일이 있는 회원: 가입 대기, 또는 앨범 작성 신청(T27). */
+const albumRequested = (m: MemberRow) => !!m.album_writer_requested_at && !m.album_writer && m.member_status === 'active'
+const needsAction = (m: MemberRow) => m.member_status === 'pending' || albumRequested(m)
+
+const pendingCount = computed(() => members.value.filter(needsAction).length)
 
 const visible = computed(() => {
-  if (tab.value === 'pending') return members.value.filter(m => m.member_status === 'pending')
+  if (tab.value === 'pending') return members.value.filter(needsAction)
   const k = keyword.value.trim().toLowerCase()
   if (!k) return members.value
   return members.value.filter(m =>
@@ -375,7 +433,7 @@ async function load() {
   errorMsg.value = ''
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, phone, position, role, member_status, access_level, provider, created_at')
+    .select('id, name, phone, position, role, member_status, access_level, provider, album_writer, album_writer_requested_at, created_at')
     .order('created_at', { ascending: false, nullsFirst: false })
 
   if (error) {
@@ -465,6 +523,16 @@ async function onLevel(m: MemberRow, level: number) {
 async function onStatus(m: MemberRow, status: string, label: string) {
   if (!confirm(`${nameOf(m)}님을 ${label} 처리할까요?`)) return
   await call('set_member_status', { p_target: m.id, p_status: status }, m, label)
+}
+
+async function onAlbumWriter(m: MemberRow, on: boolean) {
+  const q = on
+    ? `${nameOf(m)}님께 포토앨범 작성을 허용할까요?`
+    : albumRequested(m)
+      ? `${nameOf(m)}님의 포토앨범 작성 신청을 거절할까요?`
+      : `${nameOf(m)}님의 포토앨범 작성 허용을 끌까요?`
+  if (!confirm(q)) return
+  await call('set_album_writer', { p_target: m.id, p_on: on }, m, on ? '앨범 작성 허용' : albumRequested(m) ? '앨범 작성 신청 거절' : '앨범 작성 허용 해제')
 }
 
 async function onSaveInfo(m: MemberRow) {

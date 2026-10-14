@@ -5,11 +5,14 @@
       <div class="container mx-auto px-4 max-w-5xl">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xl font-bold">앨범 목록</h2>
-          <!-- 승인 교인이면 누구나 올린다. 이 화면 자체가 교인 전용이라 사실상 항상 보인다. -->
+          <!--
+            교인이면 버튼은 모두에게 보인다. 작성 허용(T27)을 받지 못한 분은
+            등록 대신 신청 모달이 열린다 - 버튼을 숨기면 방법이 있는 줄도 모른다.
+          -->
           <button
             v-if="accessLevel >= 1"
             class="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition"
-            @click="showModal = true"
+            @click="openCreate"
           >
             <Plus class="w-4 h-4" />
             새 앨범 등록
@@ -179,6 +182,55 @@
           </form>
         </div>
       </div>
+
+      <!-- 앨범 작성 신청. 작성 허용을 받지 못한 교인이 [새 앨범 등록]을 누르면 열린다. -->
+      <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
+      <div
+        v-if="showRequestModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="photoalbum-request-title"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        @click.self="closeRequest"
+      >
+        <div class="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-xl max-h-[90dvh] overflow-y-auto">
+          <h3 id="photoalbum-request-title" class="text-lg font-bold mb-4">포토앨범 작성 신청</h3>
+
+          <div class="mb-6 rounded-xl bg-secondary px-5 py-4 text-sm leading-relaxed text-secondary-foreground space-y-2">
+            <p>포토앨범은 <strong>교회에서 확인한 교인</strong>만 올릴 수 있습니다.</p>
+            <p>아래에 <strong>실명·전화번호·직분</strong>을 적어 신청해 주세요. <strong>관리자 승인이 끝나면</strong> 바로 앨범을 올릴 수 있습니다.</p>
+          </div>
+
+          <p v-if="requestDone" role="status" class="mb-4 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm leading-relaxed text-green-800">
+            신청이 접수되었습니다. 관리자 승인을 기다려 주세요.
+          </p>
+          <p v-else-if="requestedAt" class="mb-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm leading-relaxed text-amber-900">
+            {{ longDateTime(requestedAt) }}에 신청하셨습니다. 관리자 승인을 기다리는 중입니다. 정보를 고쳐 다시 보내셔도 됩니다.
+          </p>
+
+          <form class="space-y-4" @submit.prevent="submitRequest">
+            <div>
+              <label for="photoalbum-req-name" class="block text-sm font-medium mb-1.5">실명 <span class="text-red-500" aria-hidden="true">*</span></label>
+              <input id="photoalbum-req-name" v-model="requestForm.name" required type="text" autocomplete="name" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+            </div>
+            <div>
+              <label for="photoalbum-req-phone" class="block text-sm font-medium mb-1.5">전화번호 <span class="text-red-500" aria-hidden="true">*</span></label>
+              <input id="photoalbum-req-phone" v-model="requestForm.phone" required type="tel" autocomplete="tel" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+            </div>
+            <div>
+              <label for="photoalbum-req-position" class="block text-sm font-medium mb-1.5">직분</label>
+              <input id="photoalbum-req-position" v-model="requestForm.position" type="text" placeholder="예: 집사, 권사, 성도" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
+            </div>
+            <p v-if="requestError" role="alert" class="text-sm text-red-500">{{ requestError }}</p>
+            <div class="flex gap-3 pt-2">
+              <button type="button" class="flex-1 border border-border rounded-xl py-2.5 text-sm font-medium hover:bg-muted transition" @click="closeRequest">닫기</button>
+              <button type="submit" :disabled="requestSaving" class="flex-1 bg-primary text-primary-foreground rounded-xl py-2.5 text-sm font-semibold hover:bg-primary/90 transition disabled:opacity-50">
+                {{ requestSaving ? '보내는 중...' : requestedAt ? '다시 신청' : '신청하기' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </Teleport>
   </TheLayout>
 </template>
@@ -197,8 +249,9 @@ import { supabase } from '@/lib/supabase'
 import { nextPageNo } from '@/lib/index'
 import { mustAffectRows, mustRemoveFiles } from '@/lib/db'
 import { compressImages, sizeSummary } from '@/lib/imageCompress'
+import { longDateTime } from '@/lib/jakarta'
 
-const { accessLevel, isSuperAdmin, canManageOwn } = useAuth()
+const { profile, accessLevel, isSuperAdmin, canManageOwn, canWriteAlbum, refreshProfile } = useAuth()
 const { items, loading, error, fetchAlbums, reset } = usePhotoAlbum()
 fetchAlbums()
 
@@ -291,6 +344,55 @@ const uploadProgress = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
 const form = ref({ date: '', title: '' })
 
+/*
+  작성 허용을 받은 분은 바로 등록 모달, 아니면 신청 모달. 관리자가 방금
+  허용했을 수 있으니 판정 전에 프로필을 새로 받는다.
+*/
+async function openCreate() {
+  if (!canWriteAlbum.value) await refreshProfile().catch(() => {})
+  if (canWriteAlbum.value) {
+    showModal.value = true
+    return
+  }
+  requestForm.value = {
+    name: profile.value?.name ?? '',
+    phone: profile.value?.phone ?? '',
+    position: profile.value?.position ?? '',
+  }
+  requestError.value = ''
+  requestDone.value = false
+  showRequestModal.value = true
+}
+
+const showRequestModal = ref(false)
+const requestSaving = ref(false)
+const requestError = ref('')
+const requestDone = ref(false)
+const requestForm = ref({ name: '', phone: '', position: '' })
+const requestedAt = computed(() => profile.value?.album_writer_requested_at ?? null)
+
+function closeRequest() {
+  showRequestModal.value = false
+}
+
+async function submitRequest() {
+  requestSaving.value = true
+  requestError.value = ''
+  const { error: e } = await supabase.rpc('request_album_writer', {
+    p_name: requestForm.value.name,
+    p_phone: requestForm.value.phone,
+    p_position: requestForm.value.position,
+  })
+  if (e) {
+    console.warn('[포토앨범] 작성 신청 실패:', e.message)
+    requestError.value = /[가-힣]/.test(e.message) ? e.message : '신청하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+  } else {
+    requestDone.value = true
+    await refreshProfile().catch(() => {})
+  }
+  requestSaving.value = false
+}
+
 function closeModal() {
   showModal.value = false
   form.value = { date: '', title: '' }
@@ -359,6 +461,7 @@ async function handleSubmit() {
 // Esc 로 모달 닫기
 useEscapeToClose([
   { isOpen: () => showModal.value, close: closeModal },
+  { isOpen: () => showRequestModal.value, close: closeRequest },
   { isOpen: () => showEditModal.value, close: () => (showEditModal.value = false) },
 ])
 </script>
