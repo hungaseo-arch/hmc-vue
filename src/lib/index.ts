@@ -39,6 +39,7 @@ export const ROUTE_PATHS = {
   // 관리자 전용
   ADMIN_MEMBERS: '/admin/members',
   ADMIN_AUDIT_LOG: '/admin/audit-log',
+  ADMIN_MEMBER_ACCESS: '/admin/member-access',
 } as const
 
 export interface NavSubItem {

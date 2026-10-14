@@ -23,7 +23,7 @@ const EXACT = new Set<string>([
   '/worship/sunday-sermon', '/worship/pastoral-column', '/worship/church-video',
   '/education/j-angels', '/education/j-kids', '/education/ja-yu', '/education/youth', '/education/adult',
   '/community/news', '/community/photos', '/community/bulletin', '/community/mission-news',
-  '/admin/members', '/admin/audit-log',
+  '/admin/members', '/admin/audit-log', '/admin/member-access',
 ])
 
 // id 가 붙는 경로. 설교·칼럼은 숫자 id, 소식·사진·주보는 '2025-11-16_617' 같은 슬러그.

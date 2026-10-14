@@ -74,3 +74,24 @@ export function shiftYmd(ymd: string, delta: number): string {
 export function todayCompact(): string {
   return todayYmd().replace(/-/g, '')
 }
+
+/** 14:33:07 - 날짜 머리 아래에 시각만 늘어놓는 자리. */
+const timeFmt = new Intl.DateTimeFormat('ko-KR', {
+  timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+})
+
+export function timeOnly(iso: string): string {
+  return timeFmt.format(new Date(iso))
+}
+
+/** 시각이 자카르타 기준으로 며칠인지. 'YYYY-MM-DD'. */
+export function ymdOf(iso: string): string {
+  return ymdFmt.format(new Date(iso))
+}
+
+/** 자카르타 날짜로 오늘부터 며칠 전인지. 같은 날이면 0. */
+export function daysAgo(iso: string): number {
+  const a = new Date(`${ymdOf(iso)}T00:00:00${WIB}`).getTime()
+  const b = new Date(`${todayYmd()}T00:00:00${WIB}`).getTime()
+  return Math.round((b - a) / 86_400_000)
+}

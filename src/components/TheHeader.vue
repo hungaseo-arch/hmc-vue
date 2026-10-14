@@ -82,6 +82,14 @@
                   >
                     접속 기록
                   </RouterLink>
+                  <RouterLink
+                    v-if="accessLevel >= 3"
+                    :to="ROUTE_PATHS.ADMIN_MEMBER_ACCESS"
+                    class="block px-4 py-2 text-xs hover:bg-muted hover:text-primary transition-colors"
+                    active-class="bg-primary/10 !text-primary font-medium"
+                  >
+                    회원별 접속
+                  </RouterLink>
                 </template>
                 <div class="my-1 border-t border-border/60" />
                 <button
@@ -281,6 +289,13 @@
                 class="block px-3 py-2.5 text-sm rounded-lg hover:bg-muted transition-colors font-medium text-primary"
               >
                 접속 기록
+              </RouterLink>
+              <RouterLink
+                v-if="accessLevel >= 3"
+                :to="ROUTE_PATHS.ADMIN_MEMBER_ACCESS"
+                class="block px-3 py-2.5 text-sm rounded-lg hover:bg-muted transition-colors font-medium text-primary"
+              >
+                회원별 접속
               </RouterLink>
               <button class="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-muted transition-colors text-red-500" @click="handleLogout">로그아웃</button>
             </template>

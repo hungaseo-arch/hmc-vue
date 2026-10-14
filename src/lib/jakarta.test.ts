@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dayLabel, fullDateTime, longDateTime, shiftYmd, shortDateTime } from './jakarta'
+import { dayLabel, fullDateTime, longDateTime, shiftYmd, shortDateTime, timeOnly, ymdOf } from './jakarta'
 
 describe('jakarta 시각', () => {
   it('UTC 를 UTC+7 로 옮긴다', () => {
@@ -19,5 +19,10 @@ describe('jakarta 시각', () => {
   it('날짜 이동은 달·해를 넘긴다', () => {
     expect(shiftYmd('2026-08-31', 1)).toBe('2026-09-01')
     expect(shiftYmd('2026-01-01', -1)).toBe('2025-12-31')
+  })
+  it('날짜 가르기는 자카르타 자정 기준', () => {
+    expect(ymdOf('2026-08-09T16:59:59Z')).toBe('2026-08-09')
+    expect(ymdOf('2026-08-09T17:00:00Z')).toBe('2026-08-10')
+    expect(timeOnly('2026-08-09T17:00:05Z')).toBe('00:00:05')
   })
 })

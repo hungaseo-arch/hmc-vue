@@ -112,7 +112,14 @@
               <h3 class="text-sm font-semibold text-foreground mb-3">많이 이용한 분</h3>
               <ol class="space-y-2">
                 <li v-for="u in summary.top_users.slice(0, 8)" :key="u.user_id ?? u.name" class="flex items-baseline justify-between gap-3 text-sm">
-                  <span class="text-foreground truncate">{{ u.name }}</span>
+                  <RouterLink
+                    v-if="u.user_id"
+                    :to="{ path: ROUTE_PATHS.ADMIN_MEMBER_ACCESS, query: { user: u.user_id } }"
+                    class="text-primary hover:underline truncate"
+                  >
+                    {{ u.name }}
+                  </RouterLink>
+                  <span v-else class="text-foreground truncate">{{ u.name }}</span>
                   <span class="shrink-0 text-muted-foreground tabular-nums">
                     {{ u.total }}건 · {{ shortDateTime(u.last_at) }}
                   </span>
@@ -153,7 +160,7 @@
 
           <p v-else class="sm:hidden px-5 py-2 text-xs text-muted-foreground">표를 옆으로 밀어 보세요 →</p>
           <div v-if="loading || rows.length" class="overflow-x-auto">
-            <table class="w-full min-w-[640px] text-left">
+            <table class="w-full min-w-160 text-left">
               <caption class="sr-only">접속 기록 목록. 최근 순으로 정렬되어 있습니다.</caption>
               <thead class="bg-secondary">
                 <tr class="text-sm text-secondary-foreground">
