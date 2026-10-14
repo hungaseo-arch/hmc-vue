@@ -19,7 +19,7 @@ const router = createRouter({
     // 내 정보는 승인 전에도 볼 수 있어야 한다. 승인 심사가 이름·연락처를
     // 보고 이뤄지므로, 대기 중인 사람이 오히려 고칠 일이 많다.
     { path: ROUTE_PATHS.PROFILE, component: () => import('@/pages/ProfilePage.vue'), meta: { requiresAuth: true, title: '내 정보', noindex: true } },
-    { path: ROUTE_PATHS.PENDING, component: () => import('@/pages/PendingPage.vue'), meta: { requiresAuth: true, title: '승인 대기 중', noindex: true } },
+    { path: ROUTE_PATHS.PENDING, component: () => import('@/pages/PendingPage.vue'), meta: { requiresAuth: true, title: '계정 상태', noindex: true } },
     { path: ROUTE_PATHS.NO_ACCESS, component: () => import('@/pages/NoAccessPage.vue'), meta: { requiresAuth: true, title: '열람 권한 없음', noindex: true } },
 
     // 교회소개
@@ -107,8 +107,8 @@ router.beforeEach(async (to) => {
     return { path: ROUTE_PATHS.LOGIN, query: { next: to.fullPath } }
   }
 
-  // 로그인은 했지만 아직 승인 전. '권한 없음' 이 아니라 '기다리는 중' 이므로
-  // 안내를 달리해야 한다. 노년 사용자가 실패로 오해하고 재가입하지 않도록.
+  // 로그인은 했지만 active 가 아니다. T26 부터 가입 즉시 active 이므로 대개
+  // 정지·반려 계정이다. '권한 없음' 대신 상태 안내 화면으로 보낸다.
   if (need >= 1 && status !== 'active') {
     // 통신 오류로 프로필을 못 받은 것은 '승인 전' 이 아니다. 거부로 세지 않고
     // 승인 대기 화면이 '다시 확인' 을 안내한다(PendingPage 의 profileUnknown).

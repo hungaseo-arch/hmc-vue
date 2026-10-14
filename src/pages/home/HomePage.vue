@@ -231,19 +231,19 @@
             :item="item"
           />
         </div>
-        <!-- 교회소식은 승인된 성도 전용이다. 그 전에는 아예 요청하지 않는다. -->
+        <!-- 교회소식은 교인(active) 전용이다. 정지·반려 계정에는 아예 요청하지 않는다. -->
         <div
           v-else
           class="rounded-2xl border border-dashed border-border bg-muted/30 px-8 py-14 text-center"
         >
           <p class="text-muted-foreground mb-4">
-            {{ isLoggedIn ? '교회소식은 승인이 끝난 뒤 볼 수 있습니다.' : '교회소식은 성도님께만 공개됩니다.' }}
+            {{ isLoggedIn ? '지금 계정으로는 교회소식을 볼 수 없습니다.' : '교회소식은 성도님께만 공개됩니다.' }}
           </p>
           <RouterLink
             :to="isLoggedIn ? ROUTE_PATHS.PENDING : ROUTE_PATHS.LOGIN"
             class="inline-block rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            {{ isLoggedIn ? '승인 상태 확인' : '로그인하고 보기' }}
+            {{ isLoggedIn ? '계정 상태 확인' : '로그인하고 보기' }}
           </RouterLink>
         </div>
       </div>
